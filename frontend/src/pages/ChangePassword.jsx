@@ -58,6 +58,7 @@ export const ChangePassword = () => {
         setMessage(firstError);
         setIsError(true);
         setShowModal(true);
+        setIsLoading(false);
         return;
       }
 
@@ -68,7 +69,6 @@ export const ChangePassword = () => {
       setCurrentPassword("");
       setNewPassword("");
       setReNewPassword("");
-
     } catch (err) {
       setMessage("An unexpected error occurred.");
       setIsError(true);
@@ -125,13 +125,15 @@ export const ChangePassword = () => {
       </div>
 
       {isLoading && (
-          <Modal>
-            <div className="modal-message-with-spinner">
-              <div className="loading-spinner" />
-              <p className="loading-text">Currently in progress... Please wait.</p>
-            </div>
-          </Modal>
-        )}
+        <Modal>
+          <div className="modal-message-with-spinner">
+            <div className="loading-spinner" />
+            <p className="loading-text">
+              Currently in progress... Please wait.
+            </p>
+          </div>
+        </Modal>
+      )}
 
       {/* Modal for success or error */}
       {showModal && !isLoading && (
