@@ -316,103 +316,64 @@ const StudentSideInfo = ({
               <div className="form-row three-columns">
                 <FormField
                   label="First Name"
-                  value={formData.first_name}
-                  onChange={(e) => {
-                    const value = e.target.value;
-
-                    // Only allow letters and spaces while typing
-                    if (/^[A-Za-z\s]*$/.test(value)) {
-                      updateProfileData({ first_name: value });
-                    }
-                  }}
-                  onBlur={(e) => {
-                    const value = e.target.value.trim();
-
-                    // If field is blank after editing, restore previous valid value
-                    if (value === "") {
-                      e.target.value = formData.first_name || "";
-                      alert("First name cannot be blank.");
-                    } else {
-                      // Optionally normalize spacing/capitalization here
-                      updateProfileData({ first_name: value });
-                    }
-                  }}
+                  value={formData.first_name || ""}
+                  onChange={handleAlphaInputChange("first_name")}
+                  onBlur={handleRequiredBlur("first_name")}
                   readOnly={!isEditing}
                   required
-                  pattern="^[A-Za-z\s]+$"
-                  title="First name should only contain letters and cannot be blank."
+                  pattern="^[A-Za-z ]+$"
+                  title="First name should only contain letters and spaces."
                 />
                 <FormField
                   label="Last Name"
-                  value={formData.last_name}
-                  onChange={(e) => {
-                    const value = e.target.value;
-
-                    // Only allow letters and spaces while typing
-                    if (/^[A-Za-z\s]*$/.test(value)) {
-                      updateProfileData({ last_name: value });
-                    }
-                  }}
-                  onBlur={(e) => {
-                    const value = e.target.value.trim();
-
-                    // If field is blank after editing, restore previous valid value
-                    if (value === "") {
-                      e.target.value = formData.last_name || "";
-                      alert("Last name cannot be blank.");
-                    } else {
-                      // Optionally normalize spacing/capitalization here
-                      updateProfileData({ last_name: value });
-                    }
-                  }}
+                  value={formData.last_name || ""}
+                  onChange={handleAlphaInputChange("last_name")}
+                  onBlur={handleRequiredBlur("last_name")}
                   readOnly={!isEditing}
                   required
-                  pattern="^[A-Za-z\s]+$"
-                  title="Last name should only contain letters and cannot be blank."
+                  pattern="^[A-Za-z ]+$"
+                  title="Last name should only contain letters and spaces."
                 />
                 <FormField
                   label="Middle Name"
-                  value={formData.middle_name}
-                  onChange={(e) => {
-                    const value = e.target.value;
-
-                    // Only allow letters and spaces while typing
-                    if (/^[A-Za-z\s]*$/.test(value)) {
-                      updateProfileData({ middle_name: value });
-                    }
-                  }}
-                  onBlur={(e) => {
-                    const value = e.target.value.trim();
-                    updateProfileData({ middle_name: value });
-                  }}
+                  value={formData.middle_name || ""}
+                  onChange={handleAlphaInputChange("middle_name")}
+                  onBlur={handleTrimmedBlur("middle_name")}
                   readOnly={!isEditing}
-                  pattern="^[A-Za-z\s]+$"
-                  title="Middle name should only contain letters."
+                  pattern="^[A-Za-z ]*$"
+                  title="Middle name should only contain letters and spaces."
                 />
               </div>
 
               <div className="form-row three-columns">
                 <FormField
                   label="Nickname"
-                  value={formData.nickname}
-                  onChange={(e) =>
-                    updateProfileData({ nickname: e.target.value })
-                  }
+                  value={formData.nickname || ""}
+                  onChange={handleAlphaInputChange("nickname")}
+                  onBlur={handleTrimmedBlur("nickname")}
                   readOnly={!isEditing}
+                  pattern="^[A-Za-z ]*$"
+                  title="Nickname should only contain letters and spaces."
                 />
                 <FormField
                   label="Sex"
-                  value={formData.sex}
-                  onChange={(e) => updateProfileData({ sex: e.target.value })}
+                  value={formData.sex || ""}
+                  onChange={handleAlphaInputChange("sex")}
+                  onBlur={handleRequiredBlur("sex")}
                   readOnly={!isEditing}
+                  required
+                  pattern="^[A-Za-z ]+$"
+                  title="Sex should only contain letters."
                 />
                 <FormField
                   label="Religion"
-                  value={formData.religion || "N/A"}
-                  onChange={(e) =>
-                    updateProfileData({ religion: e.target.value })
-                  }
+                  value={formData.religion || ""}
+                  onChange={handleAlphaInputChange("religion")}
+                  onBlur={handleRequiredBlur("religion")}
                   readOnly={!isEditing}
+                  required
+                  pattern="^[A-Za-z ]+$"
+                  title="Religion should only contain letters and spaces."
                 />
               </div>
 
@@ -428,11 +389,13 @@ const StudentSideInfo = ({
                 />
                 <FormField
                   label="Birth Place"
-                  value={formData.birthplace}
-                  onChange={(e) =>
-                    updateProfileData({ birthplace: e.target.value })
-                  }
+                  value={formData.birthplace || ""}
+                  onChange={handleAlphaInputChange("birthplace")}
+                  onBlur={handleRequiredBlur("birthplace")}
                   readOnly={!isEditing}
+                  required
+                  pattern="^[A-Za-z ]+$"
+                  title="Birth place should only contain letters and spaces."
                 />
                 <FormField
                   label="Birth Rank"

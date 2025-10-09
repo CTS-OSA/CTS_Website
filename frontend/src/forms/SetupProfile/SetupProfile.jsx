@@ -20,6 +20,44 @@ import {
 } from "../../utils/formValidationUtils";
 import DefaultLayout from "../../components/DefaultLayout";
 
+const ALPHA_REGEX = /^[A-Za-z\s]*$/;
+const NON_ALPHA_REGEX = /[^A-Za-z\s]/g;
+const PERSONAL_INFO_ALPHA_FIELDS = new Set([
+  "family_name",
+  "first_name",
+  "middle_name",
+  "nickname",
+  "sex",
+  "religion",
+  "birth_place",
+]);
+
+const sanitizePersonalInfoFields = (state) => {
+  if (!state || typeof state !== "object") {
+    return state;
+  }
+
+  let changed = false;
+  const nextState = { ...state };
+
+  PERSONAL_INFO_ALPHA_FIELDS.forEach((field) => {
+    if (Object.prototype.hasOwnProperty.call(nextState, field)) {
+      const value = nextState[field];
+      if (typeof value === "string" && value.length > 0) {
+        const sanitizedValue = ALPHA_REGEX.test(value)
+          ? value
+          : value.replace(NON_ALPHA_REGEX, "");
+        if (sanitizedValue !== value) {
+          nextState[field] = sanitizedValue;
+          changed = true;
+        }
+      }
+    }
+  });
+
+  return changed ? nextState : state;
+};
+
 function formatAddress(data, type) {
   return {
     line1: data[`${type}_address_line_1`],
@@ -80,6 +118,19 @@ const MultiStepForm = () => {
     up_address_line_2: "",
     up_zip_code: "",
   });
+
+  const setPersonalInfoFormData = (updater) => {
+    setFormData((prev) => {
+      const rawNext =
+        typeof updater === "function" ? updater(prev) : updater;
+
+      if (!rawNext || typeof rawNext !== "object") {
+        return rawNext;
+      }
+
+      return sanitizePersonalInfoFields(rawNext);
+    });
+  };
 
   useEffect(() => {
     if (profileData === undefined) return;
@@ -171,45 +222,51 @@ const MultiStepForm = () => {
   };
 
   const handleSubmit = async (e) => {
-    const birthdate = `${formData.birthYear}-${String(
-      formData.birthMonth
-    ).padStart(2, "0")}-${String(formData.birthDay).padStart(2, "0")}`;
+    const sanitizedFormData = sanitizePersonalInfoFields(formData);
+
+    if (sanitizedFormData !== formData) {
+      setFormData(sanitizedFormData);
+    }
+
+    const birthdate = `${sanitizedFormData.birthYear}-${String(
+      sanitizedFormData.birthMonth
+    ).padStart(2, "0")}-${String(sanitizedFormData.birthDay).padStart(2, "0")}`;
 
     const payload = {
-      student_number: formData.student_number,
-      college: formData.college,
-      current_year_level: formData.current_year_level,
-      degree_program: formData.degree_program,
-      date_initial_entry: formData.date_initial_entry,
-      date_initial_entry_sem: formData.date_initial_entry_sem,
-      last_name: formData.family_name,
-      first_name: formData.first_name,
-      middle_name: formData.middle_name,
-      nickname: formData.nickname,
-      sex: formData.sex,
-      birth_rank: formData.birth_rank,
+      student_number: sanitizedFormData.student_number,
+      college: sanitizedFormData.college,
+      current_year_level: sanitizedFormData.current_year_level,
+      degree_program: sanitizedFormData.degree_program,
+      date_initial_entry: sanitizedFormData.date_initial_entry,
+      date_initial_entry_sem: sanitizedFormData.date_initial_entry_sem,
+      last_name: sanitizedFormData.family_name,
+      first_name: sanitizedFormData.first_name,
+      middle_name: sanitizedFormData.middle_name,
+      nickname: sanitizedFormData.nickname,
+      sex: sanitizedFormData.sex,
+      birth_rank: sanitizedFormData.birth_rank,
       birthdate: birthdate,
-      birthplace: formData.birth_place,
-      contact_number: formData.mobile_number,
-      landline_number: formData.landline_number,
-      religion: formData.religion,
+      birthplace: sanitizedFormData.birth_place,
+      contact_number: sanitizedFormData.mobile_number,
+      landline_number: sanitizedFormData.landline_number,
+      religion: sanitizedFormData.religion,
       permanent_address: {
-        address_line_1: formData.permanent_address_line_1,
-        address_line_2: formData.permanent_address_line_2,
-        barangay: formData.permanent_barangay,
-        city_municipality: formData.permanent_city_municipality,
-        province: formData.permanent_province,
-        region: formData.permanent_region,
-        zip_code: formData.permanent_zip_code,
+        address_line_1: sanitizedFormData.permanent_address_line_1,
+        address_line_2: sanitizedFormData.permanent_address_line_2,
+        barangay: sanitizedFormData.permanent_barangay,
+        city_municipality: sanitizedFormData.permanent_city_municipality,
+        province: sanitizedFormData.permanent_province,
+        region: sanitizedFormData.permanent_region,
+        zip_code: sanitizedFormData.permanent_zip_code,
       },
       address_while_in_up: {
-        address_line_1: formData.up_address_line_1,
-        address_line_2: formData.up_address_line_2,
-        barangay: formData.up_barangay,
-        city_municipality: formData.up_city_municipality,
-        province: formData.up_province,
-        region: formData.up_region,
-        zip_code: formData.up_zip_code,
+        address_line_1: sanitizedFormData.up_address_line_1,
+        address_line_2: sanitizedFormData.up_address_line_2,
+        barangay: sanitizedFormData.up_barangay,
+        city_municipality: sanitizedFormData.up_city_municipality,
+        province: sanitizedFormData.up_province,
+        region: sanitizedFormData.up_region,
+        zip_code: sanitizedFormData.up_zip_code,
       },
       is_complete: true,
     };
@@ -280,7 +337,7 @@ const MultiStepForm = () => {
               {step === 1 && (
                 <PersonalInfoForm
                   formData={formData}
-                  setFormData={setFormData}
+                  setFormData={setPersonalInfoFormData}
                   step={step}
                   errors={errors}
                   setErrors={setErrors}
