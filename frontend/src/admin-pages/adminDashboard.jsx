@@ -148,11 +148,19 @@ export const AdminDashboard = () => {
           {error && <Typography color="error">{error}</Typography>}
 
           {/* Summary Cards */}
-          <Grid container spacing={3}>
+          <Grid
+            container
+            sx={{
+              display: 'grid',
+              gap: '40px 30px',
+              justifyContent: 'center',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', 
+            }}
+          >
             {summaryData.map((item, i) => (
-              <Grid key={i} item xs={12} sm={6} md={3}>
+              <Box key={i} sx={{ display: 'flex', justifyContent: 'center' }}>
                 <StatCard {...item} />
-              </Grid>
+              </Box>
             ))}
           </Grid>
 
