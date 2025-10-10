@@ -612,14 +612,12 @@ const StudentSideInfo = ({
                   </Button>
                 </>
               ) : (
-                !isAdmin && (
                   <Button variant="primary" onClick={() => {
                     setValidationErrors({});
                     setIsEditing(true);
                   }}>
                     Edit
                   </Button>
-                )
               )}
             </div>
           </div>

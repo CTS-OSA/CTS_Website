@@ -12,6 +12,7 @@ export const AdminStudentView = () => {
   const [submittedForms, setSubmittedForms] = useState({}); 
   const [loading, setLoading] = useState(true); 
   const [error, setError] = useState(null); 
+  const [profile, setProfile] = useState(null);
 
   useEffect(() => {
     const fetchStudent = async () => {
@@ -45,10 +46,34 @@ export const AdminStudentView = () => {
   if (loading) return <Loader />;
   if (error) return <div>{error}</div>;
 
+  const handleUpdateProfile = async (updatedData) => {
+  try {
+    const res = await request(
+      `http://localhost:8000/api/forms/admin/students/${studentId}/update/`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedData),
+      }
+    );
+
+    if (!res.ok) {
+      return;
+    }
+
+    const updatedProfile = await res.json();
+      setProfile(updatedProfile);
+    } catch (error) {
+      
+    }
+  };
+
   return (
     <div>
       <DefaultLayout variant="admin">
-        <StudentSideInfo profileData={student} submittedForms={submittedForms} isAdmin={true}/>
+        <StudentSideInfo profileData={student} submittedForms={submittedForms} isAdmin={true} onUpdate={handleUpdateProfile}/>
       </DefaultLayout>
     </div>
   );

@@ -91,9 +91,14 @@ def get_student_profile(request):
     
     
 @api_view(['PATCH'])
-def update_student_profile(request):
+def update_student_profile(request, student_id=None):
     try:
-        student = Student.objects.get(user=request.user)
+        if request.user.is_staff or request.user.is_superuser:
+            if not student_id:
+                return Response({'error': 'student_id is required for admin updates'}, status=400)
+            student = Student.objects.get(student_number=student_id)
+        else:
+            student = Student.objects.get(user=request.user)
     except Student.DoesNotExist:
         return Response({'error': 'Student profile not found'}, status=status.HTTP_404_NOT_FOUND)
 
