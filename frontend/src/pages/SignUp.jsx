@@ -20,13 +20,13 @@ export const SignUp = () => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [showMessageModal, setShowMessageModal] = useState(false); 
+  const [showMessageModal, setShowMessageModal] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setMessage("");
     setIsError(false);
-    setShowMessageModal(false); 
+    setShowMessageModal(false);
     setIsLoading(true);
 
     const errors = {};
@@ -41,7 +41,7 @@ export const SignUp = () => {
       setMessage("Invalid email. Please use your UP Mail and try again. ");
       setIsError(true);
       setIsLoading(false);
-      setShowMessageModal(true); 
+      setShowMessageModal(true);
       return;
     }
 
@@ -68,7 +68,7 @@ export const SignUp = () => {
       setMessage("Passwords do not match.");
       setIsError(true);
       setIsLoading(false);
-      setShowMessageModal(true); 
+      setShowMessageModal(true);
       return;
     }
 
@@ -92,30 +92,55 @@ export const SignUp = () => {
       if (response.ok) {
         setMessage("Registration successful! Please check your email.");
         setIsError(false);
-        setShowMessageModal(true); 
+        setShowMessageModal(true);
       } else {
         let errorMessages = "";
+
         if (data.email && Array.isArray(data.email)) {
-          if (data.email.some(msg => msg.toLowerCase().includes("already"))) {
+          if (data.email.some((msg) => msg.toLowerCase().includes("already"))) {
             errorMessages = "This email is already registered.";
           } else {
-            errorMessages = data.email.join(", ");
+            errorMessages = data.email.join(" ");
+          }
+        } else if (data.password && Array.isArray(data.password)) {
+          const passwordErrors = data.password;
+          const isTooShort = passwordErrors.some((msg) =>
+            msg.toLowerCase().includes("too short")
+          );
+          const isTooCommon = passwordErrors.some((msg) =>
+            msg.toLowerCase().includes("too common")
+          );
+
+          if (isTooShort && isTooCommon) {
+            errorMessages =
+              "Password is too short and common. It must contain at least 8 characters.";
+          } else if (isTooShort) {
+            errorMessages =
+              "Password is too short. It must contain at least 8 characters.";
+          } else if (isTooCommon) {
+            errorMessages =
+              "Password is too common. Please choose a more secure one.";
+          } else {
+            errorMessages = passwordErrors.join(" ");
           }
         } else {
           errorMessages = Object.entries(data)
-            .map(([field, messages]) =>
-              `${field}: ${Array.isArray(messages) ? messages.join(", ") : messages}`
+            .map(
+              ([field, messages]) =>
+                `${field}: ${
+                  Array.isArray(messages) ? messages.join(", ") : messages
+                }`
             )
             .join(" ");
         }
         setMessage(errorMessages || "Something went wrong.");
         setIsError(true);
-        setShowMessageModal(true); 
+        setShowMessageModal(true);
       }
     } catch (error) {
       setMessage("An error occurred. Please try again later.");
       setIsError(true);
-      setShowMessageModal(true); 
+      setShowMessageModal(true);
     } finally {
       setIsLoading(false);
     }
@@ -131,8 +156,10 @@ export const SignUp = () => {
             <div className="signup__content">
               <section className="signup__left fade-in-up">
                 <h1 className="hero-title">
-                  Join the<br />
-                  <span className="highlighted-text">Student Affairs</span><br />
+                  Join the
+                  <br />
+                  <span className="highlighted-text">Student Affairs</span>
+                  <br />
                   Digital Platform
                 </h1>
               </section>
@@ -167,7 +194,9 @@ export const SignUp = () => {
                     required
                     error={formErrors.rePassword}
                   />
-                  <button type="submit" className="submit-button">Sign Up</button>
+                  <button type="submit" className="submit-button">
+                    Sign Up
+                  </button>
                   <div className="signup__links">
                     Already have an account? <Link to="/login">Log in</Link>
                   </div>
@@ -193,7 +222,12 @@ export const SignUp = () => {
                 {isError ? "Error" : "Success"}
               </p>
               <p>{message}</p>
-              <button className="okay-button"onClick={() => setShowMessageModal(false)}>OK</button>
+              <button
+                className="okay-button"
+                onClick={() => setShowMessageModal(false)}
+              >
+                OK
+              </button>
             </div>
           </Modal>
         )}
