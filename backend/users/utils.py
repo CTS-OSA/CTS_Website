@@ -12,5 +12,4 @@ def log_action(request, log_type, action, details=None):
         log_type=log_type,
         action=action,
         details=details,
-        ip_address=get_client_ip(request)
     )

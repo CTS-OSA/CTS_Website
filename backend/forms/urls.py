@@ -25,6 +25,7 @@ urlpatterns = [
     path('get/enums/', EnumChoicesView.as_view(), name='enum-choices'),
     path('admin/student-forms/<str:student_id>/', AdminStudentFormsView.as_view()),
     path('admin/student-forms/<str:student_id>/<str:form_type>/', AdminStudentFormView.as_view(), name='admin-student-form-view'),
+    path('admin/students/<str:student_id>/update/', update_student_profile),
     
     path('display/', include(router.urls)), 
 ]
