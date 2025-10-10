@@ -354,18 +354,19 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 <input
                   type="text"
                   value={profileData.landline_number || "None"}
+                  readOnly
                 />
               </label>
             </div>
             <div className="SCIF-inline">
               <label>
-                EMAIL: <input type="text" value={profileData.email} />
+                EMAIL: <input type="text" value={profileData.email} readOnly/>
               </label>
             </div>
             <div className="SCIF-inline">
               <label>
                 CELLPHONE/MOBILE NO.:{" "}
-                <input type="text" value={profileData.contact_number} />
+                <input type="text" value={profileData.contact_number} readOnly/>
               </label>
             </div>
           </div>
@@ -591,7 +592,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               Any Physical Disabilities:{" "}
               <input
                 type="text"
-                value={health_data.physical_disabilities.join(", ")}
+                value={(health_data.physical_disabilities || []).join(", ") || "None"}
                 readOnly
               />
             </label>
@@ -602,7 +603,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               Frequent Ailments:{" "}
               <input
                 type="text"
-                value={health_data.common_ailments.join(", ")}
+                value={(health_data.common_ailments || []).join(", ") || "None"}
                 readOnly
               />
             </label>
@@ -610,7 +611,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               Last Hospitalization:{" "}
               <input
                 type="text"
-                value={health_data.last_hospitalization}
+                value={health_data.last_hospitalization || "Not Applicable"}
                 readOnly
               />
             </label>
@@ -620,7 +621,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             <label>
               Reason:{" "}
               <AutoResizeTextarea
-                value={health_data.reason_of_hospitalization}
+                value={health_data.reason_of_hospitalization || "Not Applicable"}
                 readOnly
               />
             </label>
@@ -959,6 +960,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             rows={5}
             readOnly
             placeholder="____________________________________________________________________________________________&#10;____________________________________________________________________________________________&#10;____________________________________________________________________________________________"
+            value = ""
           />
         </div>
 
