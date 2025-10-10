@@ -62,7 +62,6 @@ class AuditLog(models.Model):
     log_type = models.CharField(max_length=20, choices=LOG_TYPES)
     action = models.CharField(max_length=255)
     details = models.TextField(null=True, blank=True)
-    ip_address = models.GenericIPAddressField(null=True, blank=True)
     timestamp = models.DateTimeField(default=now)
 
     def __str__(self):

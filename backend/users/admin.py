@@ -7,5 +7,5 @@ admin.site.register(CustomUser)
 
 @admin.register(AuditLog)
 class AuditLogAdmin(admin.ModelAdmin):
-    list_display = ('user', 'log_type', 'action', 'ip_address', 'timestamp')
+    list_display = ('user', 'log_type', 'action', 'timestamp')
     list_filter = ('log_type', 'timestamp', 'user')
