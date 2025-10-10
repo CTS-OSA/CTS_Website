@@ -181,7 +181,7 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
             Tuition System?
             <input
               type="text"
-              value={socio_economic_status.scholarships}
+              value={socio_economic_status.scholarships || "None"}
               readOnly
             />
           </label>
@@ -189,7 +189,7 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
             6. What are your privileges that you specified in no. (5):{" "}
             <input
               type="text"
-              value={socio_economic_status.scholarship_privileges}
+              value={socio_economic_status.scholarship_privileges || "Not Applicable"}
               readOnly
             />
           </label>
@@ -204,7 +204,7 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
           </label>
           <label>
             8. What do you spend much on?{" "}
-            <AutoResizeTextarea value={socio_economic_status.spending_habit} />
+            <AutoResizeTextarea value={socio_economic_status.spending_habit || ""} />
           </label>
         </div>
         <div className="section-title">III. SCHOOL PREFERENCES</div>
@@ -215,7 +215,7 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
           </label>
           <label>
             10. Indicate the reason/s for enrolling in UP Mindanao:{" "}
-            <AutoResizeTextarea value={preferences.reason_for_enrolling} />
+            <AutoResizeTextarea value={preferences.reason_for_enrolling || ""} />
           </label>
           <label>
             11. Do you have plans of transferring to another UP Campus by 2nd
@@ -228,7 +228,7 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
           </label>
           <label>
             12. Why or why not?{" "}
-            <AutoResizeTextarea value={preferences.transfer_reason} />
+            <AutoResizeTextarea value={preferences.transfer_reason || ""} />
           </label>
           <label>
             13. Do you have plans of shifting to another degree program by 2nd
@@ -285,7 +285,7 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
           </label>
           <label>
             19. If (17) is different (18), what would be your next plan?{" "}
-            <AutoResizeTextarea value={scholastic_status.next_plan || "N/A"} />{" "}
+            <AutoResizeTextarea value={scholastic_status.next_plan || "Not Applicable"} />{" "}
           </label>
         </div>
         <div className="signature">
