@@ -24,6 +24,7 @@ export const AdminStudentList = () => {
   const [filterText, setFilterText] = useState("");
   const [years, setYears] = useState([]);
   const [programs, setPrograms] = useState([]);
+  const [email, setEmail] = useState([]);
 
   // sorting state
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
@@ -41,11 +42,12 @@ export const AdminStudentList = () => {
     const temp = students.filter((stu) => {
       const fullName = `${stu.first_name} ${stu.last_name}`.toLowerCase();
       const studentId = stu.student_number.toLowerCase();
+      const email = stu.email.toLowerCase();
 
       if (
-        filterText &&
-        !(fullName.includes(searchText) || studentId.includes(searchText))
-      )
+          filterText &&
+          !(fullName.includes(searchText) || studentId.includes(searchText) || email.includes(searchText))
+        )
         return false;
       if (years.length > 0 && !years.includes(stu.current_year_level))
         return false;
@@ -56,12 +58,13 @@ export const AdminStudentList = () => {
     });
     setFiltered(temp);
     setCurrentPage(1);
-  }, [filterText, years, programs, students]);
+  }, [filterText, years, programs, students, email]);
 
   const handleResetFilters = () => {
     setFilterText("");
     setYears([]);
     setPrograms([]);
+    setEmail([]);
   };
 
   // dropdown options
@@ -157,6 +160,7 @@ export const AdminStudentList = () => {
           setPrograms={setPrograms}
           programOptions={programOptions}
           onReset={handleResetFilters}
+          setEmail={setEmail}
         />
 
         {/* Table */}

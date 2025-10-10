@@ -168,7 +168,6 @@ export const AdminAuditLog = () => {
               <th>Log Type</th>
               <th>Action</th>
               <th>User Email</th>
-              <th>IP Address</th>
               <th>Details</th>
             </tr>
           </thead>
@@ -183,7 +182,6 @@ export const AdminAuditLog = () => {
                   </td>
                   <td data-label="Log Action">{log.action}</td>
                   <td data-label="User Email">{log.user_email ?? "N/A"}</td>
-                  <td data-label="IP Address">{log.ip_address}</td>
                   <td data-label="Log Details">{renderDetails(log.details)}</td>
                 </tr>
               ))
