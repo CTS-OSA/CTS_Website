@@ -1,12 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 
-const AutoResizeTextarea = ({ value }) => {
+const AutoResizeTextarea = ({ value, onChange, readOnly = false }) => {
   const textareaRef = useRef(null);
 
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
-      textarea.style.height = 'auto'; 
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px'; 
     }
   }, [value]);
 
@@ -14,7 +15,8 @@ const AutoResizeTextarea = ({ value }) => {
     <textarea
       ref={textareaRef}
       value={value}
-      readOnly
+      onChange={onChange}
+      readOnly={readOnly}
       style={{ overflow: 'hidden', resize: 'none' }}
     />
   );
