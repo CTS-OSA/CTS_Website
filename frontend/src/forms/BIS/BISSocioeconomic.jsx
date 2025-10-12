@@ -13,6 +13,10 @@ const SupportChoices = {
   GOV_FUNDED: "gov_funded",
 };
 
+const ALPHA_REGEX = /^[A-Za-z\s]*$/;
+const ALPHA_SPACE_REGEX = /[^A-Za-z\s]/g;
+const ALPHA_NUM_COMMA_DASH_REGEX = /[^A-Za-z0-9\s,-]/g;
+
 const BISSocioeconomic = ({
   data,
   updateData,
@@ -24,35 +28,40 @@ const BISSocioeconomic = ({
     if (readOnly) return;
 
     const { name, type, value, checked } = e.target;
-
-    const parsedValue =
+    let parsedValue =
       type === "radio" && (value === "true" || value === "false")
         ? value === "true"
         : value;
 
+    if (
+      ["spending_habit"].includes(name) &&
+      typeof parsedValue === "string"
+    ) {
+      parsedValue = parsedValue.replace(ALPHA_SPACE_REGEX, "");
+    }
+
+    if (
+      ["other_notes", "other_scholarship", "combination_notes", "scholarships", "scholarship_privileges"].includes(
+        name
+      ) &&
+      typeof parsedValue === "string"
+    ) {
+      parsedValue = parsedValue.replace(ALPHA_NUM_COMMA_DASH_REGEX, "");
+    }
+
     if (type === "checkbox" && section === "student_support") {
       const updatedSupport = new Set(data[section].support || []);
-
-      if (checked) {
-        updatedSupport.add(name);
-      } else {
-        updatedSupport.delete(name);
-      }
+      if (checked) updatedSupport.add(name);
+      else updatedSupport.delete(name);
 
       updateData({
         ...data,
-        [section]: {
-          ...data[section],
-          support: Array.from(updatedSupport),
-        },
+        [section]: { ...data[section], support: Array.from(updatedSupport) },
       });
     } else {
       updateData({
         ...data,
-        [section]: {
-          ...data[section],
-          [name]: parsedValue,
-        },
+        [section]: { ...data[section], [name]: parsedValue },
       });
     }
   };
@@ -69,30 +78,30 @@ const BISSocioeconomic = ({
             What is your means of support for your college education?
           </label>
           <div className="checkbox-grid">
-            {[
-              { name: SupportChoices.SELF, label: "Self-supporting" },
+            {[{ name: SupportChoices.SELF, label: "Self-supporting" },
               { name: SupportChoices.BOTH_PARENTS, label: "Both parents" },
               { name: SupportChoices.FATHER_ONLY, label: "Father only" },
               { name: SupportChoices.MOTHER_ONLY, label: "Mother only" },
-              { name: SupportChoices.GOV_FUNDED, label: "Government Funded" },
-            ].map(({ name, label }) => (
-              <label key={name} className="inline-checkbox">
-                <input
-                  type="checkbox"
-                  name={name}
-                  checked={support.includes(name)}
-                  onChange={(e) => handleChange(e, "student_support")}
-                  onFocus={() => {
-                    clearError("student_support.support");
-                    setErrors((prev) => ({
-                      ...prev,
-                      ["student_support.support"]: undefined,
-                    }));
-                  }}
-                />
-                {label}
-              </label>
-            ))}
+              { name: SupportChoices.GOV_FUNDED, label: "Government Funded" }].map(
+              ({ name, label }) => (
+                <label key={name} className="inline-checkbox">
+                  <input
+                    type="checkbox"
+                    name={name}
+                    checked={support.includes(name)}
+                    onChange={(e) => handleChange(e, "student_support")}
+                    onFocus={() => {
+                      clearError("student_support.support");
+                      setErrors((prev) => ({
+                        ...prev,
+                        ["student_support.support"]: undefined,
+                      }));
+                    }}
+                  />
+                  {label}
+                </label>
+              )
+            )}
 
             {/* Scholarship */}
             <label className="inline-checkbox">
@@ -126,9 +135,7 @@ const BISSocioeconomic = ({
                       }));
                     }}
                     className={`form-input ${
-                      errors?.["student_support.other_scholarship"]
-                        ? "error"
-                        : ""
+                      errors?.["student_support.other_scholarship"] ? "error" : ""
                     }`}
                   />
                   {errors?.["student_support.other_scholarship"] && (
@@ -140,7 +147,6 @@ const BISSocioeconomic = ({
               )}
             </label>
 
-            {/* Combination */}
             <label className="inline-checkbox">
               <input
                 type="checkbox"
@@ -172,9 +178,7 @@ const BISSocioeconomic = ({
                       }));
                     }}
                     className={`form-input ${
-                      errors?.["student_support.combination_notes"]
-                        ? "error"
-                        : ""
+                      errors?.["student_support.combination_notes"] ? "error" : ""
                     }`}
                   />
                   {errors?.["student_support.combination_notes"] && (
@@ -186,7 +190,6 @@ const BISSocioeconomic = ({
               )}
             </label>
 
-            {/* Others */}
             <label className="inline-checkbox">
               <input
                 type="checkbox"
@@ -357,7 +360,6 @@ const BISSocioeconomic = ({
               }));
             }}
           />
-
           {errors?.["socio_economic_status.monthly_allowance"] && (
             <small className="error-message">
               {errors["socio_economic_status.monthly_allowance"]}
