@@ -4,19 +4,22 @@ import FormField from '../../components/FormField';
 import { clearError } from '../../utils/helperFunctions';
 
 const BISPreferences = ({ data, updateData, readOnly = false, errors, setErrors }) => {
+  const sanitizeInput = (value) => {
+    return value.replace(/[^a-zA-Z\s.,!?'"()\-\/]/g, '');
+  };
+
   const handleChange = (e) => {
     if (readOnly) return;
 
     const { name, value, type } = e.target;
+    const updatedValue = type === 'radio' ? value === 'true' : sanitizeInput(value);
 
-    const updatedValue = type === 'radio' ? value === 'true' : value;
-
-    if (name === 'shift_plans' && updatedValue === false)  {
+    if (name === 'shift_plans' && updatedValue === false) {
       updateData({
-        ...data, 
+        ...data,
         shift_plans: false,
-        planned_shift_degree: '', 
-        reason_for_shifting: '', 
+        planned_shift_degree: '',
+        reason_for_shifting: '',
       });
     } else {
       updateData({
@@ -49,7 +52,6 @@ const BISPreferences = ({ data, updateData, readOnly = false, errors, setErrors 
           error={errors?.['preferences.reason_for_enrolling']}
         />
 
-        {/* Transfer Plans Question */}
         <div className="radio-question-group">
           <label className="form-label">
             Do you have plans of transferring to another UP Campus by 2nd year?
@@ -92,7 +94,6 @@ const BISPreferences = ({ data, updateData, readOnly = false, errors, setErrors 
           error={errors?.['preferences.transfer_reason']}
         />
 
-        {/* Shifting Plans Question */}
         <div className="radio-question-group">
           <label className="form-label">
             Do you have plans of shifting to another degree program by 2nd year?
@@ -126,7 +127,6 @@ const BISPreferences = ({ data, updateData, readOnly = false, errors, setErrors 
           )}
         </div>
 
-        {/* Conditionally render shifting-related fields */}
         {data.shift_plans === true && (
           <div className="form-grid">
             <FormField
