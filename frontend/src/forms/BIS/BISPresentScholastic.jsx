@@ -3,6 +3,9 @@ import FormField from "../../components/FormField";
 import "../SetupProfile/css/multistep.css";
 import { clearError } from "../../utils/helperFunctions";
 
+const ALPHA_REGEX = /^[A-Za-z\s]*$/;
+const NON_ALPHA_REGEX = /[^A-Za-z\s]/g;
+
 const BISPresentScholastic = ({
   data,
   updateData,
@@ -10,14 +13,20 @@ const BISPresentScholastic = ({
   readOnly = false,
   setErrors
 }) => {
+  const sanitizeAlpha = (value) => {
+    if (typeof value !== "string") return value;
+    return ALPHA_REGEX.test(value) ? value : value.replace(NON_ALPHA_REGEX, "");
+  };
+
   const handleChange = (e) => {
     if (readOnly) return;
 
     const { name, value } = e.target;
+    const sanitizedValue = sanitizeAlpha(value);
 
     let updatedData = {
       ...data,
-      [name]: value,
+      [name]: sanitizedValue,
     };
 
     if (
