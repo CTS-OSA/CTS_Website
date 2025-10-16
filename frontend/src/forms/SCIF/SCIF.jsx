@@ -325,19 +325,43 @@ const SCIF = () => {
 
   const handleSaveDraft = async () => {
     if (!submissionId) {
-      alert("Submission ID is missing. Try reloading the page.");
+      setError("Submission ID is missing. Try reloading the page.");
       return;
     }
+    
+    setError(null);
     setLoading(true);
+    
     try {
       const response = await saveDraft(submissionId, studentNumber, formData);
+      
       if (response?.ok) {
         setShowDraftSuccessToast(true);
       } else {
-        alert("Error saving draft.");
+        let errorMessage = "Some fields are invalid. Please review the highlighted errors.";
+        
+        if (response?.data) {
+          if (response.data.errors) {
+            const errorMessages = Object.entries(response.data.errors)
+              .map(([field, messages]) => {
+                if (Array.isArray(messages)) {
+                  return `${field}: ${messages.join(', ')}`;
+                }
+                return `${field}: ${messages}`;
+              })
+              .join(' | ');
+            errorMessage = errorMessages;
+          } else if (response.data.error) {
+            errorMessage = response.data.error;
+          } else if (response.data.message) {
+            errorMessage = response.data.message;
+          }
+        }
+        
+        setError(errorMessage);
       }
     } catch (err) {
-      alert("Failed to save draft.");
+      setError(err.message || "Failed to save draft. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -366,10 +390,14 @@ const SCIF = () => {
     }
 
     setErrors(null);
+    setError(null);
     setStep((prev) => prev + 1);
   };
 
-  const handlePreviousStep = () => setStep((prev) => prev - 1);
+  const handlePreviousStep = () => {
+    setError(null);
+    setStep((prev) => prev - 1);
+  };
 
   const handlePreview = () => {
     setIsPreviewOpen(true);
@@ -395,6 +423,8 @@ const SCIF = () => {
     }
 
     setLoading(true);
+    setError(null);
+    
     try {
       const result = await finalizeSubmission(
         submissionId,
@@ -408,26 +438,34 @@ const SCIF = () => {
           navigate("/submitted-forms/student-cumulative-information-file");
         }, 2000);
       } else {
+        let errorMessage = "Failed to submit form.";
+        
         if (result.status === 400 && result.data.errors) {
-          alert(
-            "Validation errors:\n" + JSON.stringify(result.data.errors, null, 2)
-          );
+          const errorMessages = Object.entries(result.data.errors)
+            .map(([field, messages]) => {
+              if (Array.isArray(messages)) {
+                return `${field}: ${messages.join(', ')}`;
+              }
+              return `${field}: ${messages}`;
+            })
+            .join(' | ');
+          errorMessage = errorMessages;
         } else if (result.data.error) {
-          alert(`Error: ${result.data.error}`);
+          errorMessage = result.data.error;
         } else if (result.data.message) {
-          alert(`Error: ${result.data.message}`);
-        } else {
-          alert("Unknown error occurred.");
+          errorMessage = result.data.message;
         }
+        
+        setError(errorMessage);
       }
     } catch (err) {
-      alert("Failed to submit form.");
+      setError(err.message || "Failed to submit form. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading || !submissionId) {
+  if (loading && !submissionId) {
     return <Loader />;
   }
 
@@ -548,6 +586,9 @@ const SCIF = () => {
                 readOnly={readOnly}
               />
             )}
+            
+            {error && <div className="scif-error-message">{error}</div>}
+
             <div className="main-form-buttons">
               {/* Step 0: Only 'Next' button */}
               {step === 0 && !loading && (
@@ -632,9 +673,6 @@ const SCIF = () => {
 
               {/* Loading Indicator */}
               {loading && <div>Loading...</div>}
-
-              {/* Error Message */}
-              {error && <div className="error-message">{error}</div>}
             </div>
           </div>
         </div>
