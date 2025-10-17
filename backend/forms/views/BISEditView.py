@@ -2,11 +2,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from forms.models import Submission, Student, StudentSupport, Support
+from forms.models import Submission, StudentSupport, Support
 from forms.models import SocioEconomicStatus, Preferences, PresentScholasticStatus
-
+from forms.serializers import PreferencesSerializer,StudentSupportSerializer, SocioEconomicStatusSerializer, PresentScholasticStatusSerializer, BISStudentSerializer
 from forms.serializers import AdminSubmissionDetailSerializer
 from forms.map import FORM_SECTIONS_MAP
+import logging 
+
+logger = logging.getLogger(__name__)
 
 class BISEditView(APIView):
     permission_classes = [IsAuthenticated]
@@ -60,6 +63,7 @@ class BISEditView(APIView):
             
             # Check permissions
             if not request.user.is_staff and submission.student.user != request.user:
+                logger.info("Permission not allowed. USer is not a staff or a student.")
                 return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
             
             # Get the data from request
@@ -74,7 +78,7 @@ class BISEditView(APIView):
                     first_middle = name_parts[1].split(' ')
                     student.first_name = first_middle[0] if first_middle else ''
                     student.middle_name = ' '.join(first_middle[1:]) if len(first_middle) > 1 else ''
-            
+           
             if 'nickname' in data:
                 student.nickname = data['nickname']
             
@@ -84,7 +88,9 @@ class BISEditView(APIView):
                     student.current_year_level = year_course_parts[0]
                     student.degree_program = year_course_parts[1]
             
-            student.save()
+            student_serializer = BISStudentSerializer(student, data=data)
+            if student_serializer.is_valid(raise_exception=True):
+                student.save()
             
             # Update support data
             student_support, created = StudentSupport.objects.get_or_create(submission=submission)

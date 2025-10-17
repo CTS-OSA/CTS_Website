@@ -3,7 +3,8 @@ from phonenumber_field.serializerfields import PhoneNumberField
 from forms.models import (
     Parent, Sibling, Guardian, FamilyData, HealthData, 
     SchoolAddress, School, PreviousSchoolRecord, Scholarship,
-    PersonalityTraits, FamilyRelationship, CounselingInformation, PrivacyConsent, Student, Submission
+    PersonalityTraits, FamilyRelationship, CounselingInformation, PrivacyConsent, Student, Submission,
+    GuidanceSpecialistNotes
 )
 
 class CustomListSerializer(serializers.ListSerializer):
@@ -300,5 +301,10 @@ class FamilyRelationshipSerializer(serializers.ModelSerializer):
 class CounselingInformationSerializer(serializers.ModelSerializer):
     class Meta:
         model = CounselingInformation
+        fields = '__all__'
+  
+class GuidanceSpecialistNotesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GuidanceSpecialistNotes
         fields = '__all__'
   

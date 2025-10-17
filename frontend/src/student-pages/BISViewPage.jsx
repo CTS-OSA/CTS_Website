@@ -21,6 +21,7 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
   const navigate = useNavigate();
   const [showDownloadConfirm, setShowDownloadConfirm] = useState(false);
   const [downloadToast, setDownloadToast] = useState(null);
+  const [errors, setErrors] = useState({});
   const [formState, setFormState] = useState({
     name: `${profileData.last_name}, ${profileData.first_name} ${profileData.middle_name}`,
     nickname: profileData.nickname || '',
@@ -133,6 +134,15 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
   };
 
   const handleSubmit = async () => {
+    // Clear previous errors
+    setErrors({});
+    
+    // Validate required fields
+    if (!formState.name || formState.name.trim() === '') {
+      setErrors({ name: 'Name field cannot be empty.' });
+      return;
+    }
+    
     try {
       const response = await request(`/api/forms/edit/bis/${profileData.student_number}/`, {
         method: 'PUT',
@@ -240,6 +250,7 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
               onChange={(e) => handleFieldChange('name', e.target.value)}
               readOnly={role !== "admin"}
             />
+            {errors.name && <div style={{color: 'red', fontSize: '12px'}}>{errors.name}</div>}
           </label>
           <label>
             2. Nickname:{" "}

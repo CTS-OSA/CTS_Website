@@ -3,6 +3,7 @@ from .SerializerBIS import (
     StudentSupportSerializer,
     SocioEconomicStatusSerializer,
     PresentScholasticStatusSerializer,
+    BISStudentSerializer
 )
 
 from .ProfileSetupSerializers import (
@@ -28,7 +29,8 @@ from .SerializerSCIF import (
     ScholarshipSerializer, 
     PersonalityTraitsSerializer, 
     CounselingInformationSerializer,
-    FamilyRelationshipSerializer
+    FamilyRelationshipSerializer,
+    GuidanceSpecialistNotesSerializer
 )
 
 from .AdminSerializers import (

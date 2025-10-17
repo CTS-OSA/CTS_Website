@@ -1,6 +1,18 @@
 from rest_framework import serializers
+
 from forms.models import Preferences, StudentSupport, SocioEconomicStatus, PresentScholasticStatus, Submission
-from forms.models import StudentSupport, Support
+from forms.models import StudentSupport, Support, Student
+
+
+class BISStudentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = [
+            'current_year_level', 'degree_program',  
+            'last_name', 'first_name', 'middle_name', 'nickname', 
+             ]
+        extra_kwargs = {field.name: {'required': False} for field in model._meta.fields if field.name != 'id'}
+
 
 class PreferencesSerializer(serializers.ModelSerializer):
     class Meta:
