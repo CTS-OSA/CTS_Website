@@ -119,6 +119,10 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
   const handleFieldChange = (field, value) => {
     if (role === "admin") {
       setFormState(prev => ({ ...prev, [field]: value }));
+      // Clear error when user starts typing
+      if (errors[field]) {
+        setErrors(prev => ({ ...prev, [field]: null }));
+      }
     }
   };
 
@@ -135,11 +139,27 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
 
   const handleSubmit = async () => {
     // Clear previous errors
-    setErrors({});
+    const error = {};
     
     // Validate required fields
     if (!formState.name || formState.name.trim() === '') {
-      setErrors({ name: 'Name field cannot be empty.' });
+      error.name = 'Name field cannot be empty.';
+    }
+    
+    if (!formState.nickname || formState.nickname.trim() === '') {
+      error.nickname = 'Nickname field cannot be empty.';
+    }
+
+    if (!formState.year_course || formState.year_course.trim() === '') {
+      error.year_course = 'Year & course field cannot be empty.';
+    }
+    
+
+    // Set all errors at once
+    setErrors(error);
+    
+    // If there are errors, don't submit
+    if (Object.keys(error).length > 0) {
       return;
     }
     
@@ -153,7 +173,8 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
       });
 
       if (response.ok) {
-        setDownloadToast('Form updated successfully!');
+        const data = await response.json();
+        setDownloadToast(data.message);
       }
     } catch (error) {
       setDownloadToast('Failed to update form.');
@@ -250,7 +271,7 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
               onChange={(e) => handleFieldChange('name', e.target.value)}
               readOnly={role !== "admin"}
             />
-            {errors.name && <div style={{color: 'red', fontSize: '12px'}}>{errors.name}</div>}
+            {errors.name && <div class="error-state-message">{errors.name}</div>}
           </label>
           <label>
             2. Nickname:{" "}
@@ -260,6 +281,7 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
               onChange={(e) => handleFieldChange('nickname', e.target.value)}
               readOnly={role !== "admin"}
             />
+            {errors.nickname && <div class="error-state-message">{errors.nickname}</div>}
           </label>
           <label>
             3. Year & Course:{" "}
@@ -269,6 +291,7 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
               onChange={(e) => handleFieldChange('year_course', e.target.value)}
               readOnly={role !== "admin"}
             />
+            {errors.year_course && <div class="error-state-message">{errors.year_course}</div>}
           </label>
         </div>
 

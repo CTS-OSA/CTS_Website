@@ -91,6 +91,8 @@ class BISEditView(APIView):
             student_serializer = BISStudentSerializer(student, data=data)
             if student_serializer.is_valid(raise_exception=True):
                 student.save()
+            else:
+                logger.error(f"Error on student validation: {student_serializer.errors}")
             
             # Update support data
             student_support, created = StudentSupport.objects.get_or_create(submission=submission)
@@ -110,9 +112,12 @@ class BISEditView(APIView):
                 student_support.combination_notes = data['combination_notes']
             if 'others_notes' in data:
                 student_support.other_notes = data['others_notes']
-                
-            student_support.save()
-
+            
+            student_support_serializer = StudentSupportSerializer(student_support, data=data)
+            if student_support_serializer.is_valid():
+                student_support.save()
+            else:
+                logger.error(f"Error on student support validation: {student_support_serializer.errors}")
             
             # Update socio-economic status 
             socio_status, created = SocioEconomicStatus.objects.get_or_create(submission=submission)
@@ -125,7 +130,12 @@ class BISEditView(APIView):
                 socio_status.monthly_allowance = data['monthly_allowance']
             if 'spending_habit' in data:
                 socio_status.spending_habit = data['spending_habit']
-            socio_status.save()
+
+            socio_status_serializer = SocioEconomicStatusSerializer(socio_status, data=data)
+            if socio_status_serializer.is_valid():
+                socio_status.save()
+            else: 
+                logger.error(f"Error on socio-economic status validation: {socio_status_serializer.errors}")
             
             # Update preferences
             preferences, created = Preferences.objects.get_or_create(submission=submission)
@@ -143,7 +153,12 @@ class BISEditView(APIView):
                 preferences.planned_shift_degree = data['planned_shift_degree']
             if 'reason_for_shifting' in data:
                 preferences.reason_for_shifting = data['reason_for_shifting']
-            preferences.save()
+            
+            preferences_serializer = PreferencesSerializer(preferences, data=data)
+            if preferences_serializer.is_valid():
+                preferences.save()
+            else:
+                logger.error(f"Error on preference validation: {preferences_serializer.errors}")
             
             # Update scholastic status
             scholastic, created = PresentScholasticStatus.objects.get_or_create(submission=submission)
@@ -154,10 +169,16 @@ class BISEditView(APIView):
             if 'admitted_course' in data:
                 scholastic.admitted_course = data['admitted_course']    
             if 'next_plan' in data:
-                scholastic.next_plan = data['next_plan']  
-            scholastic.save()
+                scholastic.next_plan = data['next_plan'] 
+
+            scholastic_serializer = PresentScholasticStatusSerializer(scholastic, data=data) 
+            if scholastic_serializer.is_valid():
+                scholastic.save()
+            else:
+                logger.error(f"Error on scholastic status validation: {scholastic_serializer.errors}")
             
-            return Response({'message': 'BIS form updated successfully'}, status=status.HTTP_200_OK)
+            logger.info(f"BIS form for student {student.student_number} has been updated successfully.")
+            return Response({'message': 'BIS form has been updated successfully.'}, status=status.HTTP_200_OK)
 
         except Submission.DoesNotExist:
             return Response({'error': 'BIS form not found'}, status=status.HTTP_404_NOT_FOUND)
