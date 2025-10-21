@@ -3,9 +3,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from forms.models import Submission, HealthData, FamilyData, Parent, Guardian, Scholarship, PersonalityTraits, CounselingInformation, GuidanceSpecialistNotes
-from forms.serializers import AdminSubmissionDetailSerializer
+from forms.serializers import AdminSubmissionDetailSerializer,ParentSerializer,SiblingSerializer,GuardianSerializer,FamilyDataSerializer,HealthDataSerializer, SchoolAddressSerializer,SchoolSerializer, PreviousSchoolRecordSerializer, ScholarshipSerializer, PersonalityTraitsSerializer, CounselingInformationSerializer,FamilyRelationshipSerializer,GuidanceSpecialistNotesSerializer, SCIFStudentSerializer
 from forms.map import FORM_SECTIONS_MAP
+import logging 
 
+logger = logging.getLogger(__name__)
 
 class SCIFEditView(APIView):
     permission_classes = [IsAuthenticated]
@@ -59,6 +61,7 @@ class SCIFEditView(APIView):
             
             # Check permissions
             if not request.user.is_staff and submission.student.user != request.user:
+                logger.info("Permission not allowed. User is not a staff or a student.")
                 return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
             
             data = request.data
@@ -94,6 +97,9 @@ class SCIFEditView(APIView):
                     student.permanent_address.province = address_parts[3]
                     student.permanent_address.save()
             
+            student_serializer = SCIFStudentSerializer(student, data=data)
+            if student_serializer.is_valid(raise_exception=True):
+                student_serializer.save()
             student.save()
 
             # Update health data
@@ -127,7 +133,11 @@ class SCIFEditView(APIView):
             if 'reason_of_hospitalization' in data:
                 health_data.reason_of_hospitalization = data['reason_of_hospitalization']
                 
-            health_data.save()
+            health_data_serializer = HealthDataSerializer(health_data, data=data)
+            if health_data_serializer.is_valid():
+                health_data_serializer.save()
+            else:
+                logger.error(f"Error on health data validation: {health_data_serializer.errors}")
             
             scholarship, created = Scholarship.objects.get_or_create(submission=submission)
             if 'scholarships_and_assistance' in data:
@@ -217,7 +227,11 @@ class SCIFEditView(APIView):
                 guardian.save()
                 family_data.guardian = guardian
             
-            family_data.save()
+            family_data_serializer = FamilyDataSerializer(family_data, data=data)
+            if family_data_serializer.is_valid():
+                family_data_serializer.save()
+            else:
+                logger.error(f"Error on family data validation: {family_data_serializer.errors}")
 
             personality_traits, created = PersonalityTraits.objects.get_or_create(
                 student=student,
@@ -241,7 +255,11 @@ class SCIFEditView(APIView):
             if 'dislikes_in_people' in data:
                 personality_traits.dislikes_in_people = data['dislikes_in_people']
             
-            personality_traits.save()
+            personality_traits_serializer = PersonalityTraitsSerializer(personality_traits, data=data)
+            if personality_traits_serializer.is_valid():
+                personality_traits_serializer.save()
+            else:
+                logger.error(f"Error on personality traits validation: {personality_traits_serializer.errors}")
             
             # Update counseling info
             counseling_info, created = CounselingInformation.objects.get_or_create(
@@ -265,7 +283,11 @@ class SCIFEditView(APIView):
             if 'counseling_reason' in data:
                 counseling_info.counseling_reason = data['counseling_reason']
                 
-            counseling_info.save()
+            counseling_info_serializer = CounselingInformationSerializer(counseling_info, data=data)
+            if counseling_info_serializer.is_valid():
+                counseling_info_serializer.save()
+            else:
+                logger.error(f"Validation failed: {counseling_info_serializer.errors}")
 
             guidance_notes, created = GuidanceSpecialistNotes.objects.get_or_create(
                 student=student,
@@ -275,7 +297,13 @@ class SCIFEditView(APIView):
             # Update guidance notes
             if 'guidance_notes' in data:
                 guidance_notes.notes = data['guidance_notes']
-                guidance_notes.save()
+
+                guidance_serializer = GuidanceSpecialistNotesSerializer(guidance_notes, data=data)
+                if guidance_serializer.is_valid():
+                    guidance_serializer.save
+                else: 
+                    logger.error(f"Validation failed: {guidance_serializer.errors}")
+
             
             return Response({'message': 'SCIF form updated successfully'}, status=status.HTTP_200_OK)
 

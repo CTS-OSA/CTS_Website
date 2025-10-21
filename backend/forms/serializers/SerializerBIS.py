@@ -13,7 +13,6 @@ class BISStudentSerializer(serializers.ModelSerializer):
              ]
         extra_kwargs = {field.name: {'required': False} for field in model._meta.fields if field.name != 'id'}
 
-
 class PreferencesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Preferences

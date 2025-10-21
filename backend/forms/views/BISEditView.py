@@ -63,7 +63,7 @@ class BISEditView(APIView):
             
             # Check permissions
             if not request.user.is_staff and submission.student.user != request.user:
-                logger.info("Permission not allowed. USer is not a staff or a student.")
+                logger.info("Permission not allowed. User is not a staff or a student.")
                 return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
             
             # Get the data from request
@@ -90,7 +90,7 @@ class BISEditView(APIView):
             
             student_serializer = BISStudentSerializer(student, data=data)
             if student_serializer.is_valid(raise_exception=True):
-                student.save()
+                student_serializer.save()
             else:
                 logger.error(f"Error on student validation: {student_serializer.errors}")
             
@@ -115,7 +115,7 @@ class BISEditView(APIView):
             
             student_support_serializer = StudentSupportSerializer(student_support, data=data)
             if student_support_serializer.is_valid():
-                student_support.save()
+                student_support_serializer.save()
             else:
                 logger.error(f"Error on student support validation: {student_support_serializer.errors}")
             
@@ -133,7 +133,7 @@ class BISEditView(APIView):
 
             socio_status_serializer = SocioEconomicStatusSerializer(socio_status, data=data)
             if socio_status_serializer.is_valid():
-                socio_status.save()
+                socio_status_serializer.save()
             else: 
                 logger.error(f"Error on socio-economic status validation: {socio_status_serializer.errors}")
             
@@ -156,7 +156,7 @@ class BISEditView(APIView):
             
             preferences_serializer = PreferencesSerializer(preferences, data=data)
             if preferences_serializer.is_valid():
-                preferences.save()
+                preferences_serializer.save()
             else:
                 logger.error(f"Error on preference validation: {preferences_serializer.errors}")
             
@@ -173,7 +173,7 @@ class BISEditView(APIView):
 
             scholastic_serializer = PresentScholasticStatusSerializer(scholastic, data=data) 
             if scholastic_serializer.is_valid():
-                scholastic.save()
+                scholastic_serializer.save()
             else:
                 logger.error(f"Error on scholastic status validation: {scholastic_serializer.errors}")
             

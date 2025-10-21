@@ -30,7 +30,8 @@ from .SerializerSCIF import (
     PersonalityTraitsSerializer, 
     CounselingInformationSerializer,
     FamilyRelationshipSerializer,
-    GuidanceSpecialistNotesSerializer
+    GuidanceSpecialistNotesSerializer,
+    SCIFStudentSerializer
 )
 
 from .AdminSerializers import (
