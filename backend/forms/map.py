@@ -3,14 +3,14 @@ from forms.models import (
     Parent, Sibling, Guardian, 
     FamilyData, HealthData, 
     SchoolAddress, School, PreviousSchoolRecord, 
-    Scholarship, PersonalityTraits, FamilyRelationship, CounselingInformation, Support
+    Scholarship, PersonalityTraits, FamilyRelationship, CounselingInformation, Support, GuidanceSpecialistNotes
 )
 from forms.serializers import (
     PreferencesSerializer, StudentSupportSerializer, SocioEconomicStatusSerializer, PresentScholasticStatusSerializer, PrivacyConsentSerializer,
     ParentSerializer, SiblingSerializer, GuardianSerializer,
     FamilyDataSerializer, HealthDataSerializer, 
     SchoolAddressSerializer, SchoolSerializer, PreviousSchoolRecordSerializer, 
-    ScholarshipSerializer, PersonalityTraitsSerializer, FamilyRelationshipSerializer, CounselingInformationSerializer
+    ScholarshipSerializer, PersonalityTraitsSerializer, FamilyRelationshipSerializer, CounselingInformationSerializer, GuidanceSpecialistNotesSerializer
 )
 
 
@@ -32,6 +32,7 @@ FORM_SECTIONS_MAP = {
         'personality_traits': (PersonalityTraits, PersonalityTraitsSerializer),
         'family_relationship': (FamilyRelationship, FamilyRelationshipSerializer),
         'counseling_info': (CounselingInformation, CounselingInformationSerializer),
+        'guidance_notes': (GuidanceSpecialistNotes, GuidanceSpecialistNotesSerializer),
         'privacy_consent': (PrivacyConsent, PrivacyConsentSerializer)
     }
 }

@@ -3,7 +3,8 @@ from phonenumber_field.serializerfields import PhoneNumberField
 from forms.models import (
     Parent, Sibling, Guardian, FamilyData, HealthData, 
     SchoolAddress, School, PreviousSchoolRecord, Scholarship,
-    PersonalityTraits, FamilyRelationship, CounselingInformation, PrivacyConsent, Student, Submission
+    PersonalityTraits, FamilyRelationship, CounselingInformation, PrivacyConsent, Student, Submission,
+    GuidanceSpecialistNotes, Address
 )
 
 class CustomListSerializer(serializers.ListSerializer):
@@ -32,6 +33,40 @@ class CustomListSerializer(serializers.ListSerializer):
         instance_mapping[item_id].delete()
 
     return ret
+   
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = '__all__'
+        extra_kwargs = {field.name: {'required': False} for field in model._meta.fields if field.name != 'id'}
+
+class SCIFStudentSerializer(serializers.ModelSerializer):
+    permanent_address = AddressSerializer(required=False)
+    
+    class Meta:
+        model = Student
+        fields = [
+            'current_year_level', 'degree_program',  
+            'last_name', 'first_name', 'middle_name', 'nickname', 'sex', 'religion', 'birth_rank', 'email', 'contact_number', 'landline_number', 'permanent_address'
+        ]
+        extra_kwargs = {field.name: {'required': False} for field in model._meta.fields if field.name != 'id'}
+    
+    def update(self, instance, validated_data):
+        address_data = validated_data.pop('permanent_address', None)
+        
+        if address_data:
+            if instance.permanent_address:
+                for attr, value in address_data.items():
+                    setattr(instance.permanent_address, attr, value)
+                instance.permanent_address.save()
+            else:
+                instance.permanent_address = Address.objects.create(**address_data)
+        
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        
+        instance.save()
+        return instance
 
 
 class SiblingSerializer(serializers.ModelSerializer):
@@ -300,5 +335,10 @@ class FamilyRelationshipSerializer(serializers.ModelSerializer):
 class CounselingInformationSerializer(serializers.ModelSerializer):
     class Meta:
         model = CounselingInformation
+        fields = '__all__'
+  
+class GuidanceSpecialistNotesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GuidanceSpecialistNotes
         fields = '__all__'
   

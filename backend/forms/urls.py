@@ -5,6 +5,8 @@ from .views.GeneralSubmissionViewSet import FormBundleView, FinalizeSubmissionVi
 from .views.adminDisplay import AdminStudentListView, get_student_profile_by_id, AdminBISList, AdminStudentFormsView, AdminSCIFList, AdminStudentFormView
 from .views.display import SubmissionViewSet 
 from .views.getEnums import EnumChoicesView
+from .views.BISEditView import BISEditView
+from .views.SCIFEditView import SCIFEditView
 
 app_name= 'forms'
 
@@ -25,7 +27,8 @@ urlpatterns = [
     path('get/enums/', EnumChoicesView.as_view(), name='enum-choices'),
     path('admin/student-forms/<str:student_id>/', AdminStudentFormsView.as_view()),
     path('admin/student-forms/<str:student_id>/<str:form_type>/', AdminStudentFormView.as_view(), name='admin-student-form-view'),
-    path('admin/students/<str:student_id>/update/', update_student_profile),
+    path('edit/bis/<str:student_id>/', BISEditView.as_view(), name='bis-edit'),
+    path('edit/scif/<str:student_id>/', SCIFEditView.as_view(), name='scif-edit'),
     
     path('display/', include(router.urls)), 
 ]
