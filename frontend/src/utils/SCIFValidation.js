@@ -6,7 +6,11 @@ export const validateParent = (formData) => {
     errors["mother.first_name"] = "Mother's first name is required.";
   if (!mother.last_name)
     errors["mother.last_name"] = "Mother's last name is required.";
-  if (!mother.age) errors["mother.age"] = "Mother's age is required.";
+  if (mother.age === undefined || mother.age === null || mother.age === "") {
+    errors["mother.age"] = "Mother's age is required.";
+  } else if (Number(mother.age) < 0) {
+    errors["mother.age"] = "Mother's age must be 0 or greater.";
+  }
   if (!mother.contact_number) {
     errors["mother.contact_number"] = "Mother's contact number is required.";
   } else if (!/^\+?\d{9,15}$/.test(mother.contact_number)) {
@@ -19,7 +23,11 @@ export const validateParent = (formData) => {
     errors["father.first_name"] = "Father's first name is required.";
   if (!father.last_name)
     errors["father.last_name"] = "Father's last name is required.";
-  if (!father.age) errors["father.age"] = "Father's age is required.";
+  if (father.age === undefined || father.age === null || father.age === "") {
+    errors["father.age"] = "Father's age is required.";
+  } else if (Number(father.age) < 0) {
+    errors["father.age"] = "Father's age must be 0 or greater.";
+  }
   if (!father.contact_number) {
     errors["father.contact_number"] = "Father's contact number is required.";
   } else if (!/^\+?\d{9,15}$/.test(father.contact_number)) {
@@ -77,7 +85,7 @@ export const validateSibling = (formData) => {
 
   formData.siblings.forEach((sibling, index) => {
     const hasAnyInput = Object.entries(sibling).some(
-      ([_, value]) => value !== null && value !== ""
+      ([, value]) => value !== null && value !== ""
     );
 
     if (hasAnyInput) {
@@ -93,8 +101,11 @@ export const validateSibling = (formData) => {
         }'s last name is required.`;
       if (!sibling.sex)
         errors[`${prefix}.sex`] = `Sibling #${index + 1}'s sex is required.`;
-      if (!sibling.age)
+      if (!sibling.age) {
         errors[`${prefix}.age`] = `Sibling #${index + 1}'s age is required.`;
+      } else if (Number(sibling.age) < 0) {
+        errors[`${prefix}.age`] = `Sibling #${index + 1}'s age must be 0 or greater.`;
+      }
       if (!sibling.educational_attainment) {
         errors[`${prefix}.educational_attainment`] = `Sibling #${
           index + 1
@@ -214,22 +225,36 @@ export const validatePreviousSchool = (records) => {
 
     const start = Number(record.start_year);
     const end = Number(record.end_year);
+    const MIN_YEAR = 1970;
     const currentYear = new Date().getFullYear();
 
-    if (isNaN(start) || isNaN(end)) {
-      return;
+    if (!yearRegex.test(record.start_year)) {
+        errors[`${prefix}.start_year`] = "Start year must be a 4-digit year (e.g., 2024).";
+    }
+    if (!yearRegex.test(record.end_year)) {
+        errors[`${prefix}.end_year`] = "End year must be a 4-digit year (e.g., 2024).";
     }
 
-    if (end < start) {
-      errors[`${prefix}.end_year`] =
-        "End year cannot be earlier than start year.";
-    }
-    if (start > currentYear) {
-      errors[`${prefix}.start_year`] = "Start year cannot be in the future.";
-    }
-    if (end > currentYear) {
-      errors[`${prefix}.end_year`] = "End year cannot be in the future.";
-    }
+    if (!isNaN(start) && !isNaN(end)) {
+        // --- MIN/MAX YEAR VALIDATION ---
+        if (start < MIN_YEAR) {
+            errors[`${prefix}.start_year`] = `Start year cannot be earlier than ${MIN_YEAR}.`;
+        }
+        if (end < MIN_YEAR) {
+            errors[`${prefix}.end_year`] = `End year cannot be earlier than ${MIN_YEAR}.`;
+        }
+        if (start > currentYear) {
+            errors[`${prefix}.start_year`] = "Start year cannot be in the future.";
+        }
+        if (end > currentYear) {
+            errors[`${prefix}.end_year`] = "End year cannot be in the future.";
+        }
+        if (end < start) {
+            errors[`${prefix}.end_year`] =
+                "End year cannot be earlier than start year.";
+          }
+        }
+      
 
     if (record.education_level === "Senior High") {
       if (
@@ -250,6 +275,7 @@ export const validatePreviousSchool = (records) => {
       requiredLevels[record.education_level] = true;
     }
   });
+  
 
   Object.entries(requiredLevels).forEach(([level, found]) => {
     if (!found) {

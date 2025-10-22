@@ -2,7 +2,7 @@ import React from "react";
 import FormField from "../../components/FormField";
 import "../SetupProfile/css/multistep.css";
 import { clearError } from "../../utils/helperFunctions";
-
+import { filterGeneralText } from "../../utils/inputFilters";
 const SCIFOtherPersonalData = ({
   data,
   updateData,
@@ -12,10 +12,11 @@ const SCIFOtherPersonalData = ({
 }) => {
   const { personality_traits, family_relationship, counseling_info } = data;
 
-  const handleFieldChange = (section, field, value) => {
-    if (readOnly) return;
-    updateData(section, { [field]: value });
-  };
+const handleFieldChange = (section, field, rawValue, filterFn) => {
+  if (readOnly) return;
+  const filteredValue = filterFn ? filterFn(rawValue) : rawValue;
+  updateData(section, { [field]: filteredValue });
+};
 
   const previousCounselingOptions = [
     { value: true, label: "Yes" },
@@ -36,38 +37,44 @@ const SCIFOtherPersonalData = ({
         <h2 className="step-title">Other Personal Data</h2>
 
         {/* Personality Traits Fields */}
-        <FormField
-          label="Why did you enroll in UP Mindanao?"
-          type="textarea"
-          value={personality_traits.enrollment_reason}
-          onChange={(e) =>
-            handleFieldChange(
-              "personality_traits",
-              "enrollment_reason",
-              e.target.value
-            )
-          }
-          onFocus={() =>
-            clearError(
-              errors,
-              setErrors,
-              "personality_traits.enrollment_reason"
-            )
-          }
-          error={errors?.["personality_traits.enrollment_reason"]}
-          helperText="Please explain the reason why you chose to enroll at UP Mindanao."
-          required
-        />
-
+        <div className="field-spacing">
+          <FormField
+            label="Why did you enroll in UP Mindanao?"
+            type="textarea"
+            value={personality_traits.enrollment_reason}
+            onChange={(e) =>
+              handleFieldChange(
+                "personality_traits",
+                "enrollment_reason",
+                e.target.value,
+                filterGeneralText
+              )
+            }
+            onFocus={() =>
+              clearError(
+                errors,
+                setErrors,
+                "personality_traits.enrollment_reason"
+              )
+            }
+            error={errors?.["personality_traits.enrollment_reason"]}
+            helpertext="Please explain the reason why you chose to enroll at UP Mindanao."
+            required
+          />
+        </div>
+        <div className="field-spacing">
         <label>
           Does your degree program lead to what you aspire in the future?
         </label>
-        <small className="helper-text" style={{marginTop: "20px", display: "block"}} >
+        <small
+          className="helper-text"
+          style={{ marginTop: "20px", display: "block" }}
+        >
           Select "Yes" if your current degree program aligns with your future
           goals.
         </small>
 
-        <div className="radio-group" style={{marginBottom: "20px"}}>
+        <div className="radio-group" style={{ marginBottom: "20px" }}>
           {[
             { value: true, label: "Yes" },
             { value: false, label: "No" },
@@ -87,12 +94,17 @@ const SCIFOtherPersonalData = ({
                     "personality_traits.degree_program_aspiration"
                   )
                 }
-                onChange={() =>
+                onChange={() => {
                   handleFieldChange(
                     "personality_traits",
                     "degree_program_aspiration",
                     option.value
-                  )
+                  );
+                  if (option.value === true) {
+                    updateData("personality_traits", { aspiration_explanation: "" });
+                    clearError(errors, setErrors, "personality_traits.aspiration_explanation");
+                  }
+                }
                 }
               />
               {option.label}
@@ -121,7 +133,8 @@ const SCIFOtherPersonalData = ({
               handleFieldChange(
                 "personality_traits",
                 "aspiration_explanation",
-                e.target.value
+                e.target.value,
+                filterGeneralText
               )
             }
             error={errors?.["personality_traits.aspiration_explanation"]}
@@ -129,7 +142,9 @@ const SCIFOtherPersonalData = ({
             required
           />
         )}
+        </div>
 
+        <div className="field-spacing">
         <FormField
           label="What are your special talents and abilities?"
           type="textarea"
@@ -141,14 +156,17 @@ const SCIFOtherPersonalData = ({
             handleFieldChange(
               "personality_traits",
               "special_talents",
-              e.target.value
+              e.target.value,
+              filterGeneralText
             )
           }
           error={errors?.["personality_traits.special_talents"]}
-          helperText="Describe any special talents or abilities you possess."
+          helpertext="Describe any special talents or abilities you possess."
           required
         />
-
+        </div>
+        
+        <div className="field-spacing">
         <FormField
           label="Specify the musical instruments you play:"
           type="textarea"
@@ -164,14 +182,17 @@ const SCIFOtherPersonalData = ({
             handleFieldChange(
               "personality_traits",
               "musical_instruments",
-              e.target.value
+              e.target.value,
+              filterGeneralText
             )
           }
           error={errors?.["personality_traits.musical_instruments"]}
-          helperText="List any musical instruments you can play and provide any relevant experience."
+          helpertext="List any musical instruments you can play and provide any relevant experience."
           required
         />
+        </div>
 
+        <div className="field-spacing">
         <FormField
           label="What are your hobbies?"
           type="textarea"
@@ -180,13 +201,15 @@ const SCIFOtherPersonalData = ({
             clearError(errors, setErrors, "personality_traits.hobbies")
           }
           onChange={(e) =>
-            handleFieldChange("personality_traits", "hobbies", e.target.value)
+            handleFieldChange("personality_traits", "hobbies", e.target.value, filterGeneralText)
           }
           error={errors?.["personality_traits.hobbies"]}
-          helperText="Share what activities or hobbies you enjoy in your free time."
+          helpertext="Share what activities or hobbies you enjoy in your free time."
           required
         />
+        </div>
 
+        <div className="field-spacing">
         <FormField
           label="What do you like in people?"
           type="textarea"
@@ -198,14 +221,17 @@ const SCIFOtherPersonalData = ({
             handleFieldChange(
               "personality_traits",
               "likes_in_people",
-              e.target.value
+              e.target.value,
+              filterGeneralText
             )
           }
           error={errors?.["personality_traits.likes_in_people"]}
-          helperText="Describe the positive traits or qualities you appreciate in others."
+          helpertext="Describe the positive traits or qualities you appreciate in others."
           required
         />
+        </div>
 
+        <div className="field-spacing">
         <FormField
           label="What do you dislike in people?"
           type="textarea"
@@ -221,20 +247,22 @@ const SCIFOtherPersonalData = ({
             handleFieldChange(
               "personality_traits",
               "dislikes_in_people",
-              e.target.value
+              e.target.value,
+              filterGeneralText
             )
           }
           error={errors?.["personality_traits.dislikes_in_people"]}
-          helperText="Describe the negative traits or qualities you dislike in others."
+          helpertext="Describe the negative traits or qualities you dislike in others."
           required
         />
-
+        </div>
+        <div className="field-spacing">
         <label>With whom are you closest to?</label>
-        <small className="helper-text" style={{display: "block"}}>
+        <small className="helper-text" style={{ display: "block" }}>
           Select the person you are closest to in your family or personal
           circle.
         </small>
-        <div className="radio-group" style={{marginBottom: "20px"}}>
+        <div className="radio-group" style={{ marginBottom: "20px" }}>
           {closestOptions.map((relation) => (
             <label key={relation.value} className="radio-label">
               <input
@@ -276,19 +304,22 @@ const SCIFOtherPersonalData = ({
               handleFieldChange(
                 "family_relationship",
                 "specify_other",
-                e.target.value
+                e.target.value,
+                filterGeneralText
               )
             }
             onFocus={() =>
               clearError(errors, setErrors, "family_relationship.specify_other")
             }
-            helperText="If 'Other' is selected, please specify."
+            helpertext="If 'Other' is selected, please specify."
             error={errors?.["family_relationship.specify_other"]}
             required
           />
         )}
+        </div>
 
         {/* Counseling Information Fields */}
+        <div className="field-spacing">
         <FormField
           label="Personal characteristics as a person:"
           type="textarea"
@@ -297,7 +328,8 @@ const SCIFOtherPersonalData = ({
             handleFieldChange(
               "counseling_info",
               "personal_characteristics",
-              e.target.value
+              e.target.value,
+              filterGeneralText
             )
           }
           onFocus={() =>
@@ -307,11 +339,13 @@ const SCIFOtherPersonalData = ({
               "counseling_info.personal_characteristics"
             )
           }
-          helperText="Describe your personal characteristics or traits that define who you are."
+          helpertext="Describe your personal characteristics or traits that define who you are."
           error={errors?.["counseling_info.personal_characteristics"]}
           required
         />
+        </div>
 
+        <div className="field-spacing">
         <FormField
           label="To whom do you open up your problems?"
           type="textarea"
@@ -320,17 +354,19 @@ const SCIFOtherPersonalData = ({
             handleFieldChange(
               "counseling_info",
               "problem_confidant",
-              e.target.value
+              e.target.value,
+              filterGeneralText
             )
           }
           onFocus={() =>
             clearError(errors, setErrors, "counseling_info.problem_confidant")
           }
-          helperText="Mention the person or people you trust and open up to with your problems."
+          helpertext="Mention the person or people you trust and open up to with your problems."
           error={errors?.["counseling_info.problem_confidant"]}
           required
         />
-
+        </div>
+        <div className="field-spacing">
         <FormField
           label="Why?"
           type="textarea"
@@ -339,17 +375,20 @@ const SCIFOtherPersonalData = ({
             handleFieldChange(
               "counseling_info",
               "confidant_reason",
-              e.target.value
+              e.target.value,
+              filterGeneralText
             )
           }
           onFocus={() =>
             clearError(errors, setErrors, "counseling_info.confidant_reason")
           }
-          helperText="Explain why you open up to that person."
+          helpertext="Explain why you open up to that person."
           error={errors?.["counseling_info.confidant_reason"]}
           required
         />
+        </div>
 
+        <div className="field-spacing">
         <FormField
           label="Any problem that you might encounter later while in UP?"
           type="textarea"
@@ -358,7 +397,8 @@ const SCIFOtherPersonalData = ({
             handleFieldChange(
               "counseling_info",
               "anticipated_problems",
-              e.target.value
+              e.target.value,
+              filterGeneralText
             )
           }
           onFocus={() =>
@@ -368,13 +408,15 @@ const SCIFOtherPersonalData = ({
               "counseling_info.anticipated_problems"
             )
           }
-          helperText="Are there any problems or challenges you foresee while studying at UP?"
+          helpertext="Are there any problems or challenges you foresee while studying at UP?"
           error={errors?.["counseling_info.anticipated_problems"]}
           required
         />
+        </div>
 
+        <div className="field-spacing">
         <label>Any previous counseling?</label>
-        <small className="helper-text" style={{display: "block"}}>
+        <small className="helper-text" style={{ display: "block" }}>
           Indicate if you have had any previous counseling sessions.
         </small>
         <div className="radio-group">
@@ -385,12 +427,22 @@ const SCIFOtherPersonalData = ({
                 name="previous_counseling"
                 value={option.value}
                 checked={counseling_info.previous_counseling === option.value}
-                onChange={() =>
+                onChange={() => {
                   handleFieldChange(
                     "counseling_info",
                     "previous_counseling",
                     option.value
-                  )
+                  );
+                  if (option.value === false) {
+                    updateData("counseling_info", { counseling_location: "" });
+                    updateData("counseling_info", { counseling_counselor: "" });
+                    updateData("counseling_info", { counseling_reason: "" });
+                    // Also clear any related errors, if necessary
+                    clearError(errors, setErrors, "counseling_info.counseling_location");
+                    clearError(errors, setErrors, "counseling_info.counseling_counselor");
+                    clearError(errors, setErrors, "counseling_info.counseling_reason");
+                  }
+                }
                 }
                 onFocus={() =>
                   clearError(
@@ -403,6 +455,7 @@ const SCIFOtherPersonalData = ({
               {option.label}
             </label>
           ))}
+        </div>
         </div>
 
         {counseling_info.previous_counseling === true && (
@@ -418,14 +471,15 @@ const SCIFOtherPersonalData = ({
                   "counseling_info.counseling_location"
                 )
               }
-              onChange={(e) =>
+              onChange={(e) => 
                 handleFieldChange(
                   "counseling_info",
                   "counseling_location",
-                  e.target.value
+                  e.target.value,
+                  filterGeneralText
                 )
               }
-              helperText="If you have had previous counseling, please mention where."
+              helpertext="If you have had previous counseling, please mention where."
               error={errors?.["counseling_info.counseling_location"]}
               required
             />
@@ -445,16 +499,18 @@ const SCIFOtherPersonalData = ({
                 handleFieldChange(
                   "counseling_info",
                   "counseling_counselor",
-                  e.target.value
+                  e.target.value,
+                  filterGeneralText
                 )
               }
               error={errors?.["counseling_info.counseling_counselor"]}
+              helpertext="Mention who the counselors were in your previous counseling."
               required
             />
 
             <FormField
               label="Why?"
-              type="text"
+              type="textarea"
               value={counseling_info.counseling_reason || ""}
               onFocus={() =>
                 clearError(
@@ -467,10 +523,11 @@ const SCIFOtherPersonalData = ({
                 handleFieldChange(
                   "counseling_info",
                   "counseling_reason",
-                  e.target.value
+                  e.target.value,
+                  filterGeneralText
                 )
               }
-              helperText="Mention the reason for the previous counseling."
+              helpertext="Mention the reason for the previous counseling."
               error={errors?.["counseling_info.counseling_reason"]}
               required
             />
