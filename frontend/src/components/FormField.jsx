@@ -13,6 +13,7 @@ const FormField = ({
   options,
   disabled,
   readOnly = false,
+  helpertext,
   ...rest
 }) => {
   const isFilled = value && value.toString().trim().length > 0;
@@ -52,6 +53,17 @@ const FormField = ({
             </option>
           ))}
         </select>
+      ) : type === 'textarea' ? ( 
+        <textarea
+          value={value}
+          onChange={onChange}
+          name={name}
+          required={required}
+          className={`form-input ${isFilled ? 'filled' : ''}`}
+          disabled={disabled}
+          rows={4} 
+          {...rest}
+        /> 
       ) : (
         <input
           type={type}
@@ -67,6 +79,9 @@ const FormField = ({
       <label className={isFilled ? 'active' : ''}>
         {label} {required && '*'}
       </label>
+      {!error && helpertext && (
+        <div className="helpertext">{helpertext}</div>
+      )}
       {error && <div className="error-message">{error}</div>}
     </div>
   );

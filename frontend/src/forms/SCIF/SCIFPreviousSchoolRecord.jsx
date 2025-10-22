@@ -3,7 +3,11 @@ import FormField from "../../components/FormField";
 import "../SetupProfile/css/multistep.css";
 import { useEnumChoices } from "../../utils/enumChoices";
 import Button from "../../components/UIButton";
-import { clearError } from "../../utils/helperFunctions";
+import {
+  filterNumbersOnly,
+  filterGeneralText,
+  filterDecimalNumbers,
+} from "../../utils/inputFilters";
 
 const REQUIRED_LEVELS = ["Primary", "Junior High", "Senior High"];
 
@@ -16,6 +20,17 @@ const SCIFPreviousSchoolRecord = ({
 }) => {
   const [schoolRecords, setSchoolRecords] = useState(data || []);
   const { enums, loading, error } = useEnumChoices();
+
+  const handleErrorClear = (globalIndex, field) => {
+      const errorKey = `previous_school[${globalIndex}].${field}`;
+      if (errors?.[errorKey]) {
+        setErrors((prev) => {
+          const updatedErrors = { ...prev };
+          delete updatedErrors[errorKey];
+          return updatedErrors;
+        });
+      }
+    };
 
   const handleFieldChange = (index, field, value) => {
     if (readOnly) return;
@@ -30,15 +45,6 @@ const SCIFPreviousSchoolRecord = ({
     // Clear GPA if not Senior High
     if (field === "education_level" && value !== "Senior High") {
       updated[index].senior_high_gpa = "";
-    }
-
-    const errorKey = `previous_school[${index}].${field}`;
-    if (errors?.[errorKey]) {
-      setErrors((prev) => {
-        const updatedErrors = { ...prev };
-        delete updatedErrors[errorKey];
-        return updatedErrors;
-      });
     }
 
     const recordLevel =
@@ -58,6 +64,13 @@ const SCIFPreviousSchoolRecord = ({
 
     setSchoolRecords(updated);
     updateData(updated);
+  };
+
+  const handleInputFilterChange = (globalIndex, field, rawValue, filterFn) => {
+    if (readOnly) return;
+    const filteredValue = filterFn(rawValue);
+    handleFieldChange(globalIndex, field, filteredValue);
+    handleErrorClear(globalIndex, field);
   };
 
   const addRecord = (level) => {
@@ -114,7 +127,8 @@ const SCIFPreviousSchoolRecord = ({
     // eslint-disable-next-line
   }, []);
 
-  const renderSection = (level, isRequired = true) => {
+
+const renderSection = (level, isRequired=true) => {
     const records = schoolRecords.filter((r) => r.education_level === level);
     return (
       <div className="school-section">
@@ -129,9 +143,15 @@ const SCIFPreviousSchoolRecord = ({
                 label="School Name"
                 type="text"
                 value={record.school.name}
-                onFocus={() => clearError(globalIndex, "school.name")}
+                onFocus={() => handleErrorClear(globalIndex, "school.name")}
+                // 🛑 FIX 2: Use the new filter function
                 onChange={(e) =>
-                  handleFieldChange(globalIndex, "school.name", e.target.value)
+                  handleInputFilterChange(
+                    globalIndex,
+                    "school.name",
+                    e.target.value,
+                    filterGeneralText 
+                  )
                 }
                 error={errors?.[`previous_school[${globalIndex}].school.name`]}
                 required
@@ -140,47 +160,82 @@ const SCIFPreviousSchoolRecord = ({
               <h3 className="step-info school">{level} School Address</h3>
               <div className="form-row three-columns">
                 {[
-                  "address_line_1",
-                  "barangay",
-                  "city_municipality",
-                  "province",
-                  "region",
-                  "zip_code",
-                ].map((field) => (
-                  <FormField
-                    key={field}
-                    label={field
-                      .replace(/_/g, " ")
-                      .replace(/\b\w/g, (l) => l.toUpperCase())}
-                    type={field === "region" ? "select" : "text"}
-                    value={record.school.school_address[field]}
-                    onFocus={() =>
-                      clearError(globalIndex, `school.school_address.${field}`)
-                    }
-                    onChange={(e) =>
-                      handleFieldChange(
-                        globalIndex,
-                        `school.school_address.${field}`,
-                        e.target.value
-                      )
-                    }
-                    error={
-                      errors?.[
-                        `previous_school[${globalIndex}].school.school_address.${field}`
-                      ]
-                    }
-                    options={
-                      field === "region"
-                        ? loading
-                          ? [{ value: "", label: "Loading regions..." }]
-                          : error
-                          ? [{ value: "", label: "Error loading regions" }]
-                          : enums?.region || []
-                        : undefined
-                    }
-                    required
-                  />
-                ))}
+                  // Filters assigned for each field
+                  {field: "address_line_1", filter: filterGeneralText},
+                  {field: "barangay", filter: filterGeneralText},
+                  {field: "city_municipality", filter: filterGeneralText},
+                  {field: "province", filter: filterGeneralText},
+                  {field: "region", filter: null, isSelect: true}, 
+                  {field: "zip_code", filter: filterNumbersOnly},
+                ].map((item) => {
+                  const field = item.field;
+                  const isSelect = item.isSelect;
+
+                  if (isSelect) {
+                    return (
+                        <FormField
+                            key={field}
+                            label={field
+                                .replace(/_/g, " ")
+                                .replace(/\b\w/g, (l) => l.toUpperCase())}
+                            type="select"
+                            value={record.school.school_address[field]}
+                            onFocus={() => handleErrorClear(globalIndex, `school.school_address.${field}`)}
+                            onChange={(e) => 
+                              handleFieldChange( // Selects use the base handler
+                                globalIndex,
+                                `school.school_address.${field}`,
+                                e.target.value
+                              )
+                            }
+                            error={
+                                errors?.[
+                                    `previous_school[${globalIndex}].school.school_address.${field}`
+                                ]
+                            }
+                            options={
+                                field === "region"
+                                    ? loading
+                                        ? [{ value: "", label: "Loading regions..." }]
+                                        : error
+                                        ? [{ value: "", label: "Error loading regions" }]
+                                        : enums?.region || []
+                                    : undefined
+                            }
+                            required
+                        />
+                    );
+                  }
+
+                  return (
+                    <FormField
+                      key={field}
+                      label={field
+                        .replace(/_/g, " ")
+                        .replace(/\b\w/g, (l) => l.toUpperCase())}
+                      type="text"
+                      value={record.school.school_address[field]}
+                      onFocus={() =>
+                        handleErrorClear(globalIndex, `school.school_address.${field}`)
+                      }
+                      // 🛑 FIX 3: Use the new filter function for address fields
+                      onChange={(e) =>
+                        handleInputFilterChange(
+                          globalIndex,
+                          `school.school_address.${field}`,
+                          e.target.value,
+                          item.filter
+                        )
+                      }
+                      error={
+                        errors?.[
+                          `previous_school[${globalIndex}].school.school_address.${field}`
+                        ]
+                      }
+                      required
+                    />
+                  );
+                })}
               </div>
 
               <h3 className="step-info school">
@@ -189,31 +244,35 @@ const SCIFPreviousSchoolRecord = ({
               <div className="form-row three-columns">
                 <FormField
                   label="Start Year"
-                  type="number"
+                  type="text"
                   value={record.start_year}
-                  onFocus={() => clearError(globalIndex, "start_year")}
-                  onChange={(e) =>
-                    handleFieldChange(
-                      globalIndex,
-                      "start_year",
-                      +e.target.value
+                  onFocus={() => handleErrorClear(globalIndex, "start_year")}
+                  // 🛑 FIX 4: Use the number filter for year
+                  onChange={(e) => 
+                    handleInputFilterChange(
+                        globalIndex, 
+                        "start_year", 
+                        e.target.value, 
+                        filterNumbersOnly // Year must be whole numbers
                     )
                   }
-                  min={1970}
-                  max={new Date().getFullYear()}
                   error={errors?.[`previous_school[${globalIndex}].start_year`]}
                   required
                 />
                 <FormField
                   label="End Year"
-                  type="number"
+                  type="text"
                   value={record.end_year}
-                  onFocus={() => clearError(globalIndex, "end_year")}
+                  onFocus={() => handleErrorClear(globalIndex, "end_year")}
+                  // 🛑 FIX 5: Use the number filter for year
                   onChange={(e) =>
-                    handleFieldChange(globalIndex, "end_year", +e.target.value)
+                    handleInputFilterChange(
+                        globalIndex, 
+                        "end_year", 
+                        e.target.value, 
+                        filterNumbersOnly // Year must be whole numbers
+                    )
                   }
-                  min={1970}
-                  max={new Date().getFullYear()}
                   error={errors?.[`previous_school[${globalIndex}].end_year`]}
                   required
                 />
@@ -221,12 +280,14 @@ const SCIFPreviousSchoolRecord = ({
                   label="Honors Received"
                   type="text"
                   value={record.honors_received}
-                  onFocus={() => clearError(globalIndex, "honors_received")}
+                  onFocus={() => handleErrorClear(globalIndex, "honors_received")}
+                  // 🛑 FIX 6: Use the general text filter
                   onChange={(e) =>
-                    handleFieldChange(
+                    handleInputFilterChange(
                       globalIndex,
                       "honors_received",
-                      e.target.value
+                      e.target.value,
+                      filterGeneralText 
                     )
                   }
                   error={
@@ -238,14 +299,16 @@ const SCIFPreviousSchoolRecord = ({
               {level === "Senior High" && (
                 <FormField
                   label="Senior High GPA"
-                  type="number"
+                  type="text"
                   value={record.senior_high_gpa}
-                  onFocus={() => clearError(globalIndex, "senior_high_gpa")}
-                  onChange={(e) =>
-                    handleFieldChange(
-                      globalIndex,
-                      "senior_high_gpa",
-                      e.target.value
+                  onFocus={() => handleErrorClear(globalIndex, "senior_high_gpa")}
+                  // 🛑 FIX 7: Use the decimal filter for GPA
+                  onChange={(e) => 
+                    handleInputFilterChange(
+                        globalIndex, 
+                        "senior_high_gpa", 
+                        e.target.value, 
+                        filterDecimalNumbers // GPA is a decimal
                     )
                   }
                   error={
@@ -254,7 +317,6 @@ const SCIFPreviousSchoolRecord = ({
                   required
                 />
               )}
-
               {!readOnly && (
                 <Button
                   variant="secondary"
