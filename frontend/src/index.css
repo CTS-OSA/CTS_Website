@@ -1,8 +1,12 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 @import "tailwindcss";
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: Arial, "Times New Roman";
+@theme {
+  --color-upmaroon: #7b1113;
+  --color-upyellow: #ffad14;
+  --color-upgreen: #014421;
+
+  --font-tnr: "Times New Roman", serif;
+  --font-arial: "Arial", sans-serif;
+  --font-roboto: "Roboto", sans-serif;
 }

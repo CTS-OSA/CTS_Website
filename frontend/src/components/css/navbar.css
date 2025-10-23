@@ -1,319 +1,322 @@
 /* ========== Navbar Container ========== */
 .nav {
-    position: sticky;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background-color: #7B1113;
-    color: #FFFFFF;
-    box-shadow: 0 0.125rem 0.3125rem rgba(0, 0, 0, 0.1);
-    z-index: 10;
-    padding: 2.5rem 1.25rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-sizing: border-box;
-    height: 3.75rem;
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #7b1113;
+  color: #ffffff;
+  box-shadow: 0 0.125rem 0.3125rem rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  padding: 2.5rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  height: 3.75rem;
 }
 
 /* ========== Logo ========== */
 .headerLogo {
-    display: flex;
-    align-items: center;
-    padding-left: 2%;
-    height: 100%;
-    text-decoration: none;
-    color: #FFF;
+  display: flex;
+  align-items: center;
+  padding-left: 2%;
+  height: 100%;
+  text-decoration: none;
+  color: #fff;
 }
 
 .headerPhoto img {
-    height: 2.8125rem;
-    margin-right: 1%;
+  height: 2.8125rem;
+  margin-right: 1%;
 }
 
 .headerLogoName {
-    display: flex;
-    flex-direction: column;
-    margin-left: 0.3rem;
+  display: flex;
+  flex-direction: column;
+  margin-left: 0.3rem;
 }
 
 .headerLogoName .nameUp {
-    font-size: 0.77rem;
-    margin: 0;
-    font-weight: normal;
-    font-family: 'Times New Roman', Times, serif;
-    color: #FFFFFF;
+  font-size: 0.77rem;
+  margin: 0;
+  font-weight: normal;
+  font-family: "Times New Roman", Times, serif;
+  color: #ffffff;
 }
 
 .headerLogoName .nameDown {
-    font-size: 1.625rem;
-    margin: 0;
-    font-weight: normal;
-    font-family: 'Times New Roman', Times, serif;
+  font-size: 1.625rem;
+  margin: 0;
+  font-weight: normal;
+  font-family: "Times New Roman", Times, serif;
 }
 
 /* ========== Navigation ========== */
 .navigation {
-    display: flex;
-    align-items: center;
-    height: 100%;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  justify-content: center;
 }
 
 .navigation ul {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex-wrap: nowrap;
+}
+
+/* ========== Dropdown Trigger ========== */
+.dropdown-wrapper {
+  position: relative;
+}
+
+.link-button {
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  padding: 0.75rem 1.5rem; /* Same padding as dropdown-choice */
+  border-radius: 0.5rem;
+  color: #fff;
+  background-color: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.link-button:hover {
+  background-color: rgba(255, 255, 255, 0.15); /* Same hover effect */
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.link-button.active {
+  background-color: #a00000; /* Active state, matches hover of dropdown-choice */
+  font-weight: 600;
+}
+
+/* ========== Dropdown Menu ========== */
+.dropdown-menu {
+  position: absolute;
+  top: 60px;
+  right: 1.25rem;
+  background-color: #fff;
+  color: #333;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  z-index: 4;
+  min-width: 200px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+}
+
+.dropdown-wrapper.active .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-menu > div {
+  padding: 0.5rem 0;
+  cursor: pointer;
+}
+
+.dropdown-menu > div:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* ========== Dropdown Choices ========== */
+.dropdown-choice {
+  background-color: #58514fc5; /* Default red background for all buttons */
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  font-family: Arial, Helvetica, sans-serif;
+  padding: 0.75rem 1.5rem; /* Consistent padding */
+  text-align: center;
+  margin-top: 0.5rem;
+  transition: all 0.3s ease-in-out;
+  width: 100%;
+  font-size: 1rem; /* Standard font size */
+}
+
+.dropdown-choice:hover {
+  background-color: #7b1113 !important;
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown-choice:active {
+  transform: scale(0.95); /* Shrinks when clicked */
+}
+
+/* Specific hover color change for the logout button */
+.dropdown-choice:last-child:hover {
+  background-color: #7b1113; /* Darker color for logout hover */
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* ========== Avatar / User Info ========== */
+.user-info-dropdown {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.user-info-dropdown .avatar {
+  background-color: #7b1113;
+  color: #fff;
+  border-radius: 50%;
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.user-info-dropdown div p {
+  margin: 0;
+  font-weight: bold;
+  color: #333;
+}
+
+.user-info-dropdown div p:nth-child(2) {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 48rem) {
+  .headerLogoName {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* ✅ vertically centers the text */
+    line-height: 1.2;
+  }
+
+  .nav {
+    padding: 1rem;
+    height: fit-content;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .hamburger {
+    display: block;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+  }
+
+  .hamburger:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 0.5rem;
+    transform: scale(1.05);
+    transition: all 0.2s ease;
+  }
+
+  .hamburger.active {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 0.5rem;
+    transform: rotate(90deg); /* Optional: rotate or scale */
+  }
+
+  .hamburger-container {
+    display: flex;
+    align-items: center;
+    height: 100%;
+  }
+
+  /* Navigation for small screens */
+  .navigation {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem;
+  }
+
+  .navigation ul {
     display: flex;
     align-items: center;
     justify-content: center;
     list-style: none;
     margin: 0;
     padding: 0;
-    flex-wrap: nowrap;
-}
+  }
 
-/* ========== Dropdown Trigger ========== */
-.dropdown-wrapper {
-    position: relative;
-}
+  /* Ensure all links (HOME, FAQ, FORMS, LOG IN, SIGN UP) have hover effect when logged out */
+  .navigation li a:hover,
+  .navigation button:hover {
+    background-color: rgba(
+      255,
+      255,
+      255,
+      0.15
+    ); /* Same hover effect for buttons and links */
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  }
 
-.link-button {
-    display: flex;
-    align-items: center;
+  .mobile-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 1rem;
+    width: 40%;
+    background-color: #7b1113;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    border-radius: 0 0 0.5rem 0.5rem;
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .mobile-dropdown ul {
+    display: flex-start;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    margin: 0;
+    list-style: none;
+  }
+
+  .mobile-dropdown .link-button {
+    display: block;
+    padding: 0.75rem 1rem;
+    text-align: center;
+    width: 100%;
+    background: none;
+    border: none;
     font-size: 1rem;
-    padding: 0.75rem 1.5rem; /* Same padding as dropdown-choice */
-    border-radius: 0.5rem;
-    color: #fff;
-    background-color: transparent;
-    border: 1px solid transparent;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-}
+    border-radius: 0.5rem;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+  }
 
-.link-button:hover {
+  .mobile-dropdown .link-button:hover {
     background-color: rgba(255, 255, 255, 0.15); /* Same hover effect */
     transform: scale(1.05);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-}
+  }
 
-.link-button.active {
-    background-color: #a00000; /* Active state, matches hover of dropdown-choice */
-    font-weight: 600;
-}
-
-/* ========== Dropdown Menu ========== */
-.dropdown-menu {
-    position: absolute;
-    top: 60px;
-    right: 1.25rem;
-    background-color: #fff;
-    color: #333;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    z-index: 4;
-    min-width: 200px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
-}
-
-.dropdown-wrapper.active .dropdown-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-
-.dropdown-menu > div {
-    padding: 0.5rem 0;
-    cursor: pointer;
-}
-
-.dropdown-menu > div:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-}
-
-/* ========== Dropdown Choices ========== */
-.dropdown-choice {
-    background-color: #58514fc5; /* Default red background for all buttons */
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    border-radius: 0.5rem;
-    font-family: Arial, Helvetica, sans-serif;
-    padding: 0.75rem 1.5rem; /* Consistent padding */
-    text-align: center;
-    margin-top: 0.5rem;
-    transition: all 0.3s ease-in-out;
-    width: 100%;
-    font-size: 1rem; /* Standard font size */
-}
-
-.dropdown-choice:hover {
-    background-color: #7B1113 !important;
-    transform: scale(1.05);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-}
-
-.dropdown-choice:active {
-    transform: scale(0.95); /* Shrinks when clicked */
-}
-
-/* Specific hover color change for the logout button */
-.dropdown-choice:last-child:hover {
-    background-color: #7B1113; /* Darker color for logout hover */
-    transform: scale(1.05);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-}
-
-/* ========== Avatar / User Info ========== */
-.user-info-dropdown {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem 0;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.user-info-dropdown .avatar {
-    background-color: #7B1113;
-    color: #fff;
-    border-radius: 50%;
-    width: 3rem;
-    height: 3rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.5rem;
-    font-weight: bold;
-}
-
-.user-info-dropdown div p {
-    margin: 0;
-    font-weight: bold;
-    color: #333;
-}
-
-.user-info-dropdown div p:nth-child(2) {
-    font-size: 0.875rem;
-    color: #666;
-}
-
-/* ========== Responsive ========== */
-@media (max-width: 48rem) {
-    .headerLogoName {
-        display: flex;
-        flex-direction: column;
-        justify-content: center; /* ✅ vertically centers the text */
-        line-height: 1.2;
-    }
-    
-    .nav {
-        padding: 1rem;
-        height: fit-content;
-        flex-direction: row;
-        justify-content: space-between;
-    }
-
-    .hamburger {
-        display: block;
-        background: none;
-        border: none;
-        color: #fff;
-        font-size: 2rem;
-        cursor: pointer;
-        padding: 0.5rem;
-    }
-
-    .hamburger:hover {
-        background-color: rgba(255, 255, 255, 0.2);
-        border-radius: 0.5rem;
-        transform: scale(1.05);
-        transition: all 0.2s ease;
-    }
-
-    .hamburger.active {
-        background-color: rgba(255, 255, 255, 0.3);
-        border-radius: 0.5rem;
-        transform: rotate(90deg); /* Optional: rotate or scale */
-    }
-
-    .hamburger-container {
-        display: flex;
-        align-items: center;
-        height: 100%;
-    }
-
-
-
-    /* Navigation for small screens */
-    .navigation {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 1rem;
-    }
-
-    .navigation ul {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        list-style: none;
-        margin: 0;
-        padding: 0;
-    }
-
-    /* Ensure all links (HOME, FAQ, FORMS, LOG IN, SIGN UP) have hover effect when logged out */
-    .navigation li a:hover,
-    .navigation button:hover {
-        background-color: rgba(255, 255, 255, 0.15); /* Same hover effect for buttons and links */
-        transform: scale(1.05);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-    }
-
-    .mobile-dropdown {
-        position: absolute;
-        top: 100%;
-        right: 1rem;
-        width: 40%;
-        background-color: #7B1113;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        z-index: 10;
-        border-radius: 0 0 0.5rem 0.5rem;
-        transition: transform 0.3s ease-in-out;
-    }
-
-    .mobile-dropdown ul {
-        display: flex-start;
-        flex-direction: column;
-        gap: 0.5rem;
-        padding: 1rem;
-        margin: 0;
-        list-style: none;
-
-    }
-
-    .mobile-dropdown .link-button {
-        display: block;
-        padding: 0.75rem 1rem;
-        text-align: center;
-        width: 100%;
-        background: none;
-        border: none;
-        font-size: 1rem;
-        cursor: pointer;
-        border-radius: 0.5rem;
-        transition: background-color 0.2s ease, transform 0.2s ease;
-    }
-
-    .mobile-dropdown .link-button:hover {
-        background-color: rgba(255, 255, 255, 0.15); /* Same hover effect */
-        transform: scale(1.05);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-    }
-
-    .mobile-dropdown .dropdown-menu {
-        background-color: #fffdfd;
-        padding: 0.5rem 1rem;
-    }
+  .mobile-dropdown .dropdown-menu {
+    background-color: #fffdfd;
+    padding: 0.5rem 1rem;
+  }
 }
 
 /* ========== Remove redundant button styles ========== */
