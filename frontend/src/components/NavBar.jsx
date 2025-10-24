@@ -2,151 +2,74 @@ import React, { useState, useEffect, useContext, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import logo from "../assets/upmin-logo.svg";
-import "../index.css";
-import "./css/navbar.css";
-import "../pages/css_pages/loginPage.css";
-import { ChevronDown, Home, User } from "react-feather";
-import { toast } from "react-toastify";
-import FormField from "../components/FormField";
-import SubmitButton from "../components/SubmitButton";
-
+import { Menu, X, ChevronDown, Home, User } from "react-feather";
 import {
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Button,
-  useMediaQuery,
 } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
 
 export default function Navbar() {
   const { user, logout, isAuthenticated, role, profileData, loading } =
     useContext(AuthContext);
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [showLoginDropdown, setShowLoginDropdown] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
-
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
-  const nickname = profileData?.nickname ?? "User";
-  const fullName = `${profileData?.first_name || user?.first_name || ""} ${
-    profileData?.last_name || user?.last_name || ""
-  }`;
-  const idNumber = profileData?.student_id || user?.student_id || "";
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
-  const dropdownRef = useRef(null);
-  const userDropdownRef = useRef(null);
+  const loginRef = useRef(null);
+  const userRef = useRef(null);
 
-  // Login modal
-  const { login, authError } = useContext(AuthContext);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
-
-  const [isError, setIsError] = useState(false);
-  const [message, setMessage] = useState("");
-  const [showMessageModal, setShowMessageModal] = useState(false);
-
-  const roleLabel = role === "admin" ? "Admin" : "Student";
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setMessage("");
-    setIsError(false);
-    setShowMessageModal(false);
-    setLoading(true);
-    setError(null);
-
-    try {
-      const success = await login(email, password, role);
-      if (success) {
-        setShowMessageModal(true);
-        setMessage(`Welcome back! ${email}`);
-        setIsError(false);
-        setLoading(false);
-        setTimeout(() => {
-          navigate(role === "admin" ? "/admin" : "/student");
-        }, 500);
-      } else {
-        setShowMessageModal(true);
-        setMessage("Invalid email or password. Please try again.");
-        setIsError(true);
-        setLoading(false);
-        setPassword("");
-      }
-    } catch {
-      setError("An error occurred. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const nickname = profileData?.nickname ?? user?.nickname ?? "User";
+  const fullName = `${profileData?.first_name || user?.first_name || ""} ${
+    profileData?.last_name || user?.last_name || ""
+  }`.trim();
+  const idNumber = profileData?.student_id || user?.student_id || "";
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowDropdown(false);
-      }
-      if (
-        userDropdownRef.current &&
-        !userDropdownRef.current.contains(event.target)
-      ) {
+    const handler = (e) => {
+      if (loginRef.current && !loginRef.current.contains(e.target))
+        setShowLoginDropdown(false);
+      if (userRef.current && !userRef.current.contains(e.target))
         setShowUserDropdown(false);
-      }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const handleRoleClick = (role) => {
-    navigate(`/login?role=${role}`);
-    setShowDropdown(false);
+  const go = (path) => {
+    navigate(path);
+    setMobileOpen(false);
+    setShowLoginDropdown(false);
   };
 
-  const handleLogout = () => {
-    setLogoutDialogOpen(true);
-    setIsMenuOpen(false);
+  const handleRoleLogin = (r) => {
+    navigate(`/login?role=${r}`);
+    setShowLoginDropdown(false);
+    setMobileOpen(false);
+  };
+
+  const openLogoutConfirm = () => {
+    setConfirmLogoutOpen(true);
+    setMobileOpen(false);
+    setShowUserDropdown(false);
   };
 
   const confirmLogout = () => {
     logout(navigate);
-    toast.success("You have been logged out!");
-    setLogoutDialogOpen(false);
+    setConfirmLogoutOpen(false);
   };
-
-  const handleHomeClick = () => {
-    navigate("/"); // Navigate to Home
-  };
-
-  const handleFaqClick = () => {
-    navigate("/faq"); // Navigate to FAQ page
-  };
-
-  const handleFormsClick = () => {
-    navigate("/public-forms"); // Navigate to Forms page
-  };
-
-  const handleSignupClick = () => {
-    navigate("/signup"); // Navigate to Sign Up page
-  };
-
-  const isDashboard =
-    location.pathname.startsWith("/student") ||
-    location.pathname.startsWith("/admin");
 
   if (loading) {
     return (
-      <nav className="nav">
-        <div className="nav-top">
-          <div className="headerLogo">
-            <img src={logo} alt="UP Min Logo" />
-          </div>
-          <p className="navbar-loading">Loading...</p>
+      <nav className="sticky top-0 left-0 w-full bg-upmaroon z-40 shadow-sm">
+        <div className="max-w-7xl mx-auto flex items-center p-4">
+          <img src={logo} alt="logo" className="h-12 w-auto mr-4" />
+          <div className="text-white">Loading...</div>
         </div>
       </nav>
     );
@@ -154,250 +77,359 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="nav">
-        <Link to="/" className="headerLogo">
-          <div className="headerPhoto">
-            <img src={logo} alt="UP Min Logo" />
-          </div>
-          <div className="headerLogoName">
-            <h2 className="nameUp">University of the Philippines</h2>
-            <h1 className="nameDown">MINDANAO</h1>
-          </div>
-        </Link>
+      <nav className="sticky top-0 left-0 w-full bg-upmaroon text-white z-40 shadow-sm">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-8 py-3">
+          {/* Logo + title wrapper: centers on small, left-align on md+ */}
+          <Link
+            to="/"
+            className="flex-1 flex items-center gap-4 no-underline justify-center md:justify-start"
+          >
+            <img
+              src={logo}
+              alt="UP Mindanao logo"
+              className="h-12 w-12 object-contain"
+            />
+            <div className="leading-tight select-none font-tnr max-w-[300px] text-center md:text-left">
+              <div className="text-sm md:text-base font-bold ">
+                University of the Philippines Mindanao
+              </div>
+              <div className="text-sm md:text-base font-semibold truncate">
+                Office of the Student Affairs
+              </div>
+              <div className="text-xs md:text-sm truncate">
+                Counseling and Testing Section
+              </div>
+            </div>
+          </Link>
 
-        {/* Mobile Hamburger (visible only when user is logged out and on mobile) */}
-        <div className="hamburger-container">
-          {!isAuthenticated && isMobile && (
+          {/* Menu */}
+          <div className="hidden md:flex items-center gap-4">
             <button
-              className="hamburger"
-              onClick={() => setIsMenuOpen((prev) => !prev)}
+              className="text-sm px-3 transition duration-200 ease-in-out transform hover:scale-105 hover:text-upyellow"
+              onClick={() => go("/")}
             >
-              ☰
+              HOME
             </button>
-          )}
-        </div>
 
-        {/* Navigation Menu for Logged Out Users */}
-        {!isAuthenticated && !isMobile && (
-          <div className="navigation">
-            <ul>
-              <button onClick={handleHomeClick} className="link-button">
-                HOME
-              </button>
-              <button onClick={handleFaqClick} className="link-button">
-                FAQ
-              </button>
-              <button onClick={handleFormsClick} className="link-button">
-                FORMS
-              </button>
-              <div
-                className={`dropdown-wrapper ${showDropdown ? "active" : ""}`}
-                ref={dropdownRef}
-              >
-                <button
-                  onClick={() => setShowDropdown((prev) => !prev)}
-                  className="link-button"
-                >
-                  LOGIN
-                </button>
-                {showDropdown && (
-                  <div className="dropdown-menu">
-                    <h2 className="login__header">Login to your account</h2>
-                    <form className="login__form" onSubmit={handleSubmit}>
-                      <FormField
-                        label="Email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        name="email"
-                        required
-                      />
-                      <FormField
-                        label="Password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        name="password"
-                        required
-                      />
-                      <SubmitButton
-                        text={loading ? "Logging in..." : "Log In"}
-                        disabled={loading}
-                      />
-                      <div className="login__links">
-                        <Link to="/forgot-password">Forgot password?</Link>
-                        <br />
-                        {/* Conditionally render Sign Up link based on role */}
-                        {role !== "admin" && (
-                          <span>
-                            Don’t have an account? <Link to="/signup">Sign Up</Link>
-                          </span>
-                        )}
-                      </div>
-                    </form>
-                  </div>
-                )}
-              </div>
-              <button onClick={handleSignupClick} className="link-button">
-                SIGN UP
-              </button>
-            </ul>
-          </div>
-        )}
+            <button
+              className="text-sm px-3 transition duration-200 ease-in-out transform hover:scale-105 hover:text-upyellow"
+              onClick={() => go("/faq")}
+            >
+              FAQs
+            </button>
 
-        {/* Mobile Navigation for Logged-Out Users */}
-        {!isAuthenticated && isMobile && isMenuOpen && (
-          <div className="mobile-dropdown">
-            <ul>
-              <button onClick={handleHomeClick} className="link-button">
-                HOME
-              </button>
-              <button onClick={handleFaqClick} className="link-button">
-                FAQ
-              </button>
-              <button onClick={handleFormsClick} className="link-button">
-                FORMS
-              </button>
-              <div
-                className={`dropdown-wrapper ${showDropdown ? "active" : ""}`}
-                ref={dropdownRef}
-              >
-                <button
-                  onClick={() => setShowDropdown((prev) => !prev)}
-                  className="link-button"
-                >
-                  LOGIN
-                </button>
-                {showDropdown && (
-                  <div className="dropdown-menu">
-                    <div
-                      className="dropdown-choice"
-                      onClick={() => handleRoleClick("student")}
-                    >
-                      As Student
-                    </div>
-                    <div
-                      className="dropdown-choice"
-                      onClick={() => handleRoleClick("admin")}
-                    >
-                      As Admin
-                    </div>
-                  </div>
-                )}
-              </div>
-              <button onClick={handleSignupClick} className="link-button">
-                SIGN UP
-              </button>
-            </ul>
-          </div>
-        )}
+            <button
+              className="text-sm px-3 transition duration-200 ease-in-out transform hover:scale-105 hover:text-upyellow"
+              onClick={() => go("/public-forms")}
+            >
+              FORMS
+            </button>
 
-        {/* Navigation Menu for Logged-In Users */}
-        {isAuthenticated && isMobile && (
-          <div className="navigation">
-            <ul>
-              <li>
-                <Link to={role === "admin" ? "/admin" : "/student"}>
-                  <Home />
-                </Link>
-              </li>
-              <li
-                className={`dropdown-wrapper ${
-                  showUserDropdown ? "active" : ""
-                }`}
-                ref={userDropdownRef}
-              >
+            {!isAuthenticated && (
+              <div className="relative" ref={loginRef}>
                 <button
-                  onClick={() => setShowUserDropdown((prev) => !prev)}
-                  className="link-button"
+                  onClick={() => setShowLoginDropdown((s) => !s)}
+                  className="flex items-center gap-1 text-sm px-3 transition duration-200 hover:text-upyellow"
                 >
-                  <User className="dropdown-icon" />
-                  <span className="user-label">{fullName}</span>
+                  LOG IN
                   <ChevronDown
-                    className={`dropdown-icon ${
-                      showUserDropdown ? "rotate" : ""
-                    }`}
+                    size={14}
+                    className={`${
+                      showLoginDropdown ? "rotate-180" : ""
+                    } transition ml-1`}
                   />
                 </button>
-                {showUserDropdown && (
-                  <div className="dropdown-menu user-dropdown">
-                    <div className="user-info-dropdown">
-                      <div className="avatar">{fullName.charAt(0)}</div>
-                      <div>
-                        <p>{fullName}</p>
-                        {idNumber && <p>ID: {idNumber}</p>}
-                      </div>
-                    </div>
-                    {role === "student" && (
-                      <>
-                        <Link to="/myprofile">
-                          <div className="dropdown-choice">My Profile</div>
-                        </Link>
-                        <Link to="/public-forms">
-                          <div className="dropdown-choice">Forms</div>
-                        </Link>
-                        <Link to="/privacy-setting">
-                          <div className="dropdown-choice">Privacy Setting</div>
-                        </Link>
-                      </>
-                    )}
-                    {role === "admin" && (
-                      <>
-                        <Link to="/admin">
-                          <div className="dropdown-choice">Dashboard</div>
-                        </Link>
-                        <Link to="/admin-student-list">
-                          <div className="dropdown-choice">Student List</div>
-                        </Link>
-                        <Link to="/admin-bis-list">
-                          <div className="dropdown-choice">
-                            Basic Info Sheet
-                          </div>
-                        </Link>
-                        <Link to="/admin-scif-list">
-                          <div className="dropdown-choice">
-                            Student Cumulative Info
-                          </div>
-                        </Link>
-                        <Link to="/admin-referral-list">
-                          <div className="dropdown-choice">Referral Form</div>
-                        </Link>
-                        <Link to="/admin-reports">
-                          <div className="dropdown-choice">
-                            Report Analytics
-                          </div>
-                        </Link>
-                        <Link to="/admin-audit-log">
-                          <div className="dropdown-choice">System Logs</div>
-                        </Link>
-                        <Link to="/admin-system-settings">
-                          <div className="dropdown-choice">System Settings</div>
-                        </Link>
-                      </>
-                    )}
-                    <div className="dropdown-choice" onClick={handleLogout}>
-                      Logout
+
+                {showLoginDropdown && (
+                  <div className="absolute right-0 mt-2 min-w-[180px] bg-white text-gray-900 rounded shadow-lg z-50">
+                    <div className="flex flex-col text-center">
+                      <button
+                        className="w-full px-4 py-2 text-center hover:bg-gray-100"
+                        onClick={() => handleRoleLogin("student")}
+                      >
+                        As Student
+                      </button>
+                      <button
+                        className="w-full px-4 py-2 text-center hover:bg-gray-100"
+                        onClick={() => handleRoleLogin("admin")}
+                      >
+                        As Admin
+                      </button>
                     </div>
                   </div>
                 )}
-              </li>
-            </ul>
+              </div>
+            )}
+
+            {isAuthenticated && (
+              <div className="relative" ref={userRef}>
+                <button
+                  onClick={() => setShowUserDropdown((s) => !s)}
+                  className="inline-flex items-center gap-2 text-sm px-3 transition hover:text-upyellow"
+                >
+                  <User size={16} />
+                  <span className="max-w-[120px] truncate">{nickname}</span>
+                  <ChevronDown
+                    size={14}
+                    className={`${
+                      showUserDropdown ? "rotate-180" : ""
+                    } transition`}
+                  />
+                </button>
+
+                {showUserDropdown && (
+                  <div className="absolute right-0 mt-2 bg-white text-gray-900 rounded shadow-lg w-56 z-50">
+                    <div className="px-4 py-3 border-b">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-upmaroon text-white rounded-full w-10 h-10 flex items-center justify-center font-bold">
+                          {fullName?.charAt(0) || "U"}
+                        </div>
+                        <div className="text-left">
+                          <div className="font-semibold">
+                            {fullName || nickname}
+                          </div>
+                          {idNumber && (
+                            <div className="text-sm text-gray-600">
+                              ID: {idNumber}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col text-center">
+                      {role === "student" && (
+                        <>
+                          <button
+                            className="w-full px-4 py-2 hover:bg-gray-100"
+                            onClick={() => go("/myprofile")}
+                          >
+                            My Profile
+                          </button>
+                          <button
+                            className="w-full px-4 py-2 hover:bg-gray-100"
+                            onClick={() => go("/public-forms")}
+                          >
+                            Forms
+                          </button>
+                          <button
+                            className="w-full px-4 py-2 hover:bg-gray-100"
+                            onClick={() => go("/privacy-setting")}
+                          >
+                            Privacy Setting
+                          </button>
+                        </>
+                      )}
+
+                      {role === "admin" && (
+                        <>
+                          <button
+                            className="w-full px-4 py-2 hover:bg-gray-100"
+                            onClick={() => go("/admin")}
+                          >
+                            Dashboard
+                          </button>
+                          <button
+                            className="w-full px-4 py-2 hover:bg-gray-100"
+                            onClick={() => go("/admin-student-list")}
+                          >
+                            Student List
+                          </button>
+                        </>
+                      )}
+
+                      <button
+                        className="w-full px-4 py-2 text-red-700 hover:bg-gray-100"
+                        onClick={openLogoutConfirm}
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!isAuthenticated && (
+              <button
+                onClick={() => go("/signup")}
+                className="text-white text-sm px-4 py-1 rounded-full border border-white inline-flex items-center justify-center hover:bg-white hover:text-upmaroon transition"
+                style={{ minWidth: 72 }}
+              >
+                SIGN UP
+              </button>
+            )}
+          </div>
+
+          {/* Mobile icon group (right side) */}
+          <div className="md:hidden flex items-center gap-2">
+            {isAuthenticated && (
+              <button
+                className="text-white p-1"
+                onClick={() => go(role === "admin" ? "/admin" : "/student")}
+              >
+                <Home />
+              </button>
+            )}
+
+            <button
+              onClick={() => setMobileOpen((v) => !v)}
+              className="text-white p-1 focus:outline-none"
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? <X /> : <Menu />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile expanded menu  */}
+        {mobileOpen && (
+          <div className="md:hidden bg-upmaroon border-t border-white/10">
+            <div className="px-4 py-4 flex flex-col items-center gap-3">
+              <button
+                onClick={() => go("/")}
+                className="w-full text-center text-white uppercase py-2 transition duration-200 ease-in-out transform hover:text-yellow-500 hover:font-bold "
+              >
+                HOME
+              </button>
+              <button
+                onClick={() => go("/faq")}
+                className="w-full text-center text-white uppercase py-2 transition duration-200 ease-in-out transform hover:text-yellow-500 hover:font-bold"
+              >
+                FAQS
+              </button>
+              <button
+                onClick={() => go("/public-forms")}
+                className="w-full text-center text-white uppercase py-2 transition duration-200 ease-in-out transform hover:text-yellow-500 hover:font-bold"
+              >
+                FORMS
+              </button>
+
+              {!isAuthenticated && (
+                <div className="w-full" ref={loginRef}>
+                  <button
+                    onClick={() => setShowLoginDropdown((s) => !s)}
+                    className="w-full text-center text-white uppercase py-2 inline-flex justify-center items-center gap-2 transition duration-200 ease-in-out transform hover:text-yellow-500 hover:font-bold"
+                  >
+                    LOG IN{" "}
+                    <ChevronDown
+                      size={14}
+                      className={`${
+                        showLoginDropdown ? "rotate-180" : ""
+                      } transition`}
+                    />
+                  </button>
+
+                  {showLoginDropdown && (
+                    <div className="mt-2 bg-white text-gray-900 rounded w-full">
+                      <button
+                        className="w-full px-4 py-2 text-center hover:bg-gray-100"
+                        onClick={() => handleRoleLogin("student")}
+                      >
+                        As Student
+                      </button>
+                      <button
+                        className="w-full px-4 py-2 text-center hover:bg-gray-100"
+                        onClick={() => handleRoleLogin("admin")}
+                      >
+                        As Admin
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {isAuthenticated && (
+                <div className="w-full" ref={userRef}>
+                  <button
+                    onClick={() => setShowUserDropdown((s) => !s)}
+                    className="w-full text-center text-white uppercase py-2 inline-flex justify-center items-center gap-2"
+                  >
+                    {nickname}{" "}
+                    <ChevronDown
+                      size={14}
+                      className={`${
+                        showUserDropdown ? "rotate-180" : ""
+                      } transition`}
+                    />
+                  </button>
+
+                  {showUserDropdown && (
+                    <div className="mt-2 bg-white text-gray-900 rounded w-full">
+                      <div className="px-4 py-3 border-b text-left">
+                        <div className="font-semibold">
+                          {fullName || nickname}
+                        </div>
+                        {idNumber && (
+                          <div className="text-sm text-gray-600">
+                            ID: {idNumber}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex flex-col">
+                        {role === "student" && (
+                          <>
+                            <button
+                              className="w-full text-center px-3 py-2 hover:bg-gray-100"
+                              onClick={() => go("/myprofile")}
+                            >
+                              My Profile
+                            </button>
+                            <button
+                              className="w-full text-center px-3 py-2 hover:bg-gray-100"
+                              onClick={() => go("/public-forms")}
+                            >
+                              Forms
+                            </button>
+                          </>
+                        )}
+
+                        {role === "admin" && (
+                          <button
+                            className="w-full text-center px-3 py-2 hover:bg-gray-100"
+                            onClick={() => go("/admin")}
+                          >
+                            Dashboard
+                          </button>
+                        )}
+
+                        <button
+                          className="w-full text-center px-3 py-2 text-red-700 hover:bg-gray-100"
+                          onClick={openLogoutConfirm}
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!isAuthenticated && (
+                <button
+                  onClick={() => go("/signup")}
+                  className="mt-2 text-white text-sm rounded-full border border-white px-6 py-2 hover:bg-white hover:text-upmaroon transition hover:font-bold"
+                >
+                  SIGN UP
+                </button>
+              )}
+            </div>
           </div>
         )}
       </nav>
 
+      {/* logout confirm dialog */}
       <Dialog
-        open={logoutDialogOpen}
-        onClose={() => setLogoutDialogOpen(false)}
+        open={confirmLogoutOpen}
+        onClose={() => setConfirmLogoutOpen(false)}
       >
-        <DialogTitle>Confirm Logout</DialogTitle>
+        <DialogTitle>Log out</DialogTitle>
         <DialogContent>Are you sure you want to log out?</DialogContent>
         <DialogActions>
-          <Button onClick={() => setLogoutDialogOpen(false)} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={confirmLogout} color="error">
-            Log Out
+          <Button onClick={() => setConfirmLogoutOpen(false)}>Cancel</Button>
+          <Button color="error" onClick={confirmLogout}>
+            Log out
           </Button>
         </DialogActions>
       </Dialog>

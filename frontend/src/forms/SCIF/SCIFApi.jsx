@@ -75,7 +75,7 @@ export const useFormApi = () => {
       body: JSON.stringify(payload),
     });
 
-    const responseData = await response.json();
+    // const responseData = await response.json();
     return response;
   };
 
@@ -120,7 +120,7 @@ const finalizeSubmission = async (submissionId, studentNumber, formData) => {
     return {
       success: false,
       status: 0,
-      data: { error: 'Network error or unexpected issue occurred.' },
+      data: { error: {error} },
     };
   }
 };

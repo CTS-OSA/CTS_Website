@@ -12,7 +12,6 @@ import SCIFOtherPersonalData from "./SCIFOtherPersonalData";
 import SCIFCertify from "./SCIFCertify";
 import SCIFPreview from "./SCIFPreview";
 import "../SetupProfile/css/multistep.css";
-import { useApiRequest } from "../../context/ApiRequestContext";
 import { AuthContext } from "../../context/AuthContext";
 import { useFormApi } from "../SCIF/SCIFApi";
 import {
@@ -25,6 +24,7 @@ import {
   validateFamilyRelationship,
   validateCounselingInfo,
 } from "../../utils/SCIFValidation";
+import { normalizeNumber, normalizeList} from "../../utils/normalization";
 import Loader from "../../components/Loader";
 import Button from "../../components/UIButton";
 import ToastMessage from "../../components/ToastMessage";
@@ -34,7 +34,6 @@ import { useNavigate } from "react-router-dom";
 import DefaultLayout from "../../components/DefaultLayout";
 
 const SCIF = () => {
-  const { request } = useApiRequest();
   const { profileData } = useContext(AuthContext);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const {
@@ -45,9 +44,7 @@ const SCIF = () => {
   } = useFormApi();
   const [step, setStep] = useState(0);
   const [submissionId, setSubmissionId] = useState(null);
-  const [studentNumber, setStudentNumber] = useState(
-    profileData?.student_number
-  );
+  const studentNumber = profileData?.student_number;
   const [readOnly, setReadOnly] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -58,6 +55,7 @@ const SCIF = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const navigate = useNavigate();
+  const [hasFetchedData, setHasFetchedData] = useState(false);
 
   const [formData, setFormData] = useState({
     family_data: {
@@ -186,7 +184,7 @@ const SCIF = () => {
 
   const validateStep = (step, formData) => {
     switch (step) {
-      case 2:
+      case 2: {
         const errors = {
           ...validateParent(formData),
           ...validateGuardian(formData),
@@ -194,13 +192,14 @@ const SCIF = () => {
         };
 
         return errors;
+      }
       case 3:
         return validateHealthData(formData);
       case 4:
         return validatePreviousSchool(formData.previous_school_record);
       case 5:
         return true;
-      case 6:
+      case 6: {
         const personalDataErrors = {
           ...validatePersonalityTraits(formData.personality_traits),
           ...validateFamilyRelationship(formData.family_relationship),
@@ -208,17 +207,13 @@ const SCIF = () => {
         };
 
         return personalDataErrors;
-
-      case 7:
-        const consentErrors = validatePrivacyConsent(formData);
-        if (consentErrors.length > 0) {
-          return consentErrors;
-        }
+      }
+      case 7: {
         return true;
-
+      }
       default:
         return true;
-    }
+      }
   };
   useEffect(() => {
     if (profileData?.is_complete !== true) {
@@ -304,16 +299,17 @@ const SCIF = () => {
               student_number: studentNumber,
             },
           }));
+          setHasFetchedData(true);
         }
       } catch (err) {
-        setError("Error fetching or creating form.");
+        setError(err.message || "Error fetching or creating form.");
       } finally {
         setLoading(false);
       }
     };
 
-    if (studentNumber) fetchFormData();
-  }, [studentNumber]);
+    fetchFormData();
+  }, [studentNumber, hasFetchedData]);
 
   useEffect(() => {
     if (submissionStatus === "submitted") {
@@ -333,7 +329,11 @@ const SCIF = () => {
     setLoading(true);
     
     try {
-      const response = await saveDraft(submissionId, studentNumber, formData);
+
+      const normalizedNumberData = normalizeNumber(formData);
+      const dataToSave = normalizeList(normalizedNumberData);
+
+      const response = await saveDraft(submissionId, studentNumber, dataToSave);
       
       if (response?.ok) {
         setShowDraftSuccessToast(true);
@@ -368,7 +368,9 @@ const SCIF = () => {
   };
 
   const handleNextStep = () => {
-    const validationErrors = validateStep(step, formData);
+    const currentData = normalizeNumber(formData);
+    const normalizedData = normalizeList(currentData);
+    const validationErrors = validateStep(step, normalizedData);
 
     if (
       validationErrors &&
@@ -478,7 +480,7 @@ const SCIF = () => {
         <div className="mainStepForm">
           <div className="main-form-info">
             <h1 className="main-form-title">
-              Student Cumulative Information Sheet
+              Student Cumulative Information File
             </h1>
             <p className="main-form-subtitle">
               Please fill out the form below to complete your profile.

@@ -180,8 +180,24 @@
   cursor: pointer;
 }
 
+
+/* Textarea */
+textarea.form-input {
+  height: 150px; 
+  width: 100%;
+  resize: vertical; 
+}
+
 .helper-text {
   padding-bottom: 2em;
+}
+
+.helpertext {
+  font-size: small;
+}
+
+.field-spacing {
+  padding-top: 10px;
 }
 
 .form-group.error textarea.custom-form-input {

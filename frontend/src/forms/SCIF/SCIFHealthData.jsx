@@ -2,26 +2,16 @@ import React from "react";
 import FormField from "../../components/FormField";
 import "../SetupProfile/css/multistep.css";
 import { clearError } from "../../utils/helperFunctions";
+import {
+  filterGeneralText,
+  filterDecimalNumbers,
+} from "../../utils/inputFilters";
 
 const SCIFHealthData = ({ data, updateData, readOnly = false, errors, setErrors }) => {
-  const normalizeNumber = (value) => {
-    if (readOnly) return;
-    if (value === "" || value === null || value === undefined) return null;
-    const number = Number(value);
-    return isNaN(number) ? null : number;
-  };
 
   const normalizeText = (value) => {
     if (readOnly) return;
     return value === "" ? null : value;
-  };
-
-  const normalizeList = (value) => {
-    if (readOnly) return;
-    return value
-      .split(",")
-      .map((item) => item.trim())
-      .filter((item) => item.length > 0);
   };
 
   const handleHealthConditionChange = (condition) => {
@@ -37,6 +27,17 @@ const SCIFHealthData = ({ data, updateData, readOnly = false, errors, setErrors 
         return newErrors;
       });
     }
+  };
+
+  const handleTextFieldChange = (field, value, filterFn = filterGeneralText) => {
+    if (readOnly) return;
+
+    const filteredValue = filterFn(value);
+    
+    updateData({ 
+        ...data, 
+        [field]: filteredValue 
+    });
   };
 
   return (
@@ -71,11 +72,11 @@ const SCIFHealthData = ({ data, updateData, readOnly = false, errors, setErrors 
          <div className="form-row">
           <FormField
             label="Height (m)"
-            type="number"
+            type="text"
             value={data.height ?? ""}
             onFocus={() => clearError("health_data.height")}
             onChange={(e) =>
-              updateData({ ...data, height: normalizeNumber(e.target.value) })
+              handleTextFieldChange('height', e.target.value, filterDecimalNumbers)
             }
             error={errors?.["health_data.height"]}
             required
@@ -83,11 +84,11 @@ const SCIFHealthData = ({ data, updateData, readOnly = false, errors, setErrors 
 
           <FormField
             label="Weight (kg)"
-            type="number"
+            type="text"
             value={data.weight ?? ""}
             onFocus={() => clearError("health_data.weight")}
             onChange={(e) =>
-              updateData({ ...data, weight: normalizeNumber(e.target.value) })
+              handleTextFieldChange('weight', e.target.value, filterDecimalNumbers)
             }
             error={errors?.["health_data.weight"]}
             required
@@ -138,29 +139,31 @@ const SCIFHealthData = ({ data, updateData, readOnly = false, errors, setErrors 
           <FormField
             label="Any Physical Disability"
             type="text"
-            value={(data.physical_disabilities || []).join(", ")}
+            value={data.physical_disabilities || ""}
             onFocus={() => clearError("health_data.physical_disabilities")}
             onChange={(e) =>
               updateData({
                 ...data,
-                physical_disabilities: normalizeList(e.target.value),
+                physical_disabilities: e.target.value,
               })
             }
             error={errors?.["health_data.physical_disabilities"]}
+            helpertext="Enter multiple items separated by a comma (e.g., Paralysis, Deafness, Asthma)"
           />
 
           <FormField
             label="Common/ Frequent Ailment"
             type="text"
-            value={(data.common_ailments || []).join(", ")}
+            value={data.common_ailments || ""}
             onFocus={() => clearError("health_data.common_ailments")}
             onChange={(e) =>
               updateData({
                 ...data,
-                common_ailments: normalizeList(e.target.value),
+                common_ailments: e.target.value,
               })
             }
             error={errors?.["health_data.common_ailments"]}
+            helpertext="Enter multiple items separated by a comma (e.g., Colds, Flu, Cough)"
           />
         </div>
 
