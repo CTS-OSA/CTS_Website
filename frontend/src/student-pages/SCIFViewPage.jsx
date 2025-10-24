@@ -19,6 +19,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
   const navigate = useNavigate();
   const { role } = useContext(AuthContext);
   const { request } = useApiRequest();
+  const [errors, setErrors] = useState({});
   const [showDownloadConfirm, setShowDownloadConfirm] = useState(false);
   const [downloadToast, setDownloadToast] = useState(null);
   const [formState, setFormState] = useState({
@@ -226,6 +227,32 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
   };
 
   const handleSubmit = async () => {
+    const newErrors = {};
+    
+    // Validate required fields
+    if (!formState.first_name || formState.first_name.trim() === '' || !formState.last_name || formState.last_name.trim() === '' || !formState.middle_name || formState.middle_name.trim() === '') {
+      newErrors.first_name = 'Name cannot be empty.';
+    }
+
+    if (!formState.sex || formState.sex.trim() === ''){
+      newErrors.sex = 'Sex cannot be empty.';
+    }
+    
+    if (!formState.religion || formState.religion.trim() === '') {
+      newErrors.religion = 'Religion cannot be empty.';
+    }
+
+    if (!formState.health_condition || formState.health_condition.trim() === '') {
+      newErrors.health_condition = 'Health condition must be selected.';
+    }
+
+    
+    setErrors(newErrors);
+    
+    if (Object.keys(newErrors).length > 0) {
+      return;
+    }
+    
     try {
       const response = await request(`/api/forms/edit/scif/${profileData.student_number}/`, {
         method: 'PUT',
@@ -236,7 +263,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       });
 
       if (response.ok) {
-        setDownloadToast('Form updated successfully!');
+        const data = await response.json();
+        setDownloadToast(data.message);
       }
     } catch (error) {
       setDownloadToast('Failed to update form.');
@@ -450,7 +478,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
 
       <div className="pdf" ref={pdfRef}>
         <FormHeader />
-
+        
         <div className="sub-info">
           <div className="right">
             <p>
@@ -484,19 +512,20 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   value={formState.first_name}
                   onChange={(e) => handleFieldChange('first_name', e.target.value)}
                   readOnly={role !== "admin"}
-                />
+                  />
                 <input
                   type="text"
                   value={formState.middle_name}
                   onChange={(e) => handleFieldChange('middle_name', e.target.value)}
                   readOnly={role !== "admin"}
-                />
+                  />
               </div>
               <div className="SCIF-name-label">
                 <label>FAMILY NAME</label>
                 <label>FIRST NAME</label>
                 <label>MIDDLE NAME</label>
               </div>
+              {errors.first_name && <div className="error-state-message text-center">{errors.first_name}</div>}
             </div>
             <div className="SCIF-inline flex-row">
               <label>
@@ -506,13 +535,20 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   onChange={(e) => handleFieldChange('nickname', e.target.value)}
                   readOnly={role !== "admin"} />
               </label>
-              <label>
-                SEX: 
-                <input type="text" 
-                  value={formState.sex} 
-                  onChange={(e) => handleFieldChange('sex', e.target.value)}
-                  readOnly={role !== "admin"} />
-              </label>
+              <div>
+                <label>
+                  SEX: 
+                  <select 
+                    value={formState.sex} 
+                    onChange={(e) => handleFieldChange('sex', e.target.value)}
+                    disabled={role !== "admin"}>
+                    <option value="">Select</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                  </select>
+                </label>
+                {errors.sex && <div className="error-state-message">{errors.sex}</div>}
+              </div>
               <label>
                 AGE:{" "}
                 <input
@@ -528,12 +564,15 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </label>
             </div>
             <div className="SCIF-inline flex-row">
-              <label>
-                RELIGION:{" "}
-                <input type="text" value={formState.religion}  
-                  onChange={(e) => handleFieldChange('religion', e.target.value)}
-                  readOnly={role !== "admin"} />
-              </label>
+              <div>
+                <label>
+                  RELIGION:{" "}
+                  <input type="text" value={formState.religion}  
+                    onChange={(e) => handleFieldChange('religion', e.target.value)}
+                    readOnly={role !== "admin"} />
+                </label>
+                {errors.religion && <div className="error-state-message">{errors.religion}</div>}
+              </div>
               <label>
                 BIRTH RANK:{" "}
                 <input type="text" value={formState.birth_rank}

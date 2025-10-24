@@ -139,27 +139,27 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
 
   const handleSubmit = async () => {
     // Clear previous errors
-    const error = {};
+    const newErrors = {};
     
     // Validate required fields
     if (!formState.name || formState.name.trim() === '') {
-      error.name = 'Name field cannot be empty.';
+      newErrors.name = 'Name field cannot be empty.';
     }
     
     if (!formState.nickname || formState.nickname.trim() === '') {
-      error.nickname = 'Nickname field cannot be empty.';
+      newErrors.nickname = 'Nickname field cannot be empty.';
     }
 
     if (!formState.year_course || formState.year_course.trim() === '') {
-      error.year_course = 'Year & course field cannot be empty.';
+      newErrors.year_course = 'Year & course field cannot be empty.';
     }
     
 
     // Set all errors at once
-    setErrors(error);
+    setErrors(newErrors);
     
     // If there are errors, don't submit
-    if (Object.keys(error).length > 0) {
+    if (Object.keys(newErrors).length > 0) {
       return;
     }
     

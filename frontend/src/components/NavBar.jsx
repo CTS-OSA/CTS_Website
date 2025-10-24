@@ -2,9 +2,14 @@ import React, { useState, useEffect, useContext, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import logo from "../assets/upmin-logo.svg";
+import "../index.css";
 import "./css/navbar.css";
+import "../pages/css_pages/loginPage.css";
 import { ChevronDown, Home, User } from "react-feather";
 import { toast } from "react-toastify";
+import FormField from "../components/FormField";
+import SubmitButton from "../components/SubmitButton";
+
 import {
   Dialog,
   DialogTitle,
@@ -37,6 +42,50 @@ export default function Navbar() {
   const location = useLocation();
   const dropdownRef = useRef(null);
   const userDropdownRef = useRef(null);
+
+  // Login modal
+  const { login, authError } = useContext(AuthContext);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+
+  const [isError, setIsError] = useState(false);
+  const [message, setMessage] = useState("");
+  const [showMessageModal, setShowMessageModal] = useState(false);
+
+  const roleLabel = role === "admin" ? "Admin" : "Student";
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMessage("");
+    setIsError(false);
+    setShowMessageModal(false);
+    setLoading(true);
+    setError(null);
+
+    try {
+      const success = await login(email, password, role);
+      if (success) {
+        setShowMessageModal(true);
+        setMessage(`Welcome back! ${email}`);
+        setIsError(false);
+        setLoading(false);
+        setTimeout(() => {
+          navigate(role === "admin" ? "/admin" : "/student");
+        }, 500);
+      } else {
+        setShowMessageModal(true);
+        setMessage("Invalid email or password. Please try again.");
+        setIsError(true);
+        setLoading(false);
+        setPassword("");
+      }
+    } catch {
+      setError("An error occurred. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -153,18 +202,39 @@ export default function Navbar() {
                 </button>
                 {showDropdown && (
                   <div className="dropdown-menu">
-                    <div
-                      className="dropdown-choice"
-                      onClick={() => handleRoleClick("student")}
-                    >
-                      As Student
-                    </div>
-                    <div
-                      className="dropdown-choice"
-                      onClick={() => handleRoleClick("admin")}
-                    >
-                      As Admin
-                    </div>
+                    <h2 className="login__header">Login to your account</h2>
+                    <form className="login__form" onSubmit={handleSubmit}>
+                      <FormField
+                        label="Email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        name="email"
+                        required
+                      />
+                      <FormField
+                        label="Password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        name="password"
+                        required
+                      />
+                      <SubmitButton
+                        text={loading ? "Logging in..." : "Log In"}
+                        disabled={loading}
+                      />
+                      <div className="login__links">
+                        <Link to="/forgot-password">Forgot password?</Link>
+                        <br />
+                        {/* Conditionally render Sign Up link based on role */}
+                        {role !== "admin" && (
+                          <span>
+                            Don’t have an account? <Link to="/signup">Sign Up</Link>
+                          </span>
+                        )}
+                      </div>
+                    </form>
                   </div>
                 )}
               </div>
