@@ -9,7 +9,7 @@ import {
   Help,
 } from "./pages";
 import {
-  AdminDashboard,
+  AdminDashboardNew,
   AdminSCIFList,
   AdminReferral,
   AdminStudentList,
@@ -174,7 +174,7 @@ function App() {
           path="/admin"
           element={
             <ProtectedRoute requireAdmin={true} requireUser={false}>
-              <AdminDashboard />
+              <AdminDashboardNew />
             </ProtectedRoute>
           }
         />

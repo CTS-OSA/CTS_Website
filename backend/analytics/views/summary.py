@@ -67,79 +67,41 @@ def bar_data_view(request):
 @permission_classes([IsAdminUser])
 def summary_data_view(request):
     today = now().date()
-    days_back = 20
-    date_list = [today - timedelta(days=i) for i in range(days_back)][::-1]
-    date_labels = [d.strftime('%b %d') for d in date_list]
-
-    student_counts = [
-        Student.objects.filter(is_complete=True, completed_at__date=day).count()
-        for day in date_list
-    ]
-
-    scif_counts = [
-        Submission.objects.filter(
-            form_type='Student Cumulative Information File',
-            status='submitted',
-            submitted_on__date=day
-        ).count()
-        for day in date_list
-    ]
-
-    bis_counts = [
-        Submission.objects.filter(
-            form_type='Basic Information Sheet',
-            status='submitted',
-            submitted_on__date=day
-        ).count()
-        for day in date_list
-    ]
 
     summary = [
         {
             "title": "Total Number of Students",
             "value": Student.objects.count(),
-            "trend": calculate_trend(student_counts),
-            "trendPercent": calculate_trend_percentage(student_counts),
-            "interval": f"Registered users as of {today.strftime('%b %d')}",
-            "data": student_counts,
-            "trendData": {
-                "labels": date_labels,
-                "values": student_counts,
-            }
+            "subtitle": f"Registered users as of {today.strftime('%b %d')}",
+            "color": "#94141B",
         },
         {
-            "title": "SCIF Submissions",
+            "title": "Student Cumulative Information File",
             "value": Submission.objects.filter(
                 form_type='Student Cumulative Information File',
                 status='submitted'
             ).count(),
-            "trend": calculate_trend(scif_counts),
-            "trendPercent": calculate_trend_percentage(scif_counts),
-            "interval": f"SCIF Submissions This Month (recent - {today.strftime('%b %d')})",
-            "data": scif_counts,
-            "trendData": {
-                "labels": date_labels,
-                "values": scif_counts,
-            }
+            "subtitle": f"Submissions as of {today.strftime('%b %d')}",
+            "color": "#FFA600",
         },
         {
-            "title": "BIS Submissions",
+            "title": "Basic Information Sheet",
             "value": Submission.objects.filter(
                 form_type='Basic Information Sheet',
                 status='submitted'
             ).count(),
-            "trend": calculate_trend(bis_counts),
-            "trendPercent": calculate_trend_percentage(bis_counts),
-            "interval": f"BIS Submissions This Month (recent - {today.strftime('%b %d')})",
-            "data": bis_counts,
-            "trendData": {
-                "labels": date_labels,
-                "values": bis_counts,
-            }
+            "subtitle": f"Submissions as of {today.strftime('%b %d')}",
+            "color": "#014421",
         },
+        {
+            "title": "Referral Form",
+            "value": 3,
+            "subtitle": f"Submissions as of {today.strftime('%b %d')}",
+            "color": "#1976D2",
+        }
     ]
-    return Response({"summary": summary})
 
+    return Response({"summary": summary})
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def recent_submissions_view(request):
@@ -147,7 +109,7 @@ def recent_submissions_view(request):
         submissions = (
             Submission.objects
             .filter(status="submitted")
-            .order_by('-submitted_on')[:5]
+            .order_by('-submitted_on')[:8]
         )
         serializer = RecentSubmissionSerializer(submissions, many=True)
         return Response(serializer.data, status=200)
