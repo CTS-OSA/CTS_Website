@@ -1,9 +1,8 @@
-import React from "react";
+import React, { useEffect, useRef, useState, useContext } from "react";
 import "./css/pdfStyle.css";
 import "../forms/SetupProfile/css/multistep.css";
 import FormHeader from "./FormHeader";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState, useContext } from "react";
 import AutoResizeTextarea from "../components/AutoResizeTextarea";
 import html2pdf from "html2pdf.js";
 import Button from "../components/UIButton";
@@ -64,15 +63,11 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
         transfer_plans: preferences?.transfer_plans || '', 
         influence: preferences?.influence || '',
         reason_for_enrolling: preferences?.reason_for_enrolling || '',
-        transfer_plans: preferences?.transfer_plans ? 'Yes' : 'No',
         transfer_reason: preferences?.transfer_reason || '',
         shift_plans: preferences?.shift_plans ? 'Yes' : 'No',
         planned_shift_degree: preferences?.planned_shift_degree || '',
         reason_for_shifting: preferences?.reason_for_shifting || '',
         intended_course: scholastic_status?.intended_course || '',
-        first_choice_course: scholastic_status?.first_choice_course || '',
-        admitted_course: scholastic_status?.admitted_course || '',
-        next_plan: scholastic_status?.next_plan || '',
         first_choice_course: scholastic_status?.first_choice_course || '',
         admitted_course: scholastic_status?.admitted_course || '',
         next_plan: scholastic_status?.next_plan || '',
