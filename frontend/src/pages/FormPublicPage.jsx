@@ -7,7 +7,6 @@ import ModalMessage from "../components/ModalMessage";
 import DefaultLayout from "../components/DefaultLayout";
 import "./css_pages/FormPublicPage.css";
 import { AuthContext } from "../context/AuthContext";
-import Button from "../components/UIButton";
 import Loader from "../components/Loader";
 
 export const FormPublicPage = () => {
@@ -109,12 +108,12 @@ export const FormPublicPage = () => {
 
   const formContent = (
     <div className="form-page form-fade">
-      <div className="form-body" style={{paddingTop: user? "20px" : "2rem"}}>
-        <div className="form-body-content">
-          <div className="form-header">
-            <div className="form-header-line" style={{display: user? "none" : "block"}}></div>
+      <div className="rounded-2xl bg-[#f9f9f9] min-h-screen flex flex-col" style={{paddingTop: user? "20px" : "2rem"}}>
+        <div className="flex-1 w-full max-w-[1440px] mx-auto px-15 py-8 flex flex-col justify-star">
+          <div className="text-left mb-5">
+            <div className="h-7 w-50 bg-upmaroon rounded-3xl mb-2" style={{display: user? "none" : "block"}}></div>
             <div className="form-header-top">
-              <h1 style={{color: user? "#7B1113" : "#000"}}>Forms</h1>
+              <h1 className="text-5xl font-bold text-[#7B1113]">FORMS</h1>
               <p>
                 {user
                   ? "Welcome back! Browse and access the available student forms below. Make sure your profile is complete to unlock all features."
@@ -123,23 +122,36 @@ export const FormPublicPage = () => {
             </div>
           </div>
 
-          <div className="form-cards-container">
+          <div className="grid w-full box-border gap-8 grid-cols-[repeat(auto-fit,minmax(300px,1fr))]">
             {formCards.map((form, index) => (
               <div
                 key={form.id}
-                className={`form-card ${form.comingSoon ? "coming-soon" : ""}`}
+                className={`form-card 
+                  ${form.comingSoon ? "coming-soon" : ""} ${index === 0 ? "rounded-bl-[50px]" : "" } ${index === 2 ? "rounded-tr-[50px]" : ""}`}
                 onClick={() => handleCardClick(form.id)}
                 style={{ animationDelay: `${0.2 + index * 0.2}s` }}
               >
                 <div className="circle" />
-                <div className="card-content">
-                  <div className="card-text">
-                    <p className="card-desc">{form.desc}</p>
+                <div className="flex flex-col h-full gap-2 transition-all duration-300 ease-in-out">
+                  <div className="flex flex-col h-3/4 justify-center ">
+                    <div className="leading-8">
+                      <p className="card-desc">{form.desc}</p>
+                    </div>
+                    <h3 className="form-card-title">{form.title}</h3>
                   </div>
-                  <h3 className="form-card-title">{form.title}</h3>
-                  <button className={form.comingSoon ? "disabled" : "active"}>
-                    {form.comingSoon ? "Coming Soon" : "Fill Out"}
-                  </button>
+                  <div className="flex justify-end mt-10">
+                    <button
+                      disabled={form.comingSoon}
+                      className={`self-start px-5 py-[0.6rem] rounded-lg text-[0.9rem] border transition-colors duration-300 ease-in-out 
+                        ${
+                          form.comingSoon
+                            ? "bg-gray-400 text-white cursor-not-allowed border-transparent"
+                            : "bg-upgreen text-white cursor-pointer border-transparent active:bg-white active:text-maroon-700 active:border-maroon-700"
+                        }`}
+                    >
+                      {form.comingSoon ? "Coming Soon" : "Fill Out"}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
