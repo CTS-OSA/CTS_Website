@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import NavBar from "../components/NavBar";
-import FormField from "../components/FormField";
-import Footer from "../components/Footer";
-import "./css_pages/SignUp.css";
+import FormField from "./FormField";
+import "../pages/css_pages/SignUp.css";
 import { Link } from "react-router-dom";
-import Modal from "../components/Modal";
-import "../components/css/Modal.css";
+import Modal from "./Modal";
+import "./css/Modal.css";
+import { X } from "react-feather";
 
-export const SignUp = () => {
+
+export default function SignUpModal ({ onClose, onSwitchToLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rePassword, setRePassword] = useState("");
@@ -148,92 +148,77 @@ export const SignUp = () => {
 
   return (
     <>
-      <NavBar />
-      <main className="signup-page-wrapper">
-        <div className="signup">
-          <div className="signup__overlay" />
-          <div className="signup__container">
-            <div className="signup__content">
-              <section className="signup__left fade-in-up">
-                <h1 className="hero-title">
-                  Join the
-                  <br />
-                  <span className="highlighted-text">Student Affairs</span>
-                  <br />
-                  Digital Platform
-                </h1>
-              </section>
-
-              <section className="signup__right">
-                <h2 className="signup__header">Create Account</h2>
-                <form className="signup__form" onSubmit={handleSubmit}>
-                  <FormField
-                    label="Email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    name="email"
-                    required
-                    error={formErrors.email}
-                  />
-                  <FormField
-                    label="Password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    name="password"
-                    required
-                    error={formErrors.password}
-                  />
-                  <FormField
-                    label="Confirm Password"
-                    type="password"
-                    value={rePassword}
-                    onChange={(e) => setRePassword(e.target.value)}
-                    name="rePassword"
-                    required
-                    error={formErrors.rePassword}
-                  />
-                  <button type="submit" className="submit-button">
+        <div className="fixed inset-0 bg-black/50 z-40"></div>
+        <div className="fixed top-20 left-1/2 right-1/2 w-2/5 h-3/5 transform -translate-x-1/2 
+          bg-white text-gray-900 rounded-3xl shadow-lg z-50 fade-in-up">
+            <section className="bg-[#EDEDED] p-16 relative flex flex-col justify-center items-center overflow-y-auto rounded-2xl">
+                <button className="absolute right-0 top-0 m-5 cursor-pointer" onClick={onClose}>
+                    <X />
+                </button>
+                <h2 className="font-sans text-xl font-bold text-[#7B1113] text-center">Create Account</h2>
+                <form className="p-0 bg-transparent shadow-none w-full max-w-[470px] mt-5" onSubmit={handleSubmit}>
+                    <FormField
+                        label="Email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        name="email"
+                        required
+                        error={formErrors.email}
+                    />
+                <FormField
+                        label="Password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        name="password"
+                        required
+                        error={formErrors.password}
+                    />
+                <FormField
+                        label="Confirm Password"
+                        type="password"
+                        value={rePassword}
+                        onChange={(e) => setRePassword(e.target.value)}
+                        name="rePassword"
+                        required
+                        error={formErrors.rePassword}
+                    />
+                <button type="submit" className="submit-button">
                     Sign Up
-                  </button>
-                  <div className="signup__links">
-                    Already have an account? <Link to="/login">Log in</Link>
-                  </div>
+                </button>
+                <div className="text-center text-sm text-gray-600 mt-2 leading-[1.6]">
+                    Already have an account? <button onClick={onSwitchToLogin} className="text-red-900 underline bg-transparent border-none cursor-pointer">Log in</button>
+                </div>
                 </form>
-              </section>
-            </div>
-          </div>
+            </section>
+
+            {isLoading && (
+            <Modal>
+                <div className="modal-message-with-spinner">
+                <div className="loading-spinner" />
+                <p className="loading-text">Signing up... Please wait.</p>
+                </div>
+            </Modal>
+            )}
+
+            {showMessageModal && !isLoading && (
+            <Modal>
+                <div className="modal-message-with-spinner">
+                <p className="loading-text" style={{ fontWeight: "bold" }}>
+                    {isError ? "Error" : "Success"}
+                </p>
+                <p>{message}</p>
+                <button
+                    className="okay-button"
+                    onClick={() => setShowMessageModal(false)}
+                >
+                    OK
+                </button>
+                </div>
+            </Modal>
+            )}
         </div>
-
-        {isLoading && (
-          <Modal>
-            <div className="modal-message-with-spinner">
-              <div className="loading-spinner" />
-              <p className="loading-text">Signing up... Please wait.</p>
-            </div>
-          </Modal>
-        )}
-
-        {showMessageModal && !isLoading && (
-          <Modal>
-            <div className="modal-message-with-spinner">
-              <p className="loading-text" style={{ fontWeight: "bold" }}>
-                {isError ? "Error" : "Success"}
-              </p>
-              <p>{message}</p>
-              <button
-                className="okay-button"
-                onClick={() => setShowMessageModal(false)}
-              >
-                OK
-              </button>
-            </div>
-          </Modal>
-        )}
-
-        <Footer />
-      </main>
-    </>
+  </>
   );
 };

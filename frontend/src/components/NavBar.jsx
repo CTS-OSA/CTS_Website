@@ -3,6 +3,9 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import logo from "../assets/upmin-logo.svg";
 import { Menu, X, ChevronDown, Home, User } from "react-feather";
+import SignUpModal from "./SignUpModal";
+import LoginModal from "./LoginModal";
+
 import {
   Dialog,
   DialogTitle,
@@ -12,15 +15,14 @@ import {
 } from "@mui/material";
 
 export default function Navbar() {
-  const { user, logout, isAuthenticated, role, profileData, loading } =
+  const { user, logout, isAuthenticated, role, profileData, loading, login, authError } =
     useContext(AuthContext);
-  const [showLoginDropdown, setShowLoginDropdown] = useState(false);
+  const [activeModal, setActiveModal] = useState(null); // 'login' or 'signup'
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false);
 
   const navigate = useNavigate();
-  const location = useLocation();
   const loginRef = useRef(null);
   const userRef = useRef(null);
 
@@ -33,7 +35,7 @@ export default function Navbar() {
   useEffect(() => {
     const handler = (e) => {
       if (loginRef.current && !loginRef.current.contains(e.target))
-        setShowLoginDropdown(false);
+        setActiveModal(null);
       if (userRef.current && !userRef.current.contains(e.target))
         setShowUserDropdown(false);
     };
@@ -44,12 +46,12 @@ export default function Navbar() {
   const go = (path) => {
     navigate(path);
     setMobileOpen(false);
-    setShowLoginDropdown(false);
+    setActiveModal(null);
   };
 
   const handleRoleLogin = (r) => {
     navigate(`/login?role=${r}`);
-    setShowLoginDropdown(false);
+    setActiveModal(null);
     setMobileOpen(false);
   };
 
@@ -74,7 +76,7 @@ export default function Navbar() {
       </nav>
     );
   }
-
+  
   return (
     <>
       <nav className="sticky top-0 left-0 w-full bg-upmaroon text-white z-40 shadow-sm">
@@ -128,38 +130,16 @@ export default function Navbar() {
             {!isAuthenticated && (
               <div className="relative" ref={loginRef}>
                 <button
-                  onClick={() => setShowLoginDropdown((s) => !s)}
+                  onClick={() => setActiveModal('login')}
                   className="flex items-center gap-1 text-sm px-3 transition duration-200 hover:text-upyellow"
                 >
                   LOG IN
-                  <ChevronDown
-                    size={14}
-                    className={`${
-                      showLoginDropdown ? "rotate-180" : ""
-                    } transition ml-1`}
-                  />
                 </button>
-
-                {showLoginDropdown && (
-                  <div className="absolute right-0 mt-2 min-w-[180px] bg-white text-gray-900 rounded shadow-lg z-50">
-                    <div className="flex flex-col text-center">
-                      <button
-                        className="w-full px-4 py-2 text-center hover:bg-gray-100"
-                        onClick={() => handleRoleLogin("student")}
-                      >
-                        As Student
-                      </button>
-                      <button
-                        className="w-full px-4 py-2 text-center hover:bg-gray-100"
-                        onClick={() => handleRoleLogin("admin")}
-                      >
-                        As Admin
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
+            {activeModal === 'login' && <LoginModal onClose={() => setActiveModal(null)} onSwitchToSignup={() => setActiveModal('signup')}/>}
+
+            {activeModal === 'signup' && <SignUpModal onClose={() => setActiveModal(null)} onSwitchToLogin={() => setActiveModal('login')} />}
 
             {isAuthenticated && (
               <div className="relative" ref={userRef}>
@@ -252,9 +232,9 @@ export default function Navbar() {
 
             {!isAuthenticated && (
               <button
-                onClick={() => go("/signup")}
                 className="text-white text-sm px-4 py-1 rounded-full border border-white inline-flex items-center justify-center hover:bg-white hover:text-upmaroon transition"
                 style={{ minWidth: 72 }}
+                  onClick={() => setActiveModal('signup')}
               >
                 SIGN UP
               </button>
@@ -308,34 +288,17 @@ export default function Navbar() {
               {!isAuthenticated && (
                 <div className="w-full" ref={loginRef}>
                   <button
-                    onClick={() => setShowLoginDropdown((s) => !s)}
+                    onClick={() => setshowLoginModal((s) => !s)}
                     className="w-full text-center text-white uppercase py-2 inline-flex justify-center items-center gap-2 transition duration-200 ease-in-out transform hover:text-yellow-500 hover:font-bold"
                   >
                     LOG IN{" "}
                     <ChevronDown
                       size={14}
                       className={`${
-                        showLoginDropdown ? "rotate-180" : ""
+                        showLoginModal ? "rotate-180" : ""
                       } transition`}
                     />
                   </button>
-
-                  {showLoginDropdown && (
-                    <div className="mt-2 bg-white text-gray-900 rounded w-full">
-                      <button
-                        className="w-full px-4 py-2 text-center hover:bg-gray-100"
-                        onClick={() => handleRoleLogin("student")}
-                      >
-                        As Student
-                      </button>
-                      <button
-                        className="w-full px-4 py-2 text-center hover:bg-gray-100"
-                        onClick={() => handleRoleLogin("admin")}
-                      >
-                        As Admin
-                      </button>
-                    </div>
-                  )}
                 </div>
               )}
 
@@ -408,11 +371,14 @@ export default function Navbar() {
 
               {!isAuthenticated && (
                 <button
-                  onClick={() => go("/signup")}
                   className="mt-2 text-white text-sm rounded-full border border-white px-6 py-2 hover:bg-white hover:text-upmaroon transition hover:font-bold"
                 >
                   SIGN UP
                 </button>
+              )}
+
+              {showSignupModal && (
+                <SignUpModal/>
               )}
             </div>
           </div>

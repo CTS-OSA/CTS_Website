@@ -42,14 +42,33 @@ class AddressSerializer(serializers.ModelSerializer):
 
 class SCIFStudentSerializer(serializers.ModelSerializer):
     permanent_address = AddressSerializer(required=False)
+    landline_number = serializers.CharField(required=False, allow_blank=True)
     
     class Meta:
         model = Student
         fields = [
             'current_year_level', 'degree_program',  
-            'last_name', 'first_name', 'middle_name', 'nickname', 'sex', 'religion', 'birth_rank', 'email', 'contact_number', 'landline_number', 'permanent_address'
+            'last_name', 'first_name', 'middle_name', 'nickname', 'sex', 'religion', 'birth_rank', 'contact_number', 'landline_number', 'permanent_address'
         ]
         extra_kwargs = {field.name: {'required': False} for field in model._meta.fields if field.name != 'id'}
+    
+    def to_internal_value(self, data):
+        # Handle permanent_address as string
+        if isinstance(data.get('permanent_address'), str):
+            data['permanent_address'] = {
+                'address_line_1': data['permanent_address'],
+                'barangay': '',
+                'city_municipality': '',
+                'province': '',
+                'region': '',
+                'zip_code': ''
+            }
+        
+        # Handle empty landline_number
+        if data.get('landline_number') == '':
+            data['landline_number'] = None
+            
+        return super().to_internal_value(data)
     
     def update(self, instance, validated_data):
         address_data = validated_data.pop('permanent_address', None)
