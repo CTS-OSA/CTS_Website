@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import FormField from "./FormField";
 import "../pages/css_pages/SignUp.css";
-import { Link } from "react-router-dom";
 import Modal from "./Modal";
 import "./css/Modal.css";
 import { X } from "react-feather";
@@ -193,32 +192,37 @@ export default function SignUpModal ({ onClose, onSwitchToLogin }) {
                 </form>
             </section>
 
+        </div>
             {isLoading && (
             <Modal>
                 <div className="modal-message-with-spinner">
                 <div className="loading-spinner" />
-                <p className="loading-text">Signing up... Please wait.</p>
+                <p className="loading-text text-upmaroon">Signing up... Please wait.</p>
                 </div>
             </Modal>
             )}
 
             {showMessageModal && !isLoading && (
             <Modal>
-                <div className="modal-message-with-spinner">
-                <p className="loading-text" style={{ fontWeight: "bold" }}>
+              <div className="modal-message-with-spinner">
+                <p className="loading-text text-upmaroon" style={{ fontWeight: "bold" }}>
                     {isError ? "Error" : "Success"}
                 </p>
-                <p>{message}</p>
+                <p className="text-[#333]">{message}</p>
                 <button
                     className="okay-button"
-                    onClick={() => setShowMessageModal(false)}
+                    onClick={() => {
+                      setShowMessageModal(false);
+                      if (!isError) {
+                        onClose();
+                      }
+                    }}
                 >
                     OK
                 </button>
-                </div>
+              </div>
             </Modal>
             )}
-        </div>
   </>
   );
 };

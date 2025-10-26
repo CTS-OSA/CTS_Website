@@ -10,10 +10,9 @@ const DefaultLayout = ({ children, variant = 'student' }) => {
         <Navbar />
             <div className="default-layout">
                 <div className="main-section">
-                    <aside className="side-nav">
-                    <SideNav variant={variant} />
+                    <aside className="w-auto max-w-[300px] shrink-0 bg-white flex flex-col z-10">
+                      <SideNav variant={variant} />
                     </aside>
-
                     <main className="main-content">
                     {children}
                     </main>

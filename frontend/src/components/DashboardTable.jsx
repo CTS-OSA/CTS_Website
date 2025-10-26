@@ -10,9 +10,9 @@ const TableSection = ({ title, headers, rows, onView, onDelete }) => {
     <div className="table-section">
       <h2>{title}</h2>
       {validRows.length === 0 ? (
-        <p>No {title.toLowerCase()} yet.</p>
+        <p className="text-center text-sm h-30 flex items-center justify-center">No {title.toLowerCase()} yet.</p>
       ) : (
-        <table className="dashboard-table">
+        <table className="dashboard-table ml-10">
           <thead>
             <tr>
               {headers.map((header, index) => (
@@ -54,21 +54,26 @@ const DashboardTable = ({ submittedForms, pendingActions, onView, onDelete }) =>
   const pendingHeaders = ["Form Type", "Last Date Updated", "Status"];
 
   return (
-    <div className="dashboard-container">
-      <h1 className="dashboard-title">Dashboard</h1>
-      <TableSection
-        title="SUBMITTED FORMS"
-        headers={submittedHeaders}
-        rows={submittedForms}
-        onView={onView}
-      />
-      <TableSection
-        title="PENDING ACTIONS"
-        headers={pendingHeaders}
-        rows={pendingActions}
-        onView={onView}
-        onDelete={onDelete}
-      />
+    <div className="relative max-w-full overflow-x-auto h-full bg-[#F2F2F2] flex flex-col items-start animate-fadeIn duration-500 ease-in-out">
+      <div className="bg-upmaroon w-full h-40 ">
+        <h1 className="text-[2rem] font-bold mb-[30px] text-white ml-15 mt-20">DASHBOARD</h1>
+      </div>
+      <div className="bg-white -mt-5 mb-10 mx-auto w-[94%] rounded-3xl p-10 min-h-screen">
+        <TableSection
+          title="SUBMITTED FORMS"
+          headers={submittedHeaders}
+          rows={submittedForms}
+          onView={onView}
+        />
+        <hr className="h-[1.5px] bg-gray-300 border-none rounded mx-auto my-4" />
+        <TableSection
+          title="PENDING ACTIONS"
+          headers={pendingHeaders}
+          rows={pendingActions}
+          onView={onView}
+          onDelete={onDelete}
+        />
+      </div>
     </div>
   );
 };
