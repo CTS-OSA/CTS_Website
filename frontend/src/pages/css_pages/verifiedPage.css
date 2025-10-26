@@ -24,7 +24,7 @@
   animation: moveUpDown 2s ease-in-out infinite;
 }
 
-h2 {
+.verified-page h2 {
   font-size: 24px;
   color: #333;
   margin-bottom: 10px;

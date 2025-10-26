@@ -1,67 +1,119 @@
-import * as React from 'react';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Typography from '@mui/material/Typography';
-import Stack from '@mui/material/Stack';
-import { BarChart } from '@mui/x-charts/BarChart';
-import { useTheme } from '@mui/material/styles';
+import React, { useRef, useState } from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} from "recharts";
+import CustomTooltip from "../components/CustomToolTip";
 
 export default function GroupedBarChart({
-    data,
-    keys,
-    xKey,
-    title = 'Grouped Bar Chart',
-    totalValue = '1,245',
-    subtitle = 'Enrollment per program as of May 2025',
-    height
+  data,
+  keys,
+  xKey,
+  title = "Grouped Bar Chart",
+  totalValue = "1,245",
+  subtitle = "Enrollment per program as of May 2025",
+  height = 300,
+  barGroupWidth = 80,
+  minVisibleBars = 6,
 }) {
-    const theme = useTheme();
-    const colorPalette = [
-        (theme.vars || theme).palette.primary.dark,
-        (theme.vars || theme).palette.primary.main,
-        (theme.vars || theme).palette.primary.light,
-    ];
+  const colorPalette = ["#EC5F1A", "#5F61C1", "#93c5fd"];
+  const scrollRef = useRef(null);
+  const [scrollPos, setScrollPos] = useState(0);
 
-    const series = keys.map((key, index) => ({
-        id: key,
-        label: key,
-        data: data.map((item) => item[key]),
-        color: colorPalette[index % colorPalette.length],
-    }));
+  const totalBars = data?.length || 0;
+  const chartWidth = Math.max(
+    totalBars * barGroupWidth,
+    minVisibleBars * barGroupWidth
+  );
 
-    return (
-        <Card variant="outlined" sx={{ width: '100%' }}>
-            <CardContent>
-                <Typography component="h2" variant="subtitle2" gutterBottom>
-                    {title}
-                </Typography>
+  const scrollLeft = () => {
+    if (!scrollRef.current) return;
+    scrollRef.current.scrollBy({ left: -200, behavior: "smooth" });
+    setScrollPos((prev) => Math.max(prev - 200, 0));
+  };
 
-                <Stack sx={{ justifyContent: 'space-between' }}>
-                    <Typography variant="h4" component="p">
-                        {totalValue}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                        {subtitle}
-                    </Typography>
-                </Stack>
+  const scrollRight = () => {
+    if (!scrollRef.current) return;
+    scrollRef.current.scrollBy({ left: 200, behavior: "smooth" });
+    setScrollPos((prev) => prev + 200);
+  };
 
-                <BarChart
-                    borderRadius={8}
-                    colors={colorPalette}
-                    xAxis={[{
-                        scaleType: 'band',
-                        categoryGapRatio: 0.4,
-                        data: data.map((item) => item[xKey]),
-                        height: 24,
-                    }]}
-                    yAxis={[{ width: 50 }]}
-                    series={series}
-                    height={300}
-                    margin={{ left: 0, right: 0, top: 20, bottom: 0 }}
-                    grid={{ horizontal: true }}
-                    hideLegend
-                />
-            </CardContent>
-        </Card>
-    );
+  return (
+    <div className="w-full bg-white rounded-lg shadow p-8 relative">
+      {/* Header */}
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold text-gray-700">{title}</h2>
+        <p className="text-3xl font-bold text-gray-700">{totalValue}</p>
+        <p className="text-xs text-gray-500">{subtitle}</p>
+      </div>
+
+      {/* Chart Container with horizontal scroll */}
+      <div
+        className="relative overflow-y-hidden scrollbar-hide border-b border-gray-300"
+        ref={scrollRef}
+      >
+        <div style={{ width: `${chartWidth}px`, height: `${height}px` }}>
+          <BarChart
+            width={chartWidth}
+            height={height}
+            data={data}
+            margin={{ top: 20, right: 20, left: 0, bottom: 10 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200" />
+            <XAxis
+              dataKey={xKey}
+              tick={{ fontSize: 12 }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+            <Tooltip content={<CustomTooltip />} />
+            {keys.map((key, index) => (
+              <Bar
+                key={key}
+                dataKey={key}
+                name={key}  
+                fill={colorPalette[index % colorPalette.length]}
+                radius={[4, 4, 0, 0]}
+                barSize={30}
+              />
+            ))}
+          </BarChart>
+        </div>
+      </div>
+  <div className="mt-4 flex gap-4 flex-wrap">
+    {keys.map((key, index) => (
+      <div key={key} className="flex items-center gap-2">
+        <div
+          className="w-4 h-4 rounded"
+          style={{ backgroundColor: colorPalette[index % colorPalette.length] }}
+        ></div>
+        <span className="text-sm text-gray-600">{key}</span>
+      </div>
+    ))}
+  </div>
+
+      {/* Scroll Buttons */}
+      {totalBars > minVisibleBars && (
+        <div className="absolute bottom-4 right-4 flex gap-2">
+          <button
+            onClick={scrollLeft}
+            className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 py-1 rounded"
+          >
+            &lt;
+          </button>
+          <button
+            onClick={scrollRight}
+            className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 py-1 rounded"
+          >
+            &gt;
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
