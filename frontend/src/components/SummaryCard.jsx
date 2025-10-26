@@ -1,10 +1,9 @@
-// components/SummaryCard.jsx
 import React from "react";
 
 const SummaryCard = ({ title, value, subtitle, color }) => {
   return (
     <div
-      className="p-1 rounded-lg shadow-md flex flex-col items-center justify-center text-center"
+      className="p-4 rounded-lg shadow-md flex flex-col items-center justify-center text-center"
       style={{ backgroundColor: color }}
     >
       <h3 className="text-base font-semibold text-white">{title}</h3>

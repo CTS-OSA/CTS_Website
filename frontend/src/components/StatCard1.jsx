@@ -1,81 +1,27 @@
-import * as React from 'react';
-import PropTypes from 'prop-types';
-import { useTheme } from '@mui/material/styles';
-import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Chip from '@mui/material/Chip';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
+import React from "react";
+import PropTypes from "prop-types";
 
-function StatCard({ title, value, interval, trend }) {
-    const theme = useTheme();
+function StatCard({ title, value, interval }) {
+  return (
+    <div className="w-full h-full flex flex-col p-4 sm:p-6 bg-white border-gray-300 rounded-lg shadow-sm">
+      <div className="flex flex-col justify-center ">
+        <h2 className="text-sm font-bold text-gray-700 mb-2">{title}</h2>
 
-    const trendColors = {
-        up: theme.palette.success.main,
-        down: theme.palette.error.main,
-        neutral: theme.palette.grey[400],
-    };
-
-    const labelColors = {
-        up: 'success',
-        down: 'error',
-        neutral: 'default',
-    };
-
-    const trendValues = {
-        up: '+25%',
-        down: '-25%',
-        neutral: '+5%',
-    };
-
-    const color = labelColors[trend];
-
-    return (
-        <Card
-        variant="outlined"
-        sx={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            p: { xs: 2, sm: 4 },
-            justifyContent: 'center',
-        }}
-        >
-        <CardContent
-            sx={{
-            flexGrow: 1,
-            p: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            }}
-        >
-            <Typography component="h2" variant="subtitle1" fontWeight="bold" gutterBottom>
-            {title}
-            </Typography>
-
-            <Stack spacing={2} justifyContent="center">
-            <Box sx={{ flexGrow: 1, height: '100%' }}>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                <Typography variant="h4" fontWeight="bold">{value}</Typography>
-                </Stack>
-                <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-                {interval}
-                </Typography>
-            </Box>
-            </Stack>
-        </CardContent>
-        </Card>
-    );
+        <div className="flex flex-col space-y-2 justify-center h-full">
+          <div className="flex justify-between items-center">
+            <span className="text-2xl font-bold text-gray-900">{value}</span>
+          </div>
+          <span className="text-sm text-black-500 mt-1">{interval}</span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 StatCard.propTypes = {
-    interval: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired,
-    trend: PropTypes.oneOf(['down', 'neutral', 'up']).isRequired,
-    value: PropTypes.string.isRequired,
+  interval: PropTypes.string.isRequired,
+  title: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
 };
 
 export default StatCard;

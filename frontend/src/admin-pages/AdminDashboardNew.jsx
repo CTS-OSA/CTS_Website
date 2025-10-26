@@ -5,7 +5,7 @@ import SummaryCard from "../components/SummaryCard";
 import { AuthContext } from "../context/AuthContext";
 import { useApiRequest } from "../context/ApiRequestContext";
 import Loader from "../components/Loader";
-import DefaultLayout from "../components/DefaultLayout"
+import DefaultLayout from "../components/DefaultLayout";
 
 export const AdminDashboardNew = () => {
   const { user, role, loading } = useContext(AuthContext);
@@ -131,8 +131,8 @@ export const AdminDashboardNew = () => {
     <DefaultLayout variant="admin">
       <div className="min-h-screen w-full px-4 sm:px-8 py-6 bg-gray-50">
         <div className="space-y-8">
-          <div className="flex gap-6 pt-4 pr-4 pl-4 pb-0">
-            <div className="flex flex-col gap-6 w-1/2">
+          <div className="flex flex-col lg:flex-row gap-6 pt-4 pr-4 pl-4 pb-0">
+            <div className="flex flex-col gap-6 w-full lg:w-1/2">
               {/* Summary cards */}
               <div className="grid grid-cols-2 gap-6">
                 {summaryData.map((item, index) => (
@@ -148,84 +148,106 @@ export const AdminDashboardNew = () => {
               {/* Referral Table */}
               <div className="bg-white rounded-lg shadow p-4 flex-1 flex flex-col">
                 <h2 className="text-xl font-semibold mb-4">Referral Forms</h2>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm border-collapse ">
+                    <thead className="bg-white-100 border-b border-t border-gray-300">
+                      <tr>
+                        <th className="text-left py-2 px-3 font-medium">
+                          Name of Student
+                        </th>
+                        <th className="text-left py-2 px-3 font-medium">
+                          Date Referred
+                        </th>
+                        <th className="text-left py-2 px-3 font-medium">
+                          Referred By
+                        </th>
+                        <th className="text-left py-2 px-3 font-medium">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {referralData.map((row) => (
+                        <tr
+                          key={row.id}
+                          className="border-b border-gray-200 hover:bg-gray-50"
+                        >
+                          <td className="py-2 px-3">{row.student_name}</td>
+                          <td className="py-2 px-3">{row.date_referred}</td>
+                          <td className="py-2 px-3">{row.referred_by}</td>
+                          <td className="py-2 px-3">
+                            <button className="text-blue-600 border border-blue-600 px-3 py-1 rounded-md hover:bg-blue-600 hover:text-white transition-colors duration-200">
+                              View
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            {/* Recent Submissions Table */}
+            <div className="bg-white p-6 rounded-lg shadow w-full lg:w-3/5 flex-1 flex flex-col">
+              <h2 className="text-xl font-semibold mb-4 ">
+                Recent Submissions
+              </h2>
+              <div className="overflow-x-auto">
                 <table className="w-full text-sm border-collapse">
                   <thead className="bg-white-100 border-b border-t border-gray-300">
                     <tr>
-                      <th className="text-left py-2 px-3 font-medium">Name of Student</th>
-                      <th className="text-left py-2 px-3 font-medium">Date Referred</th>
-                      <th className="text-left py-2 px-3 font-medium">Referred By</th>
-                      <th className="text-left py-2 px-3 font-medium">Action</th>
+                      <th className="text-left py-2 px-3 font-medium">
+                        Submitted by
+                      </th>
+                      <th className="text-left py-2 px-3 font-medium">Date</th>
+                      <th className="text-left py-2 px-3 font-medium">Form</th>
+                      <th className="text-left py-2 px-3 font-medium">
+                        Action
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {referralData.map((row) => (
-                      <tr key={row.id} className="border-b border-gray-200 hover:bg-gray-50">
+                    {filteredSortedRows.slice(0, 10).map((row, idx) => (
+                      <tr
+                        key={idx}
+                        className="border-b border-gray-200 hover:bg-gray-50"
+                      >
                         <td className="py-2 px-3">{row.student_name}</td>
-                        <td className="py-2 px-3">{row.date_referred}</td>
-                        <td className="py-2 px-3">{row.referred_by}</td>
-                                              <td className="py-2 px-3">
-                        <button
-                          className="text-blue-600 border border-blue-600 px-3 py-1 rounded-md hover:bg-blue-600 hover:text-white transition-colors duration-200"
-                        >
-                          View
-                        </button>
-                      </td>
+                        <td className="py-2 px-3">{row.submitted_on}</td>
+                        <td className="py-2 px-3">{row.form_type}</td>
+                        <td className="py-2 px-3">
+                          <button
+                            onClick={() => handleRowClick({ row })}
+                            className="text-blue-600 border border-blue-600 px-3 py-1 rounded-md hover:bg-blue-600 hover:text-white transition-colors duration-200"
+                          >
+                            View
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             </div>
-            {/* Recent Submissions Table */}
-            <div className="bg-white p-6 rounded-lg shadow w-3/5 flex-1 flex flex-col">
-              <h2 className="text-xl font-semibold mb-4 ">
-                Recent Submissions
-              </h2>
-              <table className="w-full text-sm border-collapse">
-                <thead className="bg-white-100 border-b border-t border-gray-300">
-                  <tr>
-                    <th className="text-left py-2 px-3 font-medium">
-                      Submitted by
-                    </th>
-                    <th className="text-left py-2 px-3 font-medium">Date</th>
-                    <th className="text-left py-2 px-3 font-medium">Form</th>
-                    <th className="text-left py-2 px-3 font-medium">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredSortedRows.slice(0, 10).map((row, idx) => (
-                    <tr
-                      key={idx}
-                      className="border-b border-gray-200 hover:bg-gray-50"
-                    >
-                      <td className="py-2 px-3">{row.student_name}</td>
-                      <td className="py-2 px-3">{row.submitted_on}</td>
-                      <td className="py-2 px-3">{row.form_type}</td>
-                      <td className="py-2 px-3">
-                        <button
-                          onClick={() => handleRowClick({ row })}
-                          className="text-blue-600 border border-blue-600 px-3 py-1 rounded-md hover:bg-blue-600 hover:text-white transition-colors duration-200"
-                        >
-                          View
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
           </div>
           {/* Bar Chart */}
           <div className="flex gap-6 p-3">
             <GroupedBarChart
               data={barData}
-              keys={["Female", "Male"]}
+              keys={["Male", "Female"]}
               xKey="name"
               title="Students per Degree Program"
               totalValue={totalStudents}
-              subtitle="Enrollment per program as of May 2025"
+              subtitle={`Enrollment per program as of ${new Date().toLocaleDateString(
+                "en-US",
+                {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                }
+              )}`}
             />
-            </div>
+          </div>
         </div>
       </div>
     </DefaultLayout>
