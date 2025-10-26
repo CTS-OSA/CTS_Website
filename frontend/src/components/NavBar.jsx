@@ -34,14 +34,16 @@ export default function Navbar() {
 
   useEffect(() => {
     const handler = (e) => {
-      if (loginRef.current && !loginRef.current.contains(e.target))
+      // Close the modal if overlay is clicked
+      if (activeModal && e.target.classList.contains('bg-black/50')) {
         setActiveModal(null);
+      }
       if (userRef.current && !userRef.current.contains(e.target))
         setShowUserDropdown(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, []);
+  }, [activeModal]);
 
   const go = (path) => {
     navigate(path);

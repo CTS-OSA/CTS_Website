@@ -102,7 +102,7 @@ export default function LoginModal ({ onClose, onSwitchToSignup}) {
                 {/* Conditionally render Sign Up link based on role */}
                 {role !== "admin" && (
                   <span className="text-sm text-gray-600">
-                    Don’t have an account? <button onClick={onSwitchToSignup} className="text-red-900 underline bg-transparent border-none cursor-pointer">Sign up</button>
+                    Don’t have an account? <button type="button" onClick={onSwitchToSignup} className="text-red-900 underline bg-transparent border-none cursor-pointer">Sign up</button>
                   </span>
                 )}
               </div>

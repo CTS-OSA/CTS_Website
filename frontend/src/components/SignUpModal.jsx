@@ -188,7 +188,7 @@ export default function SignUpModal ({ onClose, onSwitchToLogin }) {
                     Sign Up
                 </button>
                 <div className="text-center text-sm text-gray-600 mt-2 leading-[1.6]">
-                    Already have an account? <button onClick={onSwitchToLogin} className="text-red-900 underline bg-transparent border-none cursor-pointer">Log in</button>
+                    Already have an account? <button type="button" onClick={onSwitchToLogin} className="text-red-900 underline bg-transparent border-none cursor-pointer">Log in</button>
                 </div>
                 </form>
             </section>
