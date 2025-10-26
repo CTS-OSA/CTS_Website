@@ -48,3 +48,16 @@ export const clearError = (errors, setErrors, key) => {
     });
   }
 };
+
+export const shortenRegionName = (regionName) => {
+  if (!regionName) return "";
+
+  const specialRegions = ["NCR", "CAR", "BARMM", "NIR"];
+  const prefix = regionName.split(" - ")[0]; 
+
+  const match = specialRegions.find((abbr) => prefix.startsWith(abbr));
+  if (match) return match; 
+
+  const romanPart = prefix.replace("Region", "").trim();
+  return romanPart;
+};

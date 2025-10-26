@@ -1,26 +1,19 @@
 import React, { useRef, useState } from "react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import CustomTooltip from "../components/CustomToolTip";
 
 export default function GroupedBarChart({
   data,
   keys,
   xKey,
-  title = "Grouped Bar Chart",
-  totalValue = "1,245",
-  subtitle = "Enrollment per program as of May 2025",
+  title,
+  totalValue,
+  subtitle,
   height = 300,
   barGroupWidth = 80,
   minVisibleBars = 6,
 }) {
-  const colorPalette = ["#EC5F1A", "#5F61C1", "#93c5fd"];
+  const colorPalette = ["#5F61C1", "#EC5F1A", "#93c5fd", "#fcbd47"];
   const scrollRef = useRef(null);
   const [scrollPos, setScrollPos] = useState(0);
 
@@ -43,7 +36,7 @@ export default function GroupedBarChart({
   };
 
   return (
-    <div className="w-full bg-white rounded-lg shadow p-8 relative">
+    <div className="w-full h-full bg-white rounded-lg shadow p-8 relative flex flex-col">
       {/* Header */}
       <div className="mb-4">
         <h2 className="text-lg font-semibold text-gray-700">{title}</h2>
@@ -76,7 +69,7 @@ export default function GroupedBarChart({
               <Bar
                 key={key}
                 dataKey={key}
-                name={key}  
+                name={key}
                 fill={colorPalette[index % colorPalette.length]}
                 radius={[4, 4, 0, 0]}
                 barSize={30}
@@ -85,17 +78,19 @@ export default function GroupedBarChart({
           </BarChart>
         </div>
       </div>
-  <div className="mt-4 flex gap-4 flex-wrap">
-    {keys.map((key, index) => (
-      <div key={key} className="flex items-center gap-2">
-        <div
-          className="w-4 h-4 rounded"
-          style={{ backgroundColor: colorPalette[index % colorPalette.length] }}
-        ></div>
-        <span className="text-sm text-gray-600">{key}</span>
+      <div className="mt-4 flex gap-4 flex-wrap">
+        {keys.map((key, index) => (
+          <div key={key} className="flex items-center gap-2">
+            <div
+              className="w-4 h-4 rounded"
+              style={{
+                backgroundColor: colorPalette[index % colorPalette.length],
+              }}
+            ></div>
+            <span className="text-sm text-gray-600">{key}</span>
+          </div>
+        ))}
       </div>
-    ))}
-  </div>
 
       {/* Scroll Buttons */}
       {totalBars > minVisibleBars && (

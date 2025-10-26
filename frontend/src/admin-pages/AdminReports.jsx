@@ -9,7 +9,8 @@ import PieChartCard from "../components/PieChartCard";
 import GroupedBarChart from "../components/GroupedBarChart";
 import { apiRequest } from "../utils/apiUtils";
 import Loader from "../components/Loader";
-  
+import { shortenRegionName } from "../utils/helperFunctions";
+
 export const AdminReports = () => {
   const { user, loading } = useContext(AuthContext);
   const [reportData, setReportData] = useState(null);
@@ -44,56 +45,51 @@ export const AdminReports = () => {
     regionData = [],
     ageData = [],
   } = reportData;
-  const totalNumberofStudents = summaryData.find((d) => d.title === "Total Number of Students")?.value
+  const totalNumberofStudents = summaryData.find(
+    (d) => d.title === "Total Number of Students"
+  )?.value;
   const top3ProgramsCard = summaryData.find((item) =>
     item.title.includes("Top 3 Programs")
   );
 
   return (
     <DefaultLayout variant="admin">
-      <Box sx={{ px: { xs: 2, sm: 4 }, py: { xs: 3, md: 5 } }}>
-        <Typography variant="h5" mb={3}>
-          Administrative Reports
-        </Typography>
+      <div className="min-h-screen w-full px-4 sm:px-8 py-6 bg-gray-50">
+        <h5 className="text-2xl font-bold mb-3">Administrative Reports</h5>
+        <h2 className="text-sm text-gray-700/50">
+          Enrollment and demographics report as of{" "}
+          {new Date().toLocaleDateString()}
+        </h2>
 
-        <Box
-          display="flex"
-          flexDirection={{ xs: "column", md: "row" }}
-          gap={2}
-          mb={4}
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pb-6 pt-4">
           {summaryData.slice(0, 4).map((item, idx) => (
-            <Box key={idx} flex={1}>
+            <div key={idx}>
               <StatCard {...item} />
-            </Box>
+            </div>
           ))}
-        </Box>
-
-        <Box
-          display="flex"
-          flexDirection={{ xs: "column", md: "row" }}
-          gap={2}
-          mb={4}
-        >
-          <Box flex={0.5} display="flex" flexDirection="column" gap={2}>
-            <Box flex={1}>
+        </div>
+        <div className="flex flex-col lg:flex-row gap-6 lg:items-stretch">
+          {/* Left Column */}
+          <div className="flex flex-col gap-6 lg:w-1/3 flex-1">
+            <div className="flex-1 flex flex-col">
               <StatCard {...top3ProgramsCard} />
-            </Box>
-            <Box flex={2}>
+            </div>
+            <div className="flex-1 flex flex-col">
               <PieChartCard
                 title="Gender Distribution"
                 data={genderData}
                 totalLabel={
                   summaryData.find(
-                    (d) => d.title === "Total Number of  Students"
+                    (d) => d.title === "Total Number of Students"
                   )?.value
                 }
                 subtitle={top3ProgramsCard?.interval}
               />
-            </Box>
-          </Box>
+            </div>
+          </div>
 
-          <Box flex={1} display="flex">
+          {/* Right Column */}
+          <div className="flex flex-col flex-1 lg:w-2/3">
             <GroupedBarChart
               title="Population by Year Level"
               data={yearLevelData}
@@ -101,22 +97,35 @@ export const AdminReports = () => {
               totalValue={totalNumberofStudents}
               xKey="name"
               subtitle={top3ProgramsCard?.interval}
+              className="h-full"
             />
-          </Box>
-        </Box>
+          </div>
+        </div>
 
-        <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={2}>
-          <Box flex={1}>
+        <div className="flex flex-col lg:flex-row gap-6 pt-6">
+          {/* Region Chart */}
+          <div className="w-full lg:w-1/2">
             <GroupedBarChart
               title="Students by Region"
-              data={regionData}
+              data={regionData.map((r) => ({
+                ...r,
+                shortName: shortenRegionName(r.name),
+              }))}
               keys={["Students"]}
               totalValue={totalNumberofStudents}
-              xKey="name"
-              subtitle={top3ProgramsCard?.interval}
+              xKey="shortName"
+              subtitle={`Enrollment per region as of ${new Date().toLocaleDateString(
+                undefined,
+                {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                }
+              )}`}
             />
-          </Box>
-          <Box flex={1}>
+          </div>
+          {/* Age Chart */}
+          <div className="w-full lg:w-1/2">
             <GroupedBarChart
               title="Students by Age Group"
               data={ageData}
@@ -125,9 +134,9 @@ export const AdminReports = () => {
               totalValue={totalNumberofStudents}
               subtitle={top3ProgramsCard?.interval}
             />
-          </Box>
-        </Box>
-      </Box>
+          </div>
+        </div>
+      </div>
     </DefaultLayout>
   );
 };
