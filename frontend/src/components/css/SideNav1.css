@@ -8,11 +8,6 @@
   height: 100%;
 }
 
-a {
-  text-decoration: none;
-  color: inherit;
-}
-
 /* Avatar section */
 .avatar-section {
   text-align: left;
@@ -161,15 +156,15 @@ a {
 
 /* Apply similar button style to all buttons inside the dropdown */
 .dropdown-content {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    background-color: #f2f2f2;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    z-index: 1;
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background-color: #f2f2f2;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  z-index: 1;
 }
 
 .dropdown-content.open {
@@ -196,8 +191,6 @@ a {
   background-color: #7b1113;
   color: #fff;
 }
-
-
 
 /* Help, logout, toggle section */
 .toggle-section {

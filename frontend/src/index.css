@@ -1,4 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 @import "tailwindcss";
 @import 'tailwind-scrollbar-hide/v4';
 
@@ -9,5 +11,7 @@
 
   --font-tnr: "Times New Roman", serif;
   --font-arial: "Arial", sans-serif;
-  --font-roboto: "Roboto", sans-serif;
+  --font-roboto: "Roboto";
+  --font-condensed: "Roboto Condensed";
+  --font-spartan: "League Spartan";
 }
