@@ -28,7 +28,7 @@ const AddressInfoForm = ({
 
   return (
     <div className="form-container">
-      <h2 className="step-title">{addressLabel}</h2>
+      <h2 className="text-[#7b1113] text-2xl font-bold pb-4">{addressLabel}</h2>
 
       {checkboxLabel && (
         <label className="step-info">
@@ -41,7 +41,7 @@ const AddressInfoForm = ({
         </label>
       )}
 
-      <div className="form-row" style={{ marginTop: "2rem" }}>
+      <div className="grid lg:grid-cols-2 gap-4 pb-4 mt-4">
         <div className="form-group">
           <FormField
             label="Address Line 1 "
@@ -67,7 +67,36 @@ const AddressInfoForm = ({
         </div>
       </div>
 
-      <div className="form-row">
+      <div className="grid lg:grid-cols-2 gap-4 pb-4">
+        <div className="form-group">
+          <FormField
+            label="Barangay "
+            name={getField("barangay")}
+            value={formData[getField("barangay")]}
+            onChange={handleChange}
+            onFocus={() => clearError(errors, setErrors, `${prefix}.barangay`)}
+            required
+            disabled={disabled}
+            error={errors?.[`${prefix}.barangay`]}
+          />
+        </div>
+        <div className="form-group">
+          <FormField
+            label="City/Municipality "
+            name={getField("city_municipality")}
+            value={formData[getField("city_municipality")]}
+            onChange={handleChange}
+            onFocus={() =>
+              clearError(errors, setErrors, `${prefix}.city_municipality`)
+            }
+            required
+            disabled={disabled}
+            error={errors?.[`${prefix}.city_municipality`]}
+          />
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-4 pb-4">
         <div className="form-group">
           <FormField
             label="Region"
@@ -98,35 +127,6 @@ const AddressInfoForm = ({
             required
             disabled={disabled}
             error={errors?.[`${prefix}.province`]}
-          />
-        </div>
-      </div>
-
-      <div className="form-row three-columns">
-        <div className="form-group">
-          <FormField
-            label="City/Municipality "
-            name={getField("city_municipality")}
-            value={formData[getField("city_municipality")]}
-            onChange={handleChange}
-            onFocus={() =>
-              clearError(errors, setErrors, `${prefix}.city_municipality`)
-            }
-            required
-            disabled={disabled}
-            error={errors?.[`${prefix}.city_municipality`]}
-          />
-        </div>
-        <div className="form-group">
-          <FormField
-            label="Barangay "
-            name={getField("barangay")}
-            value={formData[getField("barangay")]}
-            onChange={handleChange}
-            onFocus={() => clearError(errors, setErrors, `${prefix}.barangay`)}
-            required
-            disabled={disabled}
-            error={errors?.[`${prefix}.barangay`]}
           />
         </div>
         <div className="form-group">

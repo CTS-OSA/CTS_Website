@@ -2,7 +2,7 @@
 .background-rectangle {
   position: absolute;
   width: 100%;
-  height: 19.3125em;
+  height: 26em;
   left: 0;
   top: 0;
   background: #7b1113;
@@ -422,7 +422,7 @@ html {
   }
 
   .background-rectangle {
-    height: 16em;
+    height: 20em;
   }
 
   .form-label,
@@ -467,7 +467,7 @@ html {
   }
 
   .background-rectangle {
-    height: 13em;
+    height: 20em;
   }
 
   .form-section {

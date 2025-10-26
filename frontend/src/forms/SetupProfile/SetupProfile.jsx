@@ -16,9 +16,10 @@ import { useApiRequest } from "../../context/ApiRequestContext";
 import {
   validatePersonalInfo,
   validateEducation,
-  validateAddress
+  validateAddress,
 } from "../../utils/formValidationUtils";
 import DefaultLayout from "../../components/DefaultLayout";
+import StepIndicator from "../../components/StepIndicator";
 
 const ALPHA_REGEX = /^[A-Za-z\s]*$/;
 const NON_ALPHA_REGEX = /[^A-Za-z\s]/g;
@@ -121,8 +122,7 @@ const MultiStepForm = () => {
 
   const setPersonalInfoFormData = (updater) => {
     setFormData((prev) => {
-      const rawNext =
-        typeof updater === "function" ? updater(prev) : updater;
+      const rawNext = typeof updater === "function" ? updater(prev) : updater;
 
       if (!rawNext || typeof rawNext !== "object") {
         return rawNext;
@@ -146,31 +146,44 @@ const MultiStepForm = () => {
     return <Loader />;
   }
 
-  const validateStep = async (step, formData, sameAsPermanent = false, request) => {
-  switch (step) {
-    case 1:
-      return validatePersonalInfo(formData);
+  const validateStep = async (
+    step,
+    formData,
+    sameAsPermanent = false,
+    request
+  ) => {
+    switch (step) {
+      case 1:
+        return validatePersonalInfo(formData);
 
-    case 2:
-      return await validateEducation(formData, request);
+      case 2:
+        return await validateEducation(formData, request);
 
-    case 3:
-      return validateAddress(formatAddress(formData, 'permanent'), 'permanent');
+      case 3:
+        return validateAddress(
+          formatAddress(formData, "permanent"),
+          "permanent"
+        );
 
-    case 4:
-      if (sameAsPermanent) return {};
-      return validateAddress(formatAddress(formData, 'up'), 'up');
+      case 4:
+        if (sameAsPermanent) return {};
+        return validateAddress(formatAddress(formData, "up"), "up");
 
-    case 5:
-      return {};
+      case 5:
+        return {};
 
-    default:
-      return {};
-  }
-};
+      default:
+        return {};
+    }
+  };
 
-  const handleNextStep = async() => {
-    const validationErrors = await validateStep(step, formData, sameAsPermanent, request);
+  const handleNextStep = async () => {
+    const validationErrors = await validateStep(
+      step,
+      formData,
+      sameAsPermanent,
+      request
+    );
     if (
       validationErrors &&
       typeof validationErrors === "object" &&
@@ -193,7 +206,6 @@ const MultiStepForm = () => {
     setErrors(null);
     setStep((prev) => prev + 1);
   };
-
 
   const handlePreviousStep = () => {
     setStep((prevStep) => prevStep - 1);
@@ -314,27 +326,38 @@ const MultiStepForm = () => {
     handleSubmit();
   };
 
-  return (
-      <DefaultLayout variant="student">
+  const steps = [
+    { label: "Basic Details" },
+    { label: "Education Info" },
+    { label: "Address Info" },
+    { label: "Preview & Submit" },
+  ];
 
+  return (
+    <DefaultLayout variant="student">
       {/* Background Rectangle */}
       <div className="background-rectangle"></div>
 
-      <div className="content-wrapper">
-        <div className="mainStepForm">
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <div className="mt-[30px] mx-auto w-3/4 flex flex-col items-center z-10">
           <div className="main-form-info">
-            <h1 className="main-form-title">SETUP YOUR PROFILE</h1>
-            <p className="main-form-subtitle" style={{margin: "20px 0"}}>
-              Please complete this profile accurately. 
-              Your information will help the Office of Student Affairs provide the 
-              appropriate guidance, support, and services during your stay at UP Mindanao.
+            <h1 className="left-1/2 text-center font-semibold text-3xl text-white">
+              SETUP YOUR PROFILE
+            </h1>
+            <p className="text-center text-white my-5 text-base w-2xl">
+              Please complete this profile accurately. Your information will
+              help the Office of Student Affairs provide the appropriate
+              guidance, support, and services during your stay at UP Mindanao.
             </p>
           </div>
 
-          <div className="main-form-card">
-            <div className="main-form">
-              <ProgressBar currentStep={step} className="progress-bar" />
-              {step === 1 && (
+          <div className="bg-white rounded-[15px] p-8 w-full mx-auto mb-[70px] shadow-md z-10 box-border">
+            <div className="flex lg:flex-row flex-col w-full">
+              <div className="lg:w-1/3 lg:bg-[#7b1113] rounded-lg p-4 pt-10 lg:min-h-[450px]">
+              <StepIndicator steps={steps} currentStep={step} />
+              </div>
+            <div className="main-form p-4 w-full">
+             {step === 1 && (
                 <PersonalInfoForm
                   formData={formData}
                   setFormData={setPersonalInfoFormData}
@@ -429,6 +452,7 @@ const MultiStepForm = () => {
                 )}
               </div>
             </div>
+          </div>
           </div>
         </div>
       </div>
