@@ -21,22 +21,22 @@
             {/* PERSONAL INFORMATION */}
             <div className='info-group'>
               <p><strong>PERSONAL INFORMATION</strong></p>
-              <div className='form-row three-columns'>
+              <div className='grid lg:grid-cols-3 gap-4 pb-4'>
                 <DisplayField label="Family Name" value={data.family_name} />
                 <DisplayField label="First Name" value={data.first_name} />
                 <DisplayField label="Middle Name" value={data.middle_name} />
               </div>
-              <div className='form-row three-columns'>
+              <div className='grid lg:grid-cols-3 gap-4 pb-4'>
                 <DisplayField label="Nickname" value={data.nickname} />
                 <DisplayField label="Sex" value={data.sex} />
                 <DisplayField label="Religion" value={data.religion} />
               </div>
-              <div className='form-row three-columns'>
+              <div className='grid lg:grid-cols-3 gap-4 pb-4'>
                 <DisplayField label="Birthdate" value={birthdate} />
                 <DisplayField label="Birth Place" value={data.birth_place} />
                 <DisplayField label="Birth Rank" value={data.birth_rank} />
               </div>
-              <div className='form-row'>
+              <div className='grid lg:grid-cols-2 gap-4 pb-4'>
                 <DisplayField label="Landline" value={data.landline_number || "None"} />
                 <DisplayField label="Mobile" value={data.mobile_number} />
               </div>
@@ -58,11 +58,11 @@
               {data.permanent_address_line_2 && (
                 <DisplayField label="Address Line 2" value={data.permanent_address_line_2} />
               )}
-              <div className='form-row'>
+              <div className='grid lg:grid-cols-2 gap-4 pb-4'>
                 <DisplayField label="Barangay" value={data.permanent_barangay} />
                 <DisplayField label="City/Municipality" value={data.permanent_city_municipality} />
               </div>
-              <div className='form-row three-columns'>
+              <div className='grid lg:grid-cols-3 gap-4 pb-4'>
                 <DisplayField label="Province" value={data.permanent_province} />
                 <DisplayField label="Region" value={data.permanent_region} />
                 <DisplayField label="ZIP Code" value={data.permanent_zip_code} />
@@ -76,11 +76,11 @@
               {data.up_address_line_2 && (
                 <DisplayField label="Address Line 2" value={data.up_address_line_2} />
               )}
-              <div className='form-row'>
+              <div className='grid lg:grid-cols-2 gap-4 pb-4'>
                 <DisplayField label="Barangay" value={data.up_barangay} />
                 <DisplayField label="City/Municipality" value={data.up_city_municipality} />
               </div>
-              <div className='form-row three-columns'>
+              <div className='grid lg:grid-cols-3 gap-4 pb-4'>
                 <DisplayField label="Province" value={data.up_province} />
                 <DisplayField label="Region" value={data.up_region} />
                 <DisplayField label="ZIP Code" value={data.up_zip_code} />

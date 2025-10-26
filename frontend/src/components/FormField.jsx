@@ -1,23 +1,24 @@
-import React from 'react';
-import './css/formfield.css';
-import './css/displayfield.css';
+import React from "react";
 
 const FormField = ({
+  id,
   label,
-  type = "text",
+  type = "input", // 'input', 'textarea', 'select'
+  options = [],   // for select
   value,
   onChange,
-  name,
-  required,
-  error,
-  options,
-  disabled,
+  disabled = false,
   readOnly = false,
-  helpertext,
-  ...rest
+  error = "",
+  helperText = "",
+  required = false,
+  className = "",
+  ...props
 }) => {
   const isFilled = value && value.toString().trim().length > 0;
+  const isError = Boolean(error);
 
+  // Read-only display mode
   if (readOnly) {
     const displayValue =
       type === "select"
@@ -25,64 +26,83 @@ const FormField = ({
         : value || "N/A";
 
     return (
-      <div className={`display-group ${isFilled ? 'filled' : ''}`}>
-        <label className="display-label">{label}</label>
-        <div className="display-value" style={{ color: 'black' }}>
-          {displayValue}
-        </div>
+      <div className={`relative w-full`}>
+        <label className="text-sm text-gray-500">{label}</label>
+        <div className="mt-1 text-gray-900">{displayValue}</div>
       </div>
     );
   }
 
+  const baseClasses = `block px-2.5 pb-2.5 pt-4 w-full text-sm rounded-lg appearance-none
+    border ${disabled ? "text-gray-400 border-gray-300 cursor-not-allowed" : "text-gray-900 border-gray-300 focus:border-blue-600"}
+    ${isError ? "border-red-600 focus:border-red-600" : ""}
+    focus:outline-none focus:ring-0 peer ${className}`;
+
   return (
-    <div className={`form-group ${error ? 'error' : ''}`}>
-      {type === 'select' ? (
-        <select
-          name={name}
+    <div className="relative w-full">
+      {type === "textarea" ? (
+        <textarea
+          id={id}
           value={value}
           onChange={onChange}
-          required={required}
+          placeholder=" "
           disabled={disabled}
-          className={`form-input ${isFilled ? 'filled' : ''}`}
-          {...rest}
+          required={required}
+          className={baseClasses}
+          rows={4}
+          {...props}
+        />
+      ) : type === "select" ? (
+        <select
+          id={id}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          required={required}
+          className={baseClasses}
+          {...props}
         >
-          <option value=""></option>
-          {options?.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
+          <option value="" disabled hidden></option>
+          {options.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
             </option>
           ))}
         </select>
-      ) : type === 'textarea' ? ( 
-        <textarea
-          value={value}
-          onChange={onChange}
-          name={name}
-          required={required}
-          className={`form-input ${isFilled ? 'filled' : ''}`}
-          disabled={disabled}
-          rows={4} 
-          {...rest}
-        /> 
       ) : (
         <input
+          id={id}
           type={type}
           value={value}
           onChange={onChange}
-          name={name}
-          required={required}
-          className={`form-input ${isFilled ? 'filled' : ''}`}
+          placeholder=" "
           disabled={disabled}
-          {...rest}
+          required={required}
+          className={baseClasses}
+          {...props}
         />
       )}
-      <label className={isFilled ? 'active' : ''}>
-        {label} {required && '*'}
-      </label>
-      {!error && helpertext && (
-        <div className="helpertext">{helpertext}</div>
+
+<label
+  htmlFor={id}
+  className={`absolute text-sm duration-300 transform
+    ${(isFilled || isError) ? "-translate-y-4 scale-75 top-2" : "scale-100 -translate-y-1/2 top-1/2"}
+    z-10 origin-[0] bg-white px-2
+    ${disabled ? "text-gray-400" : isError ? "text-red-600" : "text-gray-500"}
+    peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 start-1`}
+>
+  {label} {required && "*"}
+</label>
+
+
+      {helperText && !isError && (
+        <p className="mt-2 text-xs text-gray-500">{helperText}</p>
       )}
-      {error && <div className="error-message">{error}</div>}
+      {isError && (
+        <p className="mt-2 text-xs text-red-600" id={`${id}_help`}>
+          {error}
+        </p>
+      )}
     </div>
   );
 };

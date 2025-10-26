@@ -68,9 +68,9 @@ const EducationInfoForm = ({ formData, setFormData, errors, setErrors }) => {
 
   return (
     <div className="form-container">
-      <h2 className="step-title">Education Information</h2>
+      <h2 className="text-[#7b1113] text-2xl font-bold pb-4">Education Information</h2>
 
-      <div className="form-row">
+      <div className="grid lg:grid-cols-2 gap-4 pb-4">
         <div className="form-group">
           <FormField
             label="Student Number"
@@ -106,7 +106,7 @@ const EducationInfoForm = ({ formData, setFormData, errors, setErrors }) => {
         </div>
       </div>
 
-      <div className="form-row">
+      <div className="grid lg:grid-cols-2 gap-4 pb-4">
         <div className="form-group">
           <FormField
             label="College / Department"
@@ -147,7 +147,7 @@ const EducationInfoForm = ({ formData, setFormData, errors, setErrors }) => {
         </div>
       </div>
 
-      <div className="form-row">
+      <div className="grid lg:grid-cols-2 gap-4 pb-4">
         <div className="form-group">
           <FormField
             label="Academic Year of Initial Entry"

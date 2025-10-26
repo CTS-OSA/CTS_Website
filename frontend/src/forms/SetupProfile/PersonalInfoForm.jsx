@@ -26,9 +26,9 @@ const PersonalInfoForm = ({ formData, setFormData, errors, setErrors }) => {
 
   return (
     <div className="form-container">
-      <h2 className="step-title">Personal Information</h2>
+      <h2 className="text-[#7b1113] text-2xl font-bold pb-4">Personal Information</h2>
 
-      <div className="form-row">
+      <div className="grid lg:grid-cols-2 gap-4 pb-4">
         <FormField
           label="Last Name"
           name="family_name"
@@ -53,7 +53,7 @@ const PersonalInfoForm = ({ formData, setFormData, errors, setErrors }) => {
         />
       </div>
 
-      <div className="form-row">
+      <div className="grid lg:grid-cols-2 gap-4 pb-4">
         <FormField
           label="Middle Name"
           name="middle_name"
@@ -77,7 +77,7 @@ const PersonalInfoForm = ({ formData, setFormData, errors, setErrors }) => {
         />
       </div>
 
-      <div className="form-row">
+      <div className="grid lg:grid-cols-2 gap-4 pb-4">
         <FormField
           label="Sex"
           name="sex"
@@ -107,11 +107,10 @@ const PersonalInfoForm = ({ formData, setFormData, errors, setErrors }) => {
       </div>
 
       <div className="birthdate-group">
-        <label className="birthdate-label step-info">
-          <strong>Birthdate *</strong>
+        <label className="font-semibold">Birthdate*
         </label>
         <div
-          className="birthdate-inputs form-row three-columns"
+          className="grid lg:grid-cols-3 gap-4 pb-4"
           style={{ marginTop: "1rem" }}
         >
           <FormField
@@ -156,7 +155,7 @@ const PersonalInfoForm = ({ formData, setFormData, errors, setErrors }) => {
         </div>
       </div>
 
-      <div className="form-row">
+      <div className="grid lg:grid-cols-2 gap-4 pb-4">
         <FormField
           label="Birth Place"
           name="birth_place"
@@ -182,7 +181,7 @@ const PersonalInfoForm = ({ formData, setFormData, errors, setErrors }) => {
           required
         />
       </div>
-      <div className="form-row">
+      <div className="grid lg:grid-cols-2 gap-4 pb-4">
         <FormField
           label="Mobile Number"
           name="mobile_number"
