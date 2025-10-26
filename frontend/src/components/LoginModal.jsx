@@ -113,7 +113,7 @@ export default function LoginModal ({ onClose, onSwitchToSignup}) {
           <Modal>
             <div className="modal-message-with-spinner">
               <div className="loading-spinner" />
-              <p className="loading-text">Logging in... Please wait.</p>
+              <p className="loading-text text-upmaroon">Logging in... Please wait.</p>
             </div>
           </Modal>
         )}
@@ -121,13 +121,18 @@ export default function LoginModal ({ onClose, onSwitchToSignup}) {
         {showMessageModal && !loading && (
           <Modal>
             <div className="modal-message-with-spinner">
-              <p className="loading-text" style={{ fontWeight: "bold" }}>
+              <p className="loading-text text-upmaroon font-bold">
                 {isError ? "Error" : "Success"}
               </p>
-              <p>{message}</p>
+              <p className="text-[#333]">{message}</p>
               <button
                 className="okay-button"
-                onClick={() => setShowMessageModal(false)}
+                onClick={() => {
+                  setShowMessageModal(false);
+                  if (!isError) {
+                    onClose();
+                  }
+                }}
               >
                 OK
               </button>

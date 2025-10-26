@@ -50,7 +50,7 @@ const SideNav = ({ variant }) => {
   };
 
   return (
-    <div className="side-navigator">
+    <div className="side-navigator shadow-xl">
       <div className="avatar-section">
         <div className="avatar">
           {firstName.charAt(0)}
@@ -65,7 +65,7 @@ const SideNav = ({ variant }) => {
       </div>
 
       <div className="nav-buttons">
-        <div className="nav-buttons-top">
+        <div className="nav-buttons-top ">
           {variant === "student" ? (
             <>
               <Link to="/myprofile">

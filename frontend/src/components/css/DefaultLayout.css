@@ -10,7 +10,7 @@
 }
 
 /* Side navigation */
-.side-nav {
+/* .side-nav {
   width: auto;
   max-width: 300px;
   flex-shrink: 0;
@@ -18,7 +18,7 @@
   border-right: 1px solid #ccc;
   display: flex;
   flex-direction: column;
-}
+} */
 
 /* Main content area */
 .main-content {
