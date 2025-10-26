@@ -55,10 +55,10 @@ const DashboardTable = ({ submittedForms, pendingActions, onView, onDelete }) =>
 
   return (
     <div className="relative max-w-full overflow-x-auto h-full bg-[#F2F2F2] flex flex-col items-start animate-fadeIn duration-500 ease-in-out">
-      <div className="bg-upmaroon w-full h-40 ">
+      <div className="bg-upmaroon w-full h-60 ">
         <h1 className="text-[2rem] font-bold mb-[30px] text-white ml-15 mt-20">DASHBOARD</h1>
       </div>
-      <div className="bg-white -mt-5 mb-10 mx-auto w-[94%] rounded-3xl p-10 min-h-screen">
+      <div className="bg-white -mt-24 mb-10 mx-auto w-[94%] rounded-3xl p-10 min-h-screen">
         <TableSection
           title="SUBMITTED FORMS"
           headers={submittedHeaders}
