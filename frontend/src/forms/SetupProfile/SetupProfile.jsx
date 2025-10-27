@@ -336,22 +336,22 @@ const MultiStepForm = () => {
   return (
     <DefaultLayout variant="student">
       {/* Background Rectangle */}
-      <div className="background-rectangle"></div>
+      <div className="absolute w-full h-[26em] left-0 top-0 bg-upmaroon -z-1"></div>
 
-      <div className="relative z-10 flex flex-col min-h-screen">
-        <div className="mt-[30px] mx-auto w-3/4 flex flex-col items-center z-10">
+      <div className="relative flex flex-col min-h-screen">
+        <div className="mt-[30px] mx-auto w-3/4 flex flex-col items-center">
           <div className="main-form-info">
-            <h1 className="left-1/2 text-center font-semibold text-3xl text-white">
+            <h1 className="left-1/2 text-center font-bold text-[2rem] text-white">
               SETUP YOUR PROFILE
             </h1>
-            <p className="text-center text-white my-5 text-base w-2xl">
+            <p className="text-center text-white my-5 text-base lg:w-2xl w-sm">
               Please complete this profile accurately. Your information will
               help the Office of Student Affairs provide the appropriate
               guidance, support, and services during your stay at UP Mindanao.
             </p>
           </div>
 
-          <div className="bg-white rounded-[15px] p-8 w-full mx-auto mb-[70px] shadow-md z-10 box-border">
+          <div className="bg-white rounded-[15px] p-8 w-full mx-auto mb-[70px] shadow-md box-border">
             <div className="flex lg:flex-row flex-col w-full">
               <div className="lg:w-1/3 lg:bg-[#7b1113] rounded-lg p-4 pt-10 lg:min-h-[450px]">
               <StepIndicator steps={steps} currentStep={step} />
