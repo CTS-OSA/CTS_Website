@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import logo from "../assets/upmin-logo.svg";
 import { Menu, X, ChevronDown, Home, User } from "react-feather";
@@ -15,9 +15,10 @@ import {
 } from "@mui/material";
 
 export default function Navbar() {
-  const { user, logout, isAuthenticated, role, profileData, loading, login, authError } =
+  const { user, logout, isAuthenticated, role, profileData, loading } =
     useContext(AuthContext);
-  const [activeModal, setActiveModal] = useState(null); // 'login' or 'signup'
+
+  const [activeModal, setActiveModal] = useState(null);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false);
@@ -34,12 +35,12 @@ export default function Navbar() {
 
   useEffect(() => {
     const handler = (e) => {
-      // Close the modal if overlay is clicked
-      if (activeModal && e.target.classList.contains('bg-black/50')) {
+      if (activeModal && e.target.classList.contains("bg-black/50")) {
         setActiveModal(null);
       }
-      if (userRef.current && !userRef.current.contains(e.target))
+      if (userRef.current && !userRef.current.contains(e.target)) {
         setShowUserDropdown(false);
+      }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -49,12 +50,6 @@ export default function Navbar() {
     navigate(path);
     setMobileOpen(false);
     setActiveModal(null);
-  };
-
-  const handleRoleLogin = (r) => {
-    navigate(`/login?role=${r}`);
-    setActiveModal(null);
-    setMobileOpen(false);
   };
 
   const openLogoutConfirm = () => {
@@ -78,29 +73,32 @@ export default function Navbar() {
       </nav>
     );
   }
-  
+
   return (
     <>
       <nav className="sticky top-0 left-0 w-full bg-upmaroon text-white z-40 shadow-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-8 py-3">
-          {/* Logo + title wrapper: centers on small, left-align on md+ */}
           <Link
             to="/"
             className="flex-1 flex items-center gap-4 no-underline justify-center md:justify-start"
+            onClick={() => {
+              setMobileOpen(false);
+              setActiveModal(null);
+            }}
           >
             <img
               src={logo}
               alt="UP Mindanao logo"
-              className="h-12 w-12 object-contain"
+              className="h-12 lg:h-16 w-12 lg:w-16 object-contain"
             />
             <div className="leading-tight select-none font-tnr max-w-[300px] text-center md:text-left">
-              <div className="text-sm md:text-base font-bold ">
+              <div className="text-xs lg:text-base md:font-bold">
                 University of the Philippines Mindanao
               </div>
-              <div className="text-sm md:text-base font-semibold truncate">
+              <div className="text-xs lg:text-base md:font-semibold truncate -mt-1">
                 Office of the Student Affairs
               </div>
-              <div className="text-xs md:text-sm truncate">
+              <div className="text-xs lg:text-base truncate -mt-1">
                 Counseling and Testing Section
               </div>
             </div>
@@ -132,16 +130,30 @@ export default function Navbar() {
             {!isAuthenticated && (
               <div className="relative" ref={loginRef}>
                 <button
-                  onClick={() => setActiveModal('login')}
+                  onClick={() => {
+                    setActiveModal("login");
+                    setMobileOpen(false);
+                  }}
                   className="flex items-center gap-1 text-sm px-3 transition duration-200 hover:text-upyellow"
                 >
                   LOG IN
                 </button>
               </div>
             )}
-            {activeModal === 'login' && <LoginModal onClose={() => setActiveModal(null)} onSwitchToSignup={() => setActiveModal('signup')}/>}
 
-            {activeModal === 'signup' && <SignUpModal onClose={() => setActiveModal(null)} onSwitchToLogin={() => setActiveModal('login')} />}
+            {activeModal === "login" && (
+              <LoginModal
+                onClose={() => setActiveModal(null)}
+                onSwitchToSignup={() => setActiveModal("signup")}
+              />
+            )}
+
+            {activeModal === "signup" && (
+              <SignUpModal
+                onClose={() => setActiveModal(null)}
+                onSwitchToLogin={() => setActiveModal("login")}
+              />
+            )}
 
             {isAuthenticated && (
               <div className="relative" ref={userRef}>
@@ -236,7 +248,10 @@ export default function Navbar() {
               <button
                 className="text-white text-sm px-4 py-1 rounded-full border border-white inline-flex items-center justify-center hover:bg-white hover:text-upmaroon transition"
                 style={{ minWidth: 72 }}
-                  onClick={() => setActiveModal('signup')}
+                onClick={() => {
+                  setActiveModal("signup");
+                  setMobileOpen(false);
+                }}
               >
                 SIGN UP
               </button>
@@ -249,6 +264,7 @@ export default function Navbar() {
               <button
                 className="text-white p-1"
                 onClick={() => go(role === "admin" ? "/admin" : "/student")}
+                aria-label="Go to home"
               >
                 <Home />
               </button>
@@ -256,7 +272,7 @@ export default function Navbar() {
 
             <button
               onClick={() => setMobileOpen((v) => !v)}
-              className="text-white p-1 focus:outline-none"
+              className="text-white p-1 focus:outline-none hover:scale-115 transform transition duration-200 ease-in-out"
               aria-label="Toggle menu"
             >
               {mobileOpen ? <X /> : <Menu />}
@@ -290,16 +306,13 @@ export default function Navbar() {
               {!isAuthenticated && (
                 <div className="w-full" ref={loginRef}>
                   <button
-                    onClick={() => setshowLoginModal((s) => !s)}
+                    onClick={() => {
+                      setActiveModal("login");
+                      setMobileOpen(false);
+                    }}
                     className="w-full text-center text-white uppercase py-2 inline-flex justify-center items-center gap-2 transition duration-200 ease-in-out transform hover:text-yellow-500 hover:font-bold"
                   >
-                    LOG IN{" "}
-                    <ChevronDown
-                      size={14}
-                      className={`${
-                        showLoginModal ? "rotate-180" : ""
-                      } transition`}
-                    />
+                    LOG IN
                   </button>
                 </div>
               )}
@@ -310,7 +323,7 @@ export default function Navbar() {
                     onClick={() => setShowUserDropdown((s) => !s)}
                     className="w-full text-center text-white uppercase py-2 inline-flex justify-center items-center gap-2"
                   >
-                    {nickname}{" "}
+                    {nickname}
                     <ChevronDown
                       size={14}
                       className={`${
@@ -374,14 +387,14 @@ export default function Navbar() {
               {!isAuthenticated && (
                 <button
                   className="mt-2 text-white text-sm rounded-full border border-white px-6 py-2 hover:bg-white hover:text-upmaroon transition hover:font-bold"
+                  onClick={() => {
+                    setActiveModal("signup");
+                    setMobileOpen(false);
+                  }}
                 >
                   SIGN UP
                 </button>
               )}
-
-              {/* {showSignupModal && (
-                <SignUpModal/>
-              )} */}
             </div>
           </div>
         )}
@@ -401,6 +414,20 @@ export default function Navbar() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* keep modals mounted at root so they overlay properly */}
+      {activeModal === "login" && (
+        <LoginModal
+          onClose={() => setActiveModal(null)}
+          onSwitchToSignup={() => setActiveModal("signup")}
+        />
+      )}
+      {activeModal === "signup" && (
+        <SignUpModal
+          onClose={() => setActiveModal(null)}
+          onSwitchToLogin={() => setActiveModal("login")}
+        />
+      )}
     </>
   );
 }
