@@ -6,7 +6,6 @@ import { useApiRequest } from "../context/ApiRequestContext";
 import StudentSideInfo from "./IndividualStudent";
 import "./css/userDashboard.css";
 import DefaultLayout from "../components/DefaultLayout";
-import MultiStepForm from "../forms/SetupProfile/SetupProfile";
 
 export const UserProfile = () => {
   const { isAuthenticated } = useContext(AuthContext);
@@ -37,9 +36,7 @@ export const UserProfile = () => {
 
       const updatedProfile = await res.json();
       setProfile(updatedProfile);
-    } catch (error) {
-      
-    }
+    } catch (error) {}
   };
 
   useEffect(() => {
@@ -88,7 +85,7 @@ export const UserProfile = () => {
 
   useEffect(() => {
     if (profile && profile.is_complete) {
-      navigate("/myprofile"); 
+      navigate("/myprofile");
     }
   }, [profile, navigate]);
   const handleCompleteProfile = () => {
@@ -134,16 +131,22 @@ export const UserProfile = () => {
   }
 
   return (
-    <div>
+    <div className="bg-gray-100 min-h-screen">
       <div className="protected_pages">
         <DefaultLayout variant="student">
-          <div className="profile-content" style={{ padding: "30px"}}>
-            <h1>My Profile</h1>
+          <div>
+            <div className="bg-upmaroon w-full h-60 ">
+              <h1 className="text-[2rem] font-bold mb-[30px] text-white ml-15 pt-10">
+                MY PROFILE
+              </h1>
+            </div>
+            <div className="bg-white -mt-30 mb-10 mx-auto w-[80%] lg:w-[94%] rounded-3xl p-10 min-h-screen shadow-md">
             <StudentSideInfo
               profileData={profile}
               submittedForms={submittedForms}
               onUpdate={handleUpdateProfile}
             />
+            </div>
           </div>
         </DefaultLayout>
       </div>

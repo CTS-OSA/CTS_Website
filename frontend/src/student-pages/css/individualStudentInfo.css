@@ -17,10 +17,7 @@
 /* Left: Avatar and academic info */
 .student_side_info {
   width: 30%;
-  background-color: #fff;
-  border-radius: 0.75rem;
   padding: 1.5rem;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   text-align: center;
   overflow-y: auto;
 }
@@ -62,7 +59,6 @@
   background-color: #fff;
   border-radius: 0.75rem;
   padding: 2rem;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   overflow-y: auto;
 }
 
@@ -109,9 +105,7 @@
 /* Submitted forms now below both sections */
 .submitted-forms-section {
   background-color: #fff;
-  border-radius: 0.75rem;
   padding: 2rem;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   width: 100%;
 }
 
