@@ -337,7 +337,7 @@ const MultiStepForm = () => {
     <DefaultLayout variant="student">
       {/* Background Rectangle */}
       <div className="absolute w-full h-[26em] left-0 top-0 bg-upmaroon -z-1"></div>
-
+      {/* Main Form */}
       <div className="relative flex flex-col min-h-screen">
         <div className="mt-[30px] mx-auto w-3/4 flex flex-col items-center">
           <div className="main-form-info">
@@ -354,105 +354,105 @@ const MultiStepForm = () => {
           <div className="bg-white rounded-[15px] p-8 w-full mx-auto mb-[70px] shadow-md box-border">
             <div className="flex lg:flex-row flex-col w-full">
               <div className="lg:w-1/3 lg:bg-[#7b1113] rounded-lg p-4 pt-10 lg:min-h-[450px]">
-              <StepIndicator steps={steps} currentStep={step} />
+                <StepIndicator steps={steps} currentStep={step} />
               </div>
-            <div className="main-form p-4 w-full">
-             {step === 1 && (
-                <PersonalInfoForm
-                  formData={formData}
-                  setFormData={setPersonalInfoFormData}
-                  step={step}
-                  errors={errors}
-                  setErrors={setErrors}
-                />
-              )}
-              {step === 2 && (
-                <EducationInfoForm
-                  formData={formData}
-                  setFormData={setFormData}
-                  step={step}
-                  errors={errors}
-                  setErrors={setErrors}
-                />
-              )}
-              {step === 3 && (
-                <AddressInfoForm
-                  formData={formData}
-                  setFormData={setFormData}
-                  addressLabel="Permanent Address"
-                  disabled={false}
-                  prefix="permanent"
-                  errors={errors}
-                  setErrors={setErrors}
-                />
-              )}
-              {step === 4 && (
-                <AddressInfoForm
-                  formData={formData}
-                  setFormData={setFormData}
-                  addressLabel="Address while in UP"
-                  checkboxLabel="Same as Permanent Address"
-                  sameAsPermanent={sameAsPermanent}
-                  handleSameAsPermanentToggle={handleSameAsPermanentToggle}
-                  disabled={sameAsPermanent}
-                  prefix="up"
-                />
-              )}
-              <div className="main-form-buttons">
-                {/* Step 1: Only 'Next' button */}
+              <div className="main-form p-4 w-full">
                 {step === 1 && (
-                  <Button variant="primary" onClick={handleNextStep}>
-                    Next
-                  </Button>
+                  <PersonalInfoForm
+                    formData={formData}
+                    setFormData={setPersonalInfoFormData}
+                    step={step}
+                    errors={errors}
+                    setErrors={setErrors}
+                  />
                 )}
-
-                {/* Steps 2-4: 'Back' and 'Next' buttons */}
-                {step >= 2 && step <= 3 && (
-                  <>
-                    <Button variant="secondary" onClick={handlePreviousStep}>
-                      Back
-                    </Button>
-                    <Button
-                      variant="primary"
-                      onClick={handleNextStep}
-                      style={{ marginLeft: "0.5rem" }}
-                    >
+                {step === 2 && (
+                  <EducationInfoForm
+                    formData={formData}
+                    setFormData={setFormData}
+                    step={step}
+                    errors={errors}
+                    setErrors={setErrors}
+                  />
+                )}
+                {step === 3 && (
+                  <AddressInfoForm
+                    formData={formData}
+                    setFormData={setFormData}
+                    addressLabel="Permanent Address"
+                    disabled={false}
+                    prefix="permanent"
+                    errors={errors}
+                    setErrors={setErrors}
+                  />
+                )}
+                {step === 4 && (
+                  <AddressInfoForm
+                    formData={formData}
+                    setFormData={setFormData}
+                    addressLabel="Address while in UP"
+                    checkboxLabel="Same as Permanent Address"
+                    sameAsPermanent={sameAsPermanent}
+                    handleSameAsPermanentToggle={handleSameAsPermanentToggle}
+                    disabled={sameAsPermanent}
+                    prefix="up"
+                  />
+                )}
+                <div className="main-form-buttons">
+                  {/* Step 1: Only 'Next' button */}
+                  {step === 1 && (
+                    <Button variant="primary" onClick={handleNextStep}>
                       Next
                     </Button>
-                  </>
-                )}
+                  )}
 
-                {/* Step 5: 'Back', 'Preview', and 'Submit' buttons */}
-                {step === 4 && (
-                  <>
-                    <Button variant="secondary" onClick={handlePreviousStep}>
-                      Back
-                    </Button>
-                    <Button
-                      variant="primary"
-                      onClick={handlePreview}
-                      style={{ marginLeft: "0.5rem" }}
-                    >
-                      Preview
-                    </Button>
-                    {isPreviewOpen && (
-                      <PreviewModal
-                        data={formData}
-                        onClose={() => setIsPreviewOpen(false)}
-                      />
-                    )}
-                    <Button
-                      variant="primary"
-                      onClick={handleConfirmSubmit}
-                      style={{ marginLeft: "0.5rem" }}
-                    >
-                      Submit
-                    </Button>
-                  </>
-                )}
+                  {/* Steps 2-4: 'Back' and 'Next' buttons */}
+                  {step >= 2 && step <= 3 && (
+                    <>
+                      <Button variant="secondary" onClick={handlePreviousStep}>
+                        Back
+                      </Button>
+                      <Button
+                        variant="primary"
+                        onClick={handleNextStep}
+                        style={{ marginLeft: "0.5rem" }}
+                      >
+                        Next
+                      </Button>
+                    </>
+                  )}
+
+                  {/* Step 5: 'Back', 'Preview', and 'Submit' buttons */}
+                  {step === 4 && (
+                    <>
+                      <Button variant="secondary" onClick={handlePreviousStep}>
+                        Back
+                      </Button>
+                      <Button
+                        variant="primary"
+                        onClick={handlePreview}
+                        style={{ marginLeft: "0.5rem" }}
+                      >
+                        Preview
+                      </Button>
+                      {isPreviewOpen && (
+                        <PreviewModal
+                          data={formData}
+                          onClose={() => setIsPreviewOpen(false)}
+                        />
+                      )}
+                      <Button
+                        variant="primary"
+                        onClick={handleConfirmSubmit}
+                        style={{ marginLeft: "0.5rem" }}
+                      >
+                        Submit
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
           </div>
         </div>
       </div>
