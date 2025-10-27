@@ -2,8 +2,29 @@ import React from "react";
 import NavBar from "../components/NavBar";
 import Footer from "../components/Footer";
 import heroImg from "../assets/upmin-hero-image.jpg";
+import blob3 from "../assets/Blob 3.png";
+import blob9 from "../assets/Blob 9.png";
+import vision from "../assets/vision-image.png";
+import objectives from "../assets/objectives-image.png";
+import PosterCarousel from "../components/PosterCarousel.jsx";
+import ServicesCarousel from "../components/ServicesCarousel.jsx";
+import ProfessionalsSection from "../components/ProfessionalsSection.jsx";
 
 export const HomePage = () => {
+  const scrollToServices = (e) => {
+    e.preventDefault();
+    const el = document.getElementById("services");
+    if (!el) return;
+
+    // Find nav height. Adjust selector if your NavBar element uses a different tag/class.
+    const nav = document.querySelector("nav");
+    const navHeight = nav ? nav.getBoundingClientRect().height : 0;
+
+    const top =
+      el.getBoundingClientRect().top + window.pageYOffset - navHeight - 8; // -8px small gap
+    window.scrollTo({ top, behavior: "smooth" });
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <NavBar />
@@ -67,13 +88,12 @@ export const HomePage = () => {
                 </a>
 
                 <a
-                  href="#learn-more"
-                  className="
-                    w-auto px-6 py-2 text-sm sm:px-5 sm:py-3 sm:text-base
-                    rounded-md bg-white text-gray-800 font-semibold
-                    border border-white/70 shadow-sm hover:bg-gray-100
-                    transition transform hover:scale-102
-                  "
+                  href="#services"
+                  onClick={scrollToServices}
+                  className="w-auto px-6 py-2 text-sm sm:px-5 sm:py-3 sm:text-base
+             rounded-md bg-white text-gray-800 font-semibold
+             border border-white/70 shadow-sm hover:bg-gray-100
+             transition transform hover:scale-102"
                 >
                   Know More
                 </a>
@@ -85,7 +105,110 @@ export const HomePage = () => {
         <div className="absolute bottom-0 left-0 right-0 h-12 pointer-events-none bg-linear-to-t from-black/60 to-transparent" />
       </header>
 
-      <main className="flex-1"></main>
+      {/* Main Content */}
+      <main className="flex-1 bg-white text-gray-900">
+        <section className="max-w-7xl mx-auto px-5 sm:px-8 py-10 lg:py-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 place-content-stretch gap-10 sm:gap-20 items-center">
+            <div className="relative w-fit place-self-center">
+              <img
+                src={blob3}
+                alt="Red Blob"
+                className="w-[70%]  h-auto left-0 right-0 mx-auto"
+              />
+              <img
+                src={vision}
+                alt="Vision"
+                className="absolute w-full  top-1/2 left-1/2 
+        -translate-x-1/2 -translate-y-1/2"
+              />
+            </div>
+
+            <div className="place-self-center">
+              <h2 className="text-xl font-semibold md:text-4xl sm:font-bold text-gray-900 font-condensed leading-tight text-center md:text-left">
+                We empower students to cultivate their potential, fostering
+                personal growth and development that benefits both themselves
+                and the wider community.
+              </h2>
+            </div>
+
+            {/* Objectives */}
+            <div className="place-self-center">
+              <h3 className="font-condensed font-semibold text-xl md:text-4xl mb-3  md:text-right text-center">
+                Our Objectives
+              </h3>
+
+              <ul className="font-condensed text-md md:text-xl space-y-4 md:text-right text-center list-inside">
+                <li className="block">
+                  Helping students clarify their issues, understand their
+                  feelings and thoughts, and effectively manage challenges.
+                </li>
+                <li className="block">
+                  Providing students with objective assessments of their
+                  abilities, potential, strengths, and personality traits to
+                  support personal development and life adjustment.
+                </li>
+                <li className="block">
+                  Assisting students in developing decision-making skills and
+                  becoming self-reliant individuals.
+                </li>
+                <li className="block">
+                  Enhancing personal effectiveness is essential for maintaining
+                  good mental health and achieving positive behavioral changes.
+                </li>
+                <li className="block">
+                  Offering professional support to help students successfully
+                  adjust to university life.
+                </li>
+              </ul>
+            </div>
+
+            <div className="relative w-fit place-self-center">
+              <img
+                src={blob9}
+                alt="Green Blob"
+                className="w-[60%] sm:w-[70%] h-auto left-0 right-0 mx-auto"
+              />
+              <img
+                src={objectives}
+                alt="Objectives"
+                className="absolute w-[60%] sm:w-[80%] top-1/2 left-1/2 
+        -translate-x-1/2 -translate-y-1/2"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* Poster Section */}
+        <section className="max-w-7xl mx-auto px-5 sm:px-8 py-10">
+          <div className="grid grid-cols-1  items-center text-center">
+            <div className="w-full">
+              <div className="text-lg sm:text-3xl font-semibold mb-4 font-condensed">
+                <p>Wall of Wisdom</p>
+                <p className="text-base sm:text-lg font-normal text-gray-700 font-condensed mt-2">
+                  Discover inspiring and informative posters from the CTS-OSA
+                  that promote student well-being, growth, and positivity.
+                </p>
+              </div>
+            </div>
+
+            <div className="w-full flex justify-center ">
+              <div className="w-full max-w-4xl">
+                <PosterCarousel />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Programs & Services */}
+        <section className="bg-upmaroon/95" id="services">
+          <ServicesCarousel />
+        </section>
+
+        {/* Professionals */}
+        <section className="max-w-7xl mx-auto px-8 sm:px-8 py-12">
+          <ProfessionalsSection />
+        </section>
+      </main>
 
       <Footer />
     </div>
