@@ -291,7 +291,7 @@ textarea {
     background: none !important;
   }
 
-  .pdf.flex-row, .odf.flex-row label{
+  .pdf.flex-row, .pdf.flex-row label{
     display: block;
   }
 }
