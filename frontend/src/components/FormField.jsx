@@ -3,8 +3,8 @@ import React from "react";
 const FormField = ({
   id,
   label,
-  type = "input", // 'input', 'textarea', 'select'
-  options = [],   // for select
+  type = "input",
+  options = [],
   value,
   onChange,
   disabled = false,
@@ -27,14 +27,36 @@ const FormField = ({
 
     return (
       <div className={`relative w-full`}>
-        <label className="text-sm text-gray-500">{label}</label>
-        <div className="mt-1 text-gray-900">{displayValue}</div>
+        <label
+          htmlFor={id}
+          className={`absolute text-sm duration-300 transform left-2
+    ${
+      isFilled || isError
+        ? "-translate-y-4 scale-75 top-2"
+        : "scale-100 -translate-y-1/2 top-1/2"
+    }
+    z-2 origin-[0] bg-white px-2
+    ${disabled ? "text-black-400" : isError ? "text-red-600" : "text-gray-500"}`}
+        >
+          {label} {required && "*"}
+        </label>
+        <div
+          className={`block px-2.5 pb-2.5 pt-4 w-full text-sm rounded-lg
+    border ${isError ? "border-red-600" : "border-gray-300"}
+    bg-white-100 text-gray-700 cursor-not-allowed`}
+        >
+          {displayValue}
+        </div>
       </div>
     );
   }
 
   const baseClasses = `block px-2.5 pb-2.5 pt-4 w-full text-sm rounded-lg appearance-none
-    border ${disabled ? "text-gray-400 border-gray-300 cursor-not-allowed" : "text-gray-900 border-gray-300 focus:border-blue-600"}
+    border ${
+      disabled
+        ? "text-gray-400 border-gray-300 cursor-not-allowed"
+        : "text-gray-900 border-gray-300 focus:border-blue-600"
+    }
     ${isError ? "border-red-600 focus:border-red-600" : ""}
     focus:outline-none focus:ring-0 peer ${className}`;
 
@@ -83,17 +105,20 @@ const FormField = ({
         />
       )}
 
-<label
-  htmlFor={id}
-  className={`absolute text-sm duration-300 transform
-    ${(isFilled || isError) ? "-translate-y-4 scale-75 top-2" : "scale-100 -translate-y-1/2 top-1/2"}
-    z-10 origin-[0] bg-white px-2
+      <label
+        htmlFor={id}
+        className={`absolute text-sm duration-300 transform
+    ${
+      isFilled || isError
+        ? "-translate-y-4 scale-75 top-2"
+        : "scale-100 -translate-y-1/2 top-1/2"
+    }
+    z-2 origin-[0] bg-white px-2
     ${disabled ? "text-gray-400" : isError ? "text-red-600" : "text-gray-500"}
     peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 start-1`}
->
-  {label} {required && "*"}
-</label>
-
+      >
+        {label} {required && "*"}
+      </label>
 
       {helperText && !isError && (
         <p className="mt-2 text-xs text-gray-500">{helperText}</p>

@@ -255,10 +255,10 @@ const StudentSideInfo = ({
   }, [location.state]);
 
   return (
-    <div className="student_profile_wrapper">
-      <div className="info-sections-container">
-        <div className="student_side_info">
-          <div className="bigger_avatar">
+    <div>
+      <div className="lg:flex gap-8 mb-8 border-b-gray">
+        <div className="lg:w-[30%] w-2/3 xs:w-full justify-center mx-auto p-6 text-center overflow-y-auto">
+          <div className="bg-upmaroon text-white text-[2.5rem] font-bold w-50 h-50 mx-auto flex items-center justify-center rounded-2xl">
             {first_name?.charAt(0)}
             {last_name?.charAt(0)}
           </div>
@@ -307,13 +307,11 @@ const StudentSideInfo = ({
           </div>
         </div>
 
-        <div className="right-student-profile">
-          <div className="student-personal-info">
-            <div className="info-group">
-              <p>
-                <strong>PERSONAL INFORMATION</strong>
-              </p>
-              <div className="form-row three-columns">
+        <div className="w-[70%] bg-white rounded-[0.75rem] p-8 overflow-y-auto mx-auto">
+          <div className="flex flex-col gap-6">
+            <div>
+              <h2 className="text-[1.2rem] font-semibold mb-3 text-upmaroon lg:text-left text-center">PERSONAL INFORMATION</h2>
+              <div className="grid lg:grid-cols-3 gap-4 pb-4">
                 <FormField
                   label="First Name"
                   value={formData.first_name || ""}
@@ -345,7 +343,7 @@ const StudentSideInfo = ({
                 />
               </div>
 
-              <div className="form-row three-columns">
+              <div className="grid lg:grid-cols-3 gap-4 pb-4">
                 <FormField
                   label="Nickname"
                   value={formData.nickname || ""}
@@ -377,7 +375,7 @@ const StudentSideInfo = ({
                 />
               </div>
 
-              <div className="form-row three-columns">
+              <div className="grid lg:grid-cols-3 gap-4 pb-4">
                 <FormField
                   label="Birthdate"
                   type="date"
@@ -407,7 +405,7 @@ const StudentSideInfo = ({
                 />
               </div>
 
-              <div className="form-row">
+              <div className="grid lg:grid-cols-2 gap-4 pb-4">
                 <FormField
                   label="Contact Number"
                   value={formData.contact_number}
@@ -426,9 +424,8 @@ const StudentSideInfo = ({
                 />
               </div>
 
-              <p>
-                <strong>PERMANENT ADDRESS</strong>
-              </p>
+              <h2 className="text-[1.2rem] font-semibold mb-3 text-upmaroon lg:text-left text-center">PERMANENT ADDRESS</h2>
+              <div className="grid lg:grid-cols-2 gap-4 pb-4">
               <FormField
                 label="Address Line 1"
                 value={formData.permanent_address?.address_line_1 || ""}
@@ -449,7 +446,8 @@ const StudentSideInfo = ({
                 }
                 readOnly={!isEditing}
               />
-              <div className="form-row">
+              </div>
+              <div className="grid lg:grid-cols-2 gap-4 pb-4">
                 <FormField
                   label="Barangay"
                   value={formData.permanent_address?.barangay || ""}
@@ -472,7 +470,7 @@ const StudentSideInfo = ({
                 />
               </div>
 
-              <div className="form-row three-columns">
+              <div className="grid lg:grid-cols-3 gap-4 pb-4">
                 <FormField
                   label="Province"
                   value={formData.permanent_address?.province || ""}
@@ -513,9 +511,8 @@ const StudentSideInfo = ({
                 />
               </div>
 
-              <p>
-                <strong>ADDRESS WHILE IN UP</strong>
-              </p>
+              <h2 className="text-[1.2rem] font-semibold mb-3 text-upmaroon lg:text-left text-center">ADDRESS WHILE IN UP</h2>
+              <div className="grid lg:grid-cols-2 gap-4 pb-4">
               <FormField
                 label="Address Line 1"
                 value={formData.address_while_in_up?.address_line_1 || ""}
@@ -536,7 +533,8 @@ const StudentSideInfo = ({
                 }
                 readOnly={!isEditing}
               />
-              <div className="form-row">
+              </div>
+              <div className="grid lg:grid-cols-2 gap-4 pb-4">
                 <FormField
                   label="Barangay"
                   value={formData.address_while_in_up?.barangay || ""}
@@ -559,7 +557,7 @@ const StudentSideInfo = ({
                 />
               </div>
 
-              <div className="form-row three-columns">
+              <div className="grid lg:grid-cols-3 gap-4 pb-4">
                 <FormField
                   label="Province"
                   value={formData.address_while_in_up?.province || ""}
@@ -625,8 +623,8 @@ const StudentSideInfo = ({
       </div>
 
       {/* Submitted Forms Section */}
-      <div className="submitted-forms-section">
-        <h2>SUBMITTED FORMS</h2>
+      <div className="p-2 w-full border-t-black">
+        <h2 className="text-[1.2rem] font-semibold mb-3 text-upmaroon flex flex-col items-start">SUBMITTED FORMS</h2>
         {submittedForms.length === 0 ? (
           <p>No submitted forms yet.</p>
         ) : (

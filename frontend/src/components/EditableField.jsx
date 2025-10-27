@@ -8,14 +8,12 @@ const EditableField = ({
   type = "text",
   options = [],
 }) => {
-  // Find the label for the selected option when type is select
   const selectedOptionLabel = options.find(opt => opt.value === value)?.label || "";
 
   return (
-    <div className="editable-field student_side_educ_info" style={{ textAlign: "center" }}>
+    <div className="font-normal p-0 bg-transparent text-center mt-[1.5rem]" style={{ textAlign: "center" }}>
       {type === "select" ? (
         readOnly ? (
-          // Show plain text instead of dropdown when readOnly
           <div
             style={{
               fontSize: "1rem",
@@ -27,14 +25,13 @@ const EditableField = ({
               paddingBottom: "10px",
               cursor: "default",
               textAlign: "center",
-              color: "black",  // force text black
-              userSelect: "text", // allow text selection
+              color: "black",  
+              userSelect: "text", 
             }}
           >
             {selectedOptionLabel || `Select ${label}`}
           </div>
         ) : (
-          // Normal editable dropdown
           <select
             value={value}
             onChange={onChange}
@@ -67,7 +64,7 @@ const EditableField = ({
           value={value}
           onChange={onChange}
           readOnly={readOnly}
-          className="editable-input"
+          className="font-normal p-0 bg-transparent text-center"
           style={{
             fontSize: "1rem",
             border: "none",
@@ -84,19 +81,19 @@ const EditableField = ({
         />
       )}
 
-        <strong>{label}:</strong>
+        <p className="text-sm">{label}:</p>
 
     </div>
   );
 };
 const ReadonlyField = ({ label, value }) => {
   return (
-    <div className="student_side_educ_info">
+    <div className="mt-[1.5rem]">
       <input
         type="text"
         value={value}
         readOnly
-        className="editable-input"
+        className="font-normal p-0 bg-transparent text-center"
         style={{
           fontSize: "1rem",
           border: "none",
@@ -111,7 +108,7 @@ const ReadonlyField = ({ label, value }) => {
           color: "inherit",
         }}
       />
-      <strong>{label}:</strong>
+      <p className="text-sm">{label}:</p>
     </div>
   );
 };

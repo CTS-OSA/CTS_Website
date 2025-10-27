@@ -50,7 +50,7 @@ const SideNav = ({ variant }) => {
   };
 
   return (
-    <div className="side-navigator shadow-xl">
+    <div className="flex-col p-4 bg-white overflow-hidden h-full shadow-xl lg:block hidden">
       <div className="avatar-section">
         <div className="avatar">
           {firstName.charAt(0)}

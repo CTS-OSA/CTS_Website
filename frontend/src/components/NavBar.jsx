@@ -379,9 +379,9 @@ export default function Navbar() {
                 </button>
               )}
 
-              {showSignupModal && (
+              {/* {showSignupModal && (
                 <SignUpModal/>
-              )}
+              )} */}
             </div>
           </div>
         )}
