@@ -23,12 +23,12 @@ const StepIndicator = ({ steps, currentStep }) => {
             }`}
           >
             {/* Step Label */}
-            <div className="absolute mt-2 lg:top-0 top-full lg:left-full lg:ml-4 lg:w-max transition-all gap-0 duration-500 ease-in-out">
+            <div className="absolute mt-2 lg:top-0 top-full lg:left-full lg:ml-4 lg:w-32 transition-all gap-0 duration-500 ease-in-out">
               <p className="text-[10px] font-semibold text-black lg:text-white">
                 STEP {index + 1}
               </p>
               <h6
-                className={`text-sm font-semibold ${textColor} transition-colors duration-500 hidden lg:block`}
+                className={`text-sm font-semibold ${textColor} transition-colors duration-500 hidden lg:block whitespace-normal`}
               >
                 {step.label}
               </h6>
@@ -36,7 +36,7 @@ const StepIndicator = ({ steps, currentStep }) => {
 
             {/* Circle */}
             <div
-              className={`w-5 h-5 sm:w-4 sm:h-4 lg:w-7 lg:h-7 shrink-0 mx-[-1px] border-2 lg:border-white border-[#7b1113] flex items-center justify-center rounded-full ${circleFill} transition-all duration-500 ease-in-out relative`}
+              className={`w-5 h-5 sm:w-4 sm:h-4 lg:w-7 lg:h-7 shrink-0 mx-[-1px] border-2 lg:border-white border-upmaroon flex items-center justify-center rounded-full ${circleFill} transition-all duration-500 ease-in-out relative`}
             >
               <span
                 className={`w-2 h-2 sm:w-2 sm:h-2 lg:w-3 lg:h-3 bg-[#7b1113] lg:bg-white rounded-full transition-opacity duration-500 absolute ${
@@ -69,6 +69,9 @@ const StepIndicator = ({ steps, currentStep }) => {
                 }`}
               ></div>
             )}
+
+             {/* Extra spacer for last step only on large screens */}
+      {isLast && <div className="hidden lg:block h-16"></div>}
           </div>
         );
       })}

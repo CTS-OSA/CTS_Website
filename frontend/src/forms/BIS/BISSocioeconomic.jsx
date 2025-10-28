@@ -1,6 +1,7 @@
 import React from "react";
 import "../SetupProfile/css/multistep.css";
 import { clearError } from "../../utils/helperFunctions";
+import FormField from "../../components/FormField";
 
 const SupportChoices = {
   SELF: "self",
@@ -69,24 +70,25 @@ const BISSocioeconomic = ({
   const support = data.student_support?.support || [];
 
   return (
-    <div className="form-section">
-      <fieldset className="form-section" disabled={readOnly}>
-        <h2 className="step-title">Socio-Economic Status</h2>
+    <div>
+      <fieldset disabled={readOnly}>
+        <h2 className="text-upmaroon text-2xl font-semibold">Socio-Economic Status</h2>
 
-        <div className="full-width">
-          <label className="form-label">
+        <div className="w-full mt-4">
+          <label className="block font-semibold text-[#444]">
             What is your means of support for your college education?
           </label>
-          <div className="checkbox-grid">
+          <div className="grid grid-cols-2 gap-x-8 gap-y-2 m-4">
             {[{ name: SupportChoices.SELF, label: "Self-supporting" },
               { name: SupportChoices.BOTH_PARENTS, label: "Both parents" },
               { name: SupportChoices.FATHER_ONLY, label: "Father only" },
               { name: SupportChoices.MOTHER_ONLY, label: "Mother only" },
               { name: SupportChoices.GOV_FUNDED, label: "Government Funded" }].map(
               ({ name, label }) => (
-                <label key={name} className="inline-checkbox">
+                <label key={name} className="leading-[1.4]">
                   <input
                     type="checkbox"
+                    className="mr-2 transform [scale:1.2]"
                     name={name}
                     checked={support.includes(name)}
                     onChange={(e) => handleChange(e, "student_support")}
@@ -104,10 +106,11 @@ const BISSocioeconomic = ({
             )}
 
             {/* Scholarship */}
-            <label className="inline-checkbox">
+            <label className="leading-[1.4]">
               <input
                 type="checkbox"
                 name={SupportChoices.SCHOLARSHIP}
+                className="mr-2 transform [scale:1.2]"
                 checked={support.includes(SupportChoices.SCHOLARSHIP)}
                 onChange={(e) => handleChange(e, "student_support")}
                 onFocus={() => {
@@ -121,7 +124,7 @@ const BISSocioeconomic = ({
               Scholarship
               {support.includes(SupportChoices.SCHOLARSHIP) && (
                 <>
-                  <input
+                  <FormField
                     type="text"
                     name="other_scholarship"
                     placeholder="What Scholarship?"
@@ -147,10 +150,11 @@ const BISSocioeconomic = ({
               )}
             </label>
 
-            <label className="inline-checkbox">
+            <label className="leading-[1.4]">
               <input
                 type="checkbox"
                 name={SupportChoices.COMBINATION}
+                className="mr-2 transform [scale:1.2]"
                 checked={support.includes(SupportChoices.COMBINATION)}
                 onChange={(e) => handleChange(e, "student_support")}
                 onFocus={() => {
@@ -164,7 +168,7 @@ const BISSocioeconomic = ({
               Combination of
               {support.includes(SupportChoices.COMBINATION) && (
                 <>
-                  <input
+                  <FormField
                     type="text"
                     name="combination_notes"
                     placeholder="Combination of..."
@@ -190,10 +194,11 @@ const BISSocioeconomic = ({
               )}
             </label>
 
-            <label className="inline-checkbox">
+            <label className="leading-[1.4]">
               <input
                 type="checkbox"
                 name={SupportChoices.OTHERS}
+                className="mr-2 transform [scale:1.2]"
                 checked={support.includes(SupportChoices.OTHERS)}
                 onChange={(e) => handleChange(e, "student_support")}
                 onFocus={() => {
@@ -210,7 +215,7 @@ const BISSocioeconomic = ({
               </span>
               {support.includes(SupportChoices.OTHERS) && (
                 <>
-                  <input
+                  <FormField
                     type="text"
                     name="other_notes"
                     placeholder="Specify..."
@@ -344,7 +349,7 @@ const BISSocioeconomic = ({
             How much is your monthly allowance (in pesos) to be provided by your
             family when you reach college?
           </label>
-          <input
+          <FormField
             type="number"
             className={`form-input ${
               errors?.["socio_economic_status.monthly_allowance"] ? "error" : ""
@@ -369,7 +374,7 @@ const BISSocioeconomic = ({
 
         <div className="form-row full-width">
           <label className="form-label">What do you spend much?</label>
-          <input
+          <FormField
             type="text"
             className={`form-input ${
               errors?.["socio_economic_status.spending_habit"] ? "error" : ""
