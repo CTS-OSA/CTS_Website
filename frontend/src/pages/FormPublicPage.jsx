@@ -100,9 +100,8 @@ export const FormPublicPage = () => {
     {
       title: "Counseling Referral Slip",
       desc: "This form will be available soon.",
-      id: "referral",
+      id: "referral-slip",
       bg: "maroon",
-      comingSoon: true,
     },
   ];
 
