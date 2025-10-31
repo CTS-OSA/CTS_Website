@@ -150,7 +150,7 @@ export default function SignUpModal ({ onClose, onSwitchToLogin }) {
         <div className="fixed inset-0 bg-black/50 z-40"></div>
         <div className="fixed top-20 left-1/2 right-1/2 w-[80%] h-[50%] transform -translate-x-1/2 
           bg-white text-gray-900 rounded-3xl shadow-lg z-50 fade-in-up
-            sm:w-[80%] sm:h-1/9 md:w-[65%] lg:w-[60%]">
+            sm:w-[80%] sm:h-1/9 md:w-[65%] lg:w-[45%]">
             <section className="bg-[#EDEDED] p-10 sm:p-12 md:p-14 relative flex flex-col justify-center items-center overflow-y-auto rounded-2xl">
                 <button className="absolute right-0 top-0 m-5 cursor-pointer" onClick={onClose}>
                     <X />
