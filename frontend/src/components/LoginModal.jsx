@@ -57,37 +57,42 @@ export default function LoginModal ({ onClose, onSwitchToSignup}) {
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-40"></div>
-        <div className="fixed top-20 left-1/2 right-1/2 w-2/5 h-3/5 transform -translate-x-1/2 
-          bg-white text-gray-900 rounded-3xl shadow-lg z-50 fade-in-up">
-          <section className="bg-[#EDEDED] p-10 relative flex flex-col justify-center items-center overflow-y-auto rounded-2xl">
+        <div className="fixed top-20 left-1/2 right-1/2 w-4/5 h-3/5 transform -translate-x-1/2 
+          bg-white text-gray-900 rounded-3xl shadow-lg z-50 fade-in-up
+          sm:w-[80%] sm:h-1/9 md:w-[65%] lg:w-[45%]
+          ">
+          <section 
+            className="bg-[#EDEDED] p-10 sm:p-12 md:p-14 relative flex flex-col justify-center items-center overflow-y-auto rounded-2xl
+            
+            ">
             <button className="absolute right-0 top-0 m-5 cursor-pointer" onClick={onClose}>
               <X />
             </button>
-            <h2 className="font-sans text-xl font-bold text-[#7B1113] text-center">Log in to your account</h2>
-            <form className="p-0 bg-transparent shadow-none w-full max-w-[460px] mt-5" onSubmit={handleSubmit}>
-              <FormField
-                label="Email Address"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                name="email"
-                required
-              />
-              <FormField
-                label="Password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                name="password"
-                required
-              />
+            <h2 className="font-sans text-xl font-bold text-[#7B1113] text-center mt-5">Log in to your account</h2>
+            <form className="p-0 bg-transparent shadow-none w-full max-w-[460px] mt-10" onSubmit={handleSubmit}>
+                <FormField
+                  label="Email Address"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  name="email"
+                  required
+                />
+                  <FormField
+                    label="Password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    name="password"
+                    required
+                  />
               <div className="text-xs text-gray-600 -mt-3 mb-3 underline">
                 <Link to="/forgot-password">Forgot password?</Link>
               </div>
-              <SubmitButton
-                text={loading ? "Logging in..." : "Log In"}
-                disabled={loading}
-              />
+                <SubmitButton
+                  text={loading ? "Logging in..." : "Log In"}
+                  disabled={loading}
+                />
               <div className="flex items-center justify-center mb-4">
                 <hr className="grow border-t border-gray-300" />
                 <span className="mx-3 text-gray-500 text-sm">or</span>

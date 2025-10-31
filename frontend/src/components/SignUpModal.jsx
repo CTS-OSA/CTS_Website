@@ -148,23 +148,24 @@ export default function SignUpModal ({ onClose, onSwitchToLogin }) {
   return (
     <>
         <div className="fixed inset-0 bg-black/50 z-40"></div>
-        <div className="fixed top-20 left-1/2 right-1/2 w-2/5 h-3/5 transform -translate-x-1/2 
-          bg-white text-gray-900 rounded-3xl shadow-lg z-50 fade-in-up">
-            <section className="bg-[#EDEDED] p-16 relative flex flex-col justify-center items-center overflow-y-auto rounded-2xl">
+        <div className="fixed top-20 left-1/2 right-1/2 w-[80%] h-[50%] transform -translate-x-1/2 
+          bg-white text-gray-900 rounded-3xl shadow-lg z-50 fade-in-up
+            sm:w-[80%] sm:h-1/9 md:w-[65%] lg:w-[60%]">
+            <section className="bg-[#EDEDED] p-10 sm:p-12 md:p-14 relative flex flex-col justify-center items-center overflow-y-auto rounded-2xl">
                 <button className="absolute right-0 top-0 m-5 cursor-pointer" onClick={onClose}>
                     <X />
                 </button>
-                <h2 className="font-sans text-xl font-bold text-[#7B1113] text-center">Create Account</h2>
-                <form className="p-0 bg-transparent shadow-none w-full max-w-[470px] mt-5" onSubmit={handleSubmit}>
-                    <FormField
-                        label="Email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        name="email"
-                        required
-                        error={formErrors.email}
-                    />
+                <h2 className="font-sans text-xl font-bold text-[#7B1113] text-center mt-5">Create Account</h2>
+                <form className="p-0 bg-transparent shadow-none w-full max-w-[470px] mt-10" onSubmit={handleSubmit}>
+                <FormField
+                    label="Email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    name="email"
+                    required
+                    error={formErrors.email}
+                />
                 <FormField
                         label="Password"
                         type="password"
