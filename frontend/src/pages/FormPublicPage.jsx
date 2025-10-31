@@ -111,9 +111,10 @@ export const FormPublicPage = () => {
         <div className="flex-1 w-full max-w-[1440px] mx-auto px-15 py-8 flex flex-col justify-star">
           <div className="text-left mb-5">
             <div className="h-7 w-50 bg-upmaroon rounded-3xl mb-2" style={{display: user? "none" : "block"}}></div>
-            <div className="form-header-top">
-              <h1 className="text-5xl font-bold text-[#7B1113]">FORMS</h1>
-              <p>
+            {/* Top header */}
+            <div className="flex justify-between items-start flex-wrap gap-4 ">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[#7B1113]">FORMS</h1>
+              <p className="m-0 text-[#333] text-sm sm:text-base max-w-[400px] md:text-right grow self-start">
                 {user
                   ? "Welcome back! Browse and access the available student forms below. Make sure your profile is complete to unlock all features."
                   : "These forms help collect important student information, including personal details and academic records. Please log in to access them."}

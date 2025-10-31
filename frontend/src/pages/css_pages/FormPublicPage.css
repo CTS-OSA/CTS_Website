@@ -171,13 +171,13 @@ button.active:active {
     margin-bottom: 1rem;
 }
 
-.form-header-top {
+/* .form-header-top {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     flex-wrap: wrap;
     gap: 1rem;
-}
+} */
 
 /* Optional: prevent the text from shrinking the H1 */
 .form-header-top h1 {
@@ -186,12 +186,12 @@ button.active:active {
 }
 
 /* Force the paragraph to stay right and wrap nicely */
-.form-header-top p {
+/* .form-header-top p {
     margin: 0;
     color: #333;
     font-size: 1rem;
-    max-width: 400px; /* adjust based on how wide you want */
+    max-width: 400px; 
     text-align: right;
     flex-grow: 1;
     align-self: flex-start;
-}
+} */
