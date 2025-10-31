@@ -35,7 +35,7 @@ const FormField = ({
         ? "-translate-y-4 scale-75 top-2"
         : "scale-100 -translate-y-1/2 top-1/2"
     }
-    z-2 origin-[0] bg-white px-2
+    z-2 origin-left bg-white px-2
     ${disabled ? "text-black-400" : isError ? "text-red-600" : "text-gray-500"}`}
         >
           {label} {required && "*"}
@@ -113,7 +113,7 @@ const FormField = ({
         ? "-translate-y-4 scale-75 top-2"
         : "scale-100 -translate-y-1/2 top-1/2"
     }
-    z-2 origin-[0] bg-white px-2
+    z-2 origin-left bg-white px-2
     ${disabled ? "text-gray-400" : isError ? "text-red-600" : "text-gray-500"}
     peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 start-1`}
       >
