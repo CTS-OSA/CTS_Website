@@ -8,11 +8,13 @@ import DefaultLayout from "../components/DefaultLayout";
 import "./css_pages/FormPublicPage.css";
 import { AuthContext } from "../context/AuthContext";
 import Loader from "../components/Loader";
+import LoginModal from "../components/LoginModal";
 
 export const FormPublicPage = () => {
   const [toastMessage, setToastMessage] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalConfig, setModalConfig] = useState({});
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const navigate = useNavigate();
   const [pageLoading, setPageLoading] = useState(false);
   const { user, profileData, loading } = useContext(AuthContext);
@@ -32,8 +34,7 @@ export const FormPublicPage = () => {
             label: "Log In",
             onClick: () => {
               setShowModal(false);
-              setPageLoading(true);
-              navigate("/login");
+              setShowLoginModal(true);
             },
             className: "login-btn",
           },
@@ -179,6 +180,16 @@ export const FormPublicPage = () => {
           onClose={() => setShowModal(false)}
           buttons={modalConfig.buttons}
           footer={modalConfig.footer}
+        />
+      )}
+
+      {showLoginModal && (
+        <LoginModal
+          onClose={() => setShowLoginModal(false)}
+          onSwitchToSignup={() => {
+            setShowLoginModal(false);
+            navigate("/signup");
+          }}
         />
       )}
     </div>
