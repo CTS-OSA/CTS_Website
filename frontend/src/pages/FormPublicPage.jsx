@@ -103,6 +103,12 @@ export const FormPublicPage = () => {
       id: "referral-slip",
       bg: "maroon",
     },
+    {
+      title: "Psychosocial Assistance and Referral Desk",
+      desc: "This form will be available soon.",
+      id: "pard",
+      bg: "maroon",
+    },
   ];
 
   const formContent = (
@@ -127,7 +133,7 @@ export const FormPublicPage = () => {
               <div
                 key={form.id}
                 className={`form-card 
-                  ${form.comingSoon ? "coming-soon" : ""} ${index === 0 ? "rounded-bl-[50px]" : "" } ${index === 2 ? "rounded-tr-[50px]" : ""}`}
+                  ${form.comingSoon ? "coming-soon" : ""} ${index === 0 ? "rounded-bl-[50px]" : "" } ${index === 3 ? "rounded-tr-[50px]" : ""}`}
                 onClick={() => handleCardClick(form.id)}
                 style={{ animationDelay: `${0.2 + index * 0.2}s` }}
               >
