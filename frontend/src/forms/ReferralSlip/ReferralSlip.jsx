@@ -22,7 +22,6 @@ import RSReferrer from "./RSReferrer";
 // } from "../../utils/BISValidation";
 import Button from "../../components/UIButton";
 import ToastMessage from "../../components/ToastMessage";
-import ConfirmDialog from "../../components/ConfirmDialog";
 import ModalMessage from "../../components/ModalMessage";
 import { useNavigate } from "react-router-dom";
 import DefaultLayout from "../../components/DefaultLayout";

@@ -1,9 +1,9 @@
 import React from "react";
 
-const PARDConsent = () => {
+const PARDConsent = ({ formData, setFormData, setError }) => {
     return (
-        <div className="p-4">
-            <h3 className="text-upmaroon font-bold mb-3">
+        <div className="px-4 pt-4">
+            <h3 className="text-upmaroon font-bold text-2xl mb-3">
                 CONSENT
             </h3>
             <p className="leading-7">
@@ -20,12 +20,18 @@ const PARDConsent = () => {
             {/* CHECKBOX SECTION*/}
             <div className="mt-10">
                 <div className="flex items-center gap-2">
-                    <input type="checkbox" />
+                    <input 
+                        type="checkbox" 
+                        required
+                        checked={formData.consent_agreed}
+                        onChange={(e) => {
+                            setFormData(prev => ({ ...prev, consent_agreed: e.target.checked }));
+                            if (e.target.checked) {
+                                setError(null);
+                            }
+                        }}
+                    />
                     <span>Yes, I hereby agree and understand.</span>
-                </div>
-                <div className="flex items-center gap-2 mt-3">
-                    <input type="checkbox" />
-                    <span>No, I don't agree and understand.</span>
                 </div>
             </div>
 

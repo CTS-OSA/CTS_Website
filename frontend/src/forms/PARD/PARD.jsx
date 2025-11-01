@@ -1,8 +1,8 @@
 import React, { useState, useContext } from "react";
 import { useApiRequest } from "../../context/ApiRequestContext";
+import { AuthContext } from "../../context/AuthContext";
 import DefaultLayout from "../../components/DefaultLayout";
 import StepIndicator from "../../components/StepIndicator";
-import { AuthContext } from "../../context/AuthContext";
 
 
 // Sections
@@ -25,9 +25,13 @@ const PARD = () => {
     const { profileData } = useContext(AuthContext);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     const [step, setStep] = useState(1);
+    const [submissionId, setSubmissionId] = useState(null);
+    
     const [loading, setLoading] = useState(false);
     const [readOnly, setReadOnly] = useState(false);
     const [showConfirmation, setShowConfirmation] = useState(false);
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    
     const [formData, setFormData] = useState({
         pard_demographic_profile: {
             student_last_name: "",
@@ -36,7 +40,9 @@ const PARD = () => {
             student_nickname: "",
             student_year: "",
             student_degree_program: "",
-        }
+        },
+        consent_agreed: false,
+        authorization_agreed: false,
       });
 
     const [error, setError] = useState(null);
@@ -44,7 +50,7 @@ const PARD = () => {
 
     const handleSaveDraft = async () => {
         if (!submissionId) {
-        alert("Submission ID is missing. Try reloading the page.");
+            alert("Submission ID is missing. Try reloading the page.");
         return;
         }
 
@@ -65,41 +71,50 @@ const PARD = () => {
     };
 
     const handleNextStep = () => {
-        // Uncomment when validation logic is available
-        // const validationErrors = validateStep(step, formData);
 
-        // if (
-        //   validationErrors &&
-        //   typeof validationErrors === "object" &&
-        //   !Array.isArray(validationErrors) &&
-        //   Object.keys(validationErrors).length > 0
-        // ) {
-        //   setErrors(validationErrors);
-        //   return;
-        // }
+        // Validation for consent step 2 and 6
+        if (step === 2 && !formData.consent_agreed) {
+            setError("Please agree to the consent before proceeding.");
+            return;
+        }
 
-        // if (Array.isArray(validationErrors) && validationErrors.length > 0) {
-        //   const errorObj = {};
-        //   validationErrors.forEach((err, index) => {
-        //     errorObj[`error_${index}`] = err;
-        //   });
-        //   setErrors(errorObj);
-        //   return;
-        // }
-
-        // setErrors(null);
+        setError(null);
         setStep((prev) => prev + 1);
     };
 
-    const handleSubmit = () => {
+    const handleConfirmSubmit = () => {
+
+        // Ensure agreed authorization consent before submission
+        if (!formData.authorization_agreed) {
+            setError("Please agree to the authorization before proceeding.");
+            return;
+        }
+
+        setError(null);
+        setShowConfirmDialog(true);
+    };
+
+    const handlePreviousStep = () => {
+        setError(null);
+        setStep((prev) => prev - 1);
+    };
+
+    const handleConfirmCancel = () => {
+        setShowConfirmDialog(false);
+    };
+
+    const handleConfirmAction = () => {
+        setShowConfirmDialog(false);
+        handleSubmit();
+    };
+
+    const handleSubmit = async () => {
+        setLoading(true);
+
+        // VALIDATION & HANDLE SUBMISSION TO BACKEND HERE
+
         setShowConfirmation(true);
-    };
-
-    const handlePreviousStep = () => setStep((prev) => prev - 1);
-
-    const handlePreview = () => {
-        setIsPreviewOpen(true);
-    };
+  };
 
     const steps = [
         { label: "Introduction" },
@@ -132,16 +147,21 @@ const PARD = () => {
                                     {!showConfirmation ? (
                                         <>
                                             {step === 1 && <PARDIntroduction/>}
-                                            {step === 2 && <PARDConsent/>}
+                                            {step === 2 && <PARDConsent formData={formData} setFormData={setFormData} setError={setError} />}
                                             {step === 3 && <PARDDemogProfile/>}
                                             {step === 4 && <PARDContactInfo/>}
                                             {step === 5 && <PARDPsychAssessment/>}
-                                            {step === 6 && <PARDAuthorization/>}
+                                            {step === 6 && <PARDAuthorization formData={formData} setFormData={setFormData} setError={setError} />}
                                         </>
                                     ) : (
                                         <PARDSubmissionConfirmation />
                                     )}
+
+                                    {/* Error Message */}
+                                    {error && <div className="text-[#D32F2F] text-xs ml-4 italic">{error}</div>}
                                 </div>
+
+                                {/* BUTTONS FOR EACH SECTIONs */}
                                 {!showConfirmation && (
                                     <div className="flex justify-end mt-auto">
                                         <div className="main-form-buttons">
@@ -205,25 +225,10 @@ const PARD = () => {
                                                 </Button>
                                                 )}
 
-                                                <Button
-                                                variant="tertiary"
-                                                onClick={handlePreview}
-                                                style={{ marginLeft: "0.5rem" }}
-                                                >
-                                                Preview
-                                                </Button>
-
-                                                {isPreviewOpen && (
-                                                <RSPreview
-                                                    formData={formData}
-                                                    onClose={() => setIsPreviewOpen(false)}
-                                                />
-                                                )}
-
                                                 {!readOnly && (
                                                 <Button
                                                     variant="primary"
-                                                    onClick={handleSubmit}
+                                                    onClick={handleConfirmSubmit}
                                                     style={{ marginLeft: "0.5rem" }}
                                                 >
                                                     Submit
@@ -234,11 +239,17 @@ const PARD = () => {
 
                                             {/* Loading Indicator */}
                                             {loading && <div>Loading...</div>}
-
-                                            {/* Error Message */}
-                                            {error && <div className="error-message">{error}</div>}
                                         </div>
                                     </div>
+                                )}
+
+                                {showConfirmDialog && (
+                                    <ConfirmDialog
+                                        title="Are you sure?"
+                                        message="Please confirm that you want to submit your form."
+                                        onConfirm={handleConfirmAction}
+                                        onCancel={handleConfirmCancel}
+                                    />
                                 )}
                             </div>
                         </div>

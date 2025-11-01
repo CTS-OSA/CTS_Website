@@ -15,12 +15,12 @@ const PARDDemogProfile = ({ formData, setFormData, errors, setErrors }) => {
     };
     return (
         <div className="p-4">
-            <h3 className="text-upmaroon font-bold text-2xl mb-3">
+            <h3 className="text-upmaroon font-bold text-2xl mb-5">
                 DEMOGRAPHIC PROFILE
             </h3>
 
             {/* Form section */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-6">
                 <div>
                     <FormField
                         label="Surname"
