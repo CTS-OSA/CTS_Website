@@ -36,10 +36,10 @@ const StepIndicator = ({ steps, currentStep }) => {
 
             {/* Circle */}
             <div
-              className={`w-5 h-5 sm:w-4 sm:h-4 lg:w-7 lg:h-7 shrink-0 mx-[-1px] border-2 lg:border-white border-upmaroon flex items-center justify-center rounded-full ${circleFill} transition-all duration-500 ease-in-out relative`}
+              className={`w-5 h-5 sm:w-4 sm:h-4 lg:w-7 lg:h-7 shrink-0 -mx-px border-2 lg:border-white border-upmaroon flex items-center justify-center rounded-full ${circleFill} transition-all duration-500 ease-in-out relative`}
             >
               <span
-                className={`w-2 h-2 sm:w-2 sm:h-2 lg:w-3 lg:h-3 bg-[#7b1113] lg:bg-white rounded-full transition-opacity duration-500 absolute ${
+                className={`w-2 h-2 sm:w-2 sm:h-2 lg:w-3 lg:h-3 bg-upmaroon lg:bg-white rounded-full transition-opacity duration-500 absolute ${
                   isCompleted ? "opacity-0" : "opacity-100"
                 }`}
               ></span>
@@ -62,7 +62,7 @@ const StepIndicator = ({ steps, currentStep }) => {
             {/* Connecting line */}
             {!isLast && (
               <div
-                className={`lg:w-0.5 lg:h-16 h-0.5 w-12 sm:w-14 lg:w-0.5 lg:h-16 bg-[#7b1113] lg:bg-white origin-left lg:origin-top transform transition-transform duration-700 ease-in-out ${
+                className={`lg:w-0.5 lg:h-16 h-0.5 w-12 sm:w-14 bg-upmaroon lg:bg-white origin-left lg:origin-top transform transition-transform duration-700 ease-in-out ${
                   isCompleted
                     ? "lg:scale-y-100 scale-x-100"
                     : "lg:scale-y-0 scale-x-0"

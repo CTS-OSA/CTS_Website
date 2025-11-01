@@ -12,7 +12,7 @@ const RSStudentDetails = ({ formData, setFormData, errors, setErrors }) => {
   const allDegreeOptions = enums?.degree_program || [];
   return (
     <div className="form-container">
-      <h2 className="text-[#7b1113] text-2xl font-bold pb-4">
+      <h2 className="text-upmaroon text-2xl font-bold pb-4">
         Student to be referred details
       </h2>
 
