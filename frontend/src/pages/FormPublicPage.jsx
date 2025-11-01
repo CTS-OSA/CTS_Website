@@ -106,9 +106,9 @@ export const FormPublicPage = () => {
     },
     {
       title: "Psychosocial Assistance and Referral Desk",
-      desc: "This form will be available soon.",
+      desc: "Access psychosocial support and referral services.",
       id: "pard",
-      bg: "maroon",
+      bg: "white",
     },
   ];
 

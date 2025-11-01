@@ -83,11 +83,11 @@
 
 /* Primary: #1976D2 */
 .btn-primary {
-  background-color: #1976D2;
+  background-color: #94141B;;
   color: white;
 }
 .btn-primary:hover {
-  background-color: #155fa0;
+  background-color: #730d12;
 }
 
 /* Secondary: #9C27B0 */

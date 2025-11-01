@@ -148,9 +148,9 @@ label {
   color: #7B1113;
 }
 
-input {
+/* input {
   margin-bottom: 10px;
-}
+} */
 
 /* Responsive */
 @media (max-width: 960px) {
