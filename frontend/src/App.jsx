@@ -39,6 +39,7 @@ import MultiStepForm from "./forms/SetupProfile/SetupProfile";
 import BISForm from "./forms/BIS/BIS";
 import SCIF from "./forms/SCIF/SCIF";
 import ReferralSlip from "./forms/ReferralSlip/ReferralSlip";
+import PARD from "./forms/PARD/PARD";
 import { AdminStudentView } from "./admin-pages/AdminStudentView";
 import BISProfilePage from "./student-pages/BISProfilePage";
 import SCIFProfilePage from "./student-pages/SCIFProfilePage";
@@ -262,6 +263,14 @@ function App() {
 
         {/* Fallback for unauthorized access */}
         <Route path="/forms/referral-slip" element={<ReferralSlip />} />
+        <Route
+          path="/forms/pard"
+          element={
+            <ProtectedRoute requireAdmin={false} requireUser={true}>
+              <PARD />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/public-forms" element={<FormPublicPage />} />
         <Route path="/faq" element={<FAQPublicPage />} />

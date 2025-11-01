@@ -161,35 +161,40 @@ export default function SignUpModal ({ onClose, onSwitchToLogin }) {
                 <h2 className="font-sans text-xl font-bold text-[#7B1113] text-center mt-5">Create Account</h2>
                 {/* FORM AREA */}
                 <form className="p-0 bg-transparent shadow-none w-full max-w-[470px] mt-10" onSubmit={handleSubmit}>
-                  <FormField
-                    label="Email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    name="email"
-                    required
-                    error={formErrors.email}
-                  />
+                  <div className="mb-3">
+                    <FormField
+                      label="Email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      name="email"
+                      required
+                      error={formErrors.email}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <FormField
+                      label="Password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      name="password"
+                      required
+                      error={formErrors.password}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <FormField
+                      label="Confirm Password"
+                      type="password"
+                      value={rePassword}
+                      onChange={(e) => setRePassword(e.target.value)}
+                      name="rePassword"
+                      required
+                      error={formErrors.rePassword}
+                    />
+                  </div>
 
-                  <FormField
-                    label="Password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    name="password"
-                    required
-                    error={formErrors.password}
-                  />
-
-                  <FormField
-                    label="Confirm Password"
-                    type="password"
-                    value={rePassword}
-                    onChange={(e) => setRePassword(e.target.value)}
-                    name="rePassword"
-                    required
-                    error={formErrors.rePassword}
-                  />
                   <button type="submit" className="submit-button">
                       Sign Up
                   </button>

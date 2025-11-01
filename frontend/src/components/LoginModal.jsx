@@ -70,14 +70,17 @@ export default function LoginModal ({ onClose, onSwitchToSignup}) {
             </button>
             <h2 className="font-sans text-xl font-bold text-[#7B1113] text-center mt-5">Log in to your account</h2>
             <form className="p-0 bg-transparent shadow-none w-full max-w-[460px] mt-10" onSubmit={handleSubmit}>
-                <FormField
-                  label="Email Address"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  name="email"
-                  required
-                />
+                <div className="mb-3">
+                  <FormField
+                    label="Email Address"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    name="email"
+                    required
+                  />
+                </div>
+                <div className="mb-3">
                   <FormField
                     label="Password"
                     type="password"
@@ -86,6 +89,7 @@ export default function LoginModal ({ onClose, onSwitchToSignup}) {
                     name="password"
                     required
                   />
+                </div>
               <div className="text-xs text-gray-600 -mt-3 mb-3 underline">
                 <Link to="/forgot-password">Forgot password?</Link>
               </div>
