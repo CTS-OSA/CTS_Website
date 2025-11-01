@@ -1,7 +1,7 @@
 import React from "react";
 import FormField from "../../components/FormField";
 
-const PARDPsychAssessment = () => {
+const PARDSubmissionConfirmation = () => {
     
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -72,4 +72,4 @@ const PARDPsychAssessment = () => {
     )
 }
 
-export default PARDPsychAssessment;
+export default PARDSubmissionConfirmation;

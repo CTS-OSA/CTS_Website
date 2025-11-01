@@ -1,11 +1,18 @@
-import React, { useState } from "react";
-
+import React, { useState, useContext } from "react";
+import { useApiRequest } from "../../context/ApiRequestContext";
 import DefaultLayout from "../../components/DefaultLayout";
 import StepIndicator from "../../components/StepIndicator";
+import { AuthContext } from "../../context/AuthContext";
+
 
 // Sections
 import PARDIntroduction from "./PARDIntroduction";
 import PARDConsent from "./PARDConsent";
+import PARDDemogProfile from "./PARDDemogProfile";
+import PARDContactInfo from "./PARDContactInfo";
+import PARDPsychAssessment from "./PARDPsychAssessment";
+import PARDAuthorization from "./PARDAuthorization";
+// import PARDSubsmissionConfirmation from "./PARDSubmissionConfirmation";
 
 import Button from "../../components/UIButton";
 import ToastMessage from "../../components/ToastMessage";
@@ -14,63 +21,80 @@ import ModalMessage from "../../components/ModalMessage";
 import { useNavigate } from "react-router-dom";
 
 const PARD = () => {
+    const { request } = useApiRequest();
+    const { profileData } = useContext(AuthContext);
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [readOnly, setReadOnly] = useState(false);
+    const [formData, setFormData] = useState({
+        pard_demographic_profile: {
+            student_last_name: "",
+            student_first_name: "",
+            student_middle_name: "",
+            student_nickname: "",
+            student_year: "",
+            student_degree_program: "",
+        }
+      });
 
     const [error, setError] = useState(null);
     
 
-  const handleSaveDraft = async () => {
-    if (!submissionId) {
-      alert("Submission ID is missing. Try reloading the page.");
-      return;
-    }
+    const handleSaveDraft = async () => {
+        if (!submissionId) {
+        alert("Submission ID is missing. Try reloading the page.");
+        return;
+        }
 
-    setLoading(true);
-    try {
-      const response = await saveDraft(submissionId, studentNumber, formData);
+        setLoading(true);
+        try {
+        const response = await saveDraft(submissionId, studentNumber, formData);
 
-      if (response?.ok) {
-        setShowDraftSuccessToast(true);
-      } else {
-        alert("Error saving draft.");
-      }
-    } catch (err) {
-      alert("Failed to save draft.");
-    } finally {
-      setLoading(false);
-    }
-  };
+        if (response?.ok) {
+            setShowDraftSuccessToast(true);
+        } else {
+            alert("Error saving draft.");
+        }
+        } catch (err) {
+        alert("Failed to save draft.");
+        } finally {
+        setLoading(false);
+        }
+    };
 
-  const handleNextStep = () => {
-    // Uncomment when validation logic is available
-    // const validationErrors = validateStep(step, formData);
+    const handleNextStep = () => {
+        // Uncomment when validation logic is available
+        // const validationErrors = validateStep(step, formData);
 
-    // if (
-    //   validationErrors &&
-    //   typeof validationErrors === "object" &&
-    //   !Array.isArray(validationErrors) &&
-    //   Object.keys(validationErrors).length > 0
-    // ) {
-    //   setErrors(validationErrors);
-    //   return;
-    // }
+        // if (
+        //   validationErrors &&
+        //   typeof validationErrors === "object" &&
+        //   !Array.isArray(validationErrors) &&
+        //   Object.keys(validationErrors).length > 0
+        // ) {
+        //   setErrors(validationErrors);
+        //   return;
+        // }
 
-    // if (Array.isArray(validationErrors) && validationErrors.length > 0) {
-    //   const errorObj = {};
-    //   validationErrors.forEach((err, index) => {
-    //     errorObj[`error_${index}`] = err;
-    //   });
-    //   setErrors(errorObj);
-    //   return;
-    // }
+        // if (Array.isArray(validationErrors) && validationErrors.length > 0) {
+        //   const errorObj = {};
+        //   validationErrors.forEach((err, index) => {
+        //     errorObj[`error_${index}`] = err;
+        //   });
+        //   setErrors(errorObj);
+        //   return;
+        // }
 
-    // setErrors(null);
-    setStep((prev) => prev + 1);
-  };
+        // setErrors(null);
+        setStep((prev) => prev + 1);
+    };
 
-  const handlePreviousStep = () => setStep((prev) => prev - 1);
+    const handlePreviousStep = () => setStep((prev) => prev - 1);
+
+    const handlePreview = () => {
+        setIsPreviewOpen(true);
+    };
 
     const steps = [
         { label: "Introduction" },
@@ -98,10 +122,16 @@ const PARD = () => {
                             <div className="lg:w-1/3 lg:bg-upmaroon rounded-lg p-4 pt-10">
                                 <StepIndicator steps={steps} currentStep={step} />
                             </div>
-                            <div className="main-form p-4 w-full">
-                                {step === 1 && <PARDIntroduction/>}
-                                {step === 2 && <PARDConsent/>}
-                                <div className="flex justify-end">
+                                <div className="main-form p-4 w-full flex flex-col">
+                                <div className="flex-1">
+                                    {step === 1 && <PARDIntroduction/>}
+                                    {step === 2 && <PARDConsent/>}
+                                    {step === 3 && <PARDDemogProfile/>}
+                                    {step === 4 && <PARDContactInfo/>}
+                                    {step === 5 && <PARDPsychAssessment/>}
+                                    {step === 6 && <PARDAuthorization/>}
+                                </div>
+                                <div className="flex justify-end mt-auto">
                                     <div className="main-form-buttons">
                                         {/* Step 1: 'Save Draft' and 'Next' button */}
                                         {step === 1 && !loading && (
@@ -112,7 +142,7 @@ const PARD = () => {
                                         </>
                                         )}
 
-                                        {step >= 2 && step <= 3 && !loading && (
+                                        {step >= 2 && step <= 5 && !loading && (
                                             <>  
                                                 <div className="mt-22">
                                                     <Button
@@ -143,7 +173,7 @@ const PARD = () => {
                                         )}
 
                                             {/* Step 4: 'Back', 'Save Draft', 'Preview', and 'Submit' buttons */}
-                                            {step === 4 && !loading && (
+                                            {step === 6 && !loading && (
                                             <>
                                                 <Button
                                                 variant="secondary"
@@ -180,7 +210,7 @@ const PARD = () => {
                                                 {!readOnly && (
                                                 <Button
                                                     variant="primary"
-                                                    onClick={handleConfirmSubmit}
+                                                    onClick={handleNextStep}
                                                     style={{ marginLeft: "0.5rem" }}
                                                 >
                                                     Submit

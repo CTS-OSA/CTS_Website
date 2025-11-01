@@ -3,7 +3,7 @@ import React from "react";
 const PARDIntroduction = () => {
     return (
         <div className="p-4">
-            <h3 className="text-upmaroon font-bold mb-3">
+            <h3 className="text-upmaroon  text-2xl font-bold mb-3">
                 Need Support? Introducing the CTS-OSA Psychosocial Assistance and Referral Desk (PARD)
             </h3>
             <p className="mb-3">
