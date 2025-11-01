@@ -1,12 +1,6 @@
 import React from "react";
 
-const PARDAuthorization = () => {
-    
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
-    };
-
+const PARDAuthorization = ({ formData, setFormData, setError }) => {
     return (
         <div className="p-4">
             <h3 className="text-upmaroon font-bold text-2xl mb-3">
@@ -22,12 +16,17 @@ const PARDAuthorization = () => {
             {/* CHECKBOX SECTION*/}
             <div className="mt-10">
                 <div className="flex items-center gap-2">
-                    <input type="checkbox" />
+                    <input 
+                        type="checkbox" 
+                        required
+                        checked={formData.authorization_agreed}
+                        onChange={(e) => {
+                            setFormData(prev => ({ ...prev, authorization_agreed: e.target.checked }));
+                            if (e.target.checked) {
+                                setError(null);
+                            }
+                    }}/>
                     <span>Yes, I give my full consent.</span>
-                </div>
-                <div className="flex items-center gap-2 mt-3">
-                    <input type="checkbox" />
-                    <span>No, I don’t give my full consent.</span>
                 </div>
             </div>
 
