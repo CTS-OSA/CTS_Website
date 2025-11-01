@@ -12,7 +12,7 @@ import PARDDemogProfile from "./PARDDemogProfile";
 import PARDContactInfo from "./PARDContactInfo";
 import PARDPsychAssessment from "./PARDPsychAssessment";
 import PARDAuthorization from "./PARDAuthorization";
-// import PARDSubsmissionConfirmation from "./PARDSubmissionConfirmation";
+import PARDSubmissionConfirmation from "./PARDSubmissionConfirmation";
 
 import Button from "../../components/UIButton";
 import ToastMessage from "../../components/ToastMessage";
@@ -27,6 +27,7 @@ const PARD = () => {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [readOnly, setReadOnly] = useState(false);
+    const [showConfirmation, setShowConfirmation] = useState(false);
     const [formData, setFormData] = useState({
         pard_demographic_profile: {
             student_last_name: "",
@@ -90,6 +91,10 @@ const PARD = () => {
         setStep((prev) => prev + 1);
     };
 
+    const handleSubmit = () => {
+        setShowConfirmation(true);
+    };
+
     const handlePreviousStep = () => setStep((prev) => prev - 1);
 
     const handlePreview = () => {
@@ -124,15 +129,22 @@ const PARD = () => {
                             </div>
                                 <div className="main-form p-4 w-full flex flex-col">
                                 <div className="flex-1">
-                                    {step === 1 && <PARDIntroduction/>}
-                                    {step === 2 && <PARDConsent/>}
-                                    {step === 3 && <PARDDemogProfile/>}
-                                    {step === 4 && <PARDContactInfo/>}
-                                    {step === 5 && <PARDPsychAssessment/>}
-                                    {step === 6 && <PARDAuthorization/>}
+                                    {!showConfirmation ? (
+                                        <>
+                                            {step === 1 && <PARDIntroduction/>}
+                                            {step === 2 && <PARDConsent/>}
+                                            {step === 3 && <PARDDemogProfile/>}
+                                            {step === 4 && <PARDContactInfo/>}
+                                            {step === 5 && <PARDPsychAssessment/>}
+                                            {step === 6 && <PARDAuthorization/>}
+                                        </>
+                                    ) : (
+                                        <PARDSubmissionConfirmation />
+                                    )}
                                 </div>
-                                <div className="flex justify-end mt-auto">
-                                    <div className="main-form-buttons">
+                                {!showConfirmation && (
+                                    <div className="flex justify-end mt-auto">
+                                        <div className="main-form-buttons">
                                         {/* Step 1: 'Save Draft' and 'Next' button */}
                                         {step === 1 && !loading && (
                                         <>
@@ -142,6 +154,7 @@ const PARD = () => {
                                         </>
                                         )}
 
+                                        {/* Step 2 to 5: Save and next button */}
                                         {step >= 2 && step <= 5 && !loading && (
                                             <>  
                                                 <div className="mt-22">
@@ -172,7 +185,7 @@ const PARD = () => {
                                             </>
                                         )}
 
-                                            {/* Step 4: 'Back', 'Save Draft', 'Preview', and 'Submit' buttons */}
+                                            {/* Step 6: 'Back', 'Save Draft', 'Preview', and 'Submit' buttons */}
                                             {step === 6 && !loading && (
                                             <>
                                                 <Button
@@ -210,7 +223,7 @@ const PARD = () => {
                                                 {!readOnly && (
                                                 <Button
                                                     variant="primary"
-                                                    onClick={handleNextStep}
+                                                    onClick={handleSubmit}
                                                     style={{ marginLeft: "0.5rem" }}
                                                 >
                                                     Submit
@@ -224,8 +237,9 @@ const PARD = () => {
 
                                             {/* Error Message */}
                                             {error && <div className="error-message">{error}</div>}
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         </div>
                     </div>
