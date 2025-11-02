@@ -40,14 +40,145 @@ const PARD = () => {
             student_nickname: "",
             student_year: "",
             student_degree_program: "",
+        }, 
+        pard_contact_info: {
+            student_contact_number: "",
+            student_email: "",
+            hometown_address: "",
+            current_address: "",
+            preferred_date: "",
+            preferred_time: "",
+        },
+        pard_psych_assessment: {
+            date_started: "",
+            is_diagnosed: "",
+            symptoms_observed: "",
+            communication_platform: "",
+            date_diagnosed: "",
+            diagnosed_by: "",
         },
         consent_agreed: false,
         authorization_agreed: false,
       });
 
-    const [error, setError] = useState(null);
-    
+    const rules = {
+        pard_demographic_profile: {
+            student_last_name: { 
+                required: true,
+                message: "This field is required.",
+            },
+            student_first_name: {
+                required: true,
+                message: "This field is required.",
+            },
+            student_middle_name: {
+                required: true,
+                message: "This field is required.",
+            },
+            student_nickname: {
+                required: true,
+                message: "This field is required.",
+            },
+            student_year: {
+                required: true,
+                message: "This field is required.",
+            },
+            student_degree_program: {
+                required: true,
+                message: "This field is required.",
+            },
+        },
+        pard_contact_info: {
+            student_contact_number: {
+                required: true,
+                message: "This field is required.",
+                pattern: /^[0-9]+$/,
+                patternMessage: "Please enter a valid phone number."
+            },
+            student_email: {
+                required: true,
+                message: "This field is required.",
+                pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                patternMessage: "Please enter a valid email address."
+            },
+            hometown_address: {
+                required: true,
+                message: "This field is required.",
+            },
+            current_address: {
+                required: true,
+                message: "This field is required.",
+            },
+            preferred_date: {
+                required: true,
+                message: "This field is required.",
+            },
+            preferred_time: {
+                required: true,
+                message: "This field is required.",
+            },
+        },
+        pard_psych_assessment: {
+            date_started: {
+                required: true,
+                message: "This field is required.",
+            },
+            is_diagnosed: {
+                required: true,
+                message: "This field is required.",
+            },
+            symptoms_observed: {
+                required: true,
+                message: "This field is required.",
+            },
+            communication_platform: {
+                required: true,
+                message: "This field is required.",
+            },
+            date_diagnosed: {
+                required: true,
+                message: "This field is required.",
+            },
+            diagnosed_by: {
+                required: true,
+                message: "This field is required.",
+            },
+        }
+    };
 
+    const validateStep = (stepNumber) => {
+
+        // NOTE: UNCOMMENT THIS TO VIEW VALIDATION
+        const stepMap = {
+            // 3: 'pard_demographic_profile',
+            // 4: 'pard_contact_info',
+            // 5: 'pard_psych_assessment'
+        };
+        
+        const sectionKey = stepMap[stepNumber];
+        if (!sectionKey) return {};
+        
+        const sectionRules = rules[sectionKey];
+        const sectionData = formData[sectionKey];
+        const newErrors = {};
+        
+        Object.keys(sectionRules).forEach(fieldKey => {
+            const rule = sectionRules[fieldKey];
+            const value = sectionData[fieldKey];
+            
+            if (rule.required && (!value || value.trim() === '')) {
+                newErrors[fieldKey] = rule.message;
+            } else if (rule.pattern && value && !rule.pattern.test(value)) {
+                newErrors[fieldKey] = rule.patternMessage || 'Invalid format.';
+            }
+        });
+        
+        return newErrors;
+    };
+
+    const [error, setError] = useState(null);
+    const [errors, setErrors] = useState({});
+    
     const handleSaveDraft = async () => {
         if (!submissionId) {
             alert("Submission ID is missing. Try reloading the page.");
@@ -72,13 +203,28 @@ const PARD = () => {
 
     const handleNextStep = () => {
 
-        // Validation for consent step 2 and 6
+        // Validation for consent step 2 
         if (step === 2 && !formData.consent_agreed) {
             setError("Please agree to the consent before proceeding.");
             return;
         }
 
+        const stepErrors = validateStep(step);
+        if (Object.keys(stepErrors).length > 0) {
+            setErrors(stepErrors);
+            return;
+        }
+
+        if (step === 5) {
+            const { diagnosed_by } = formData.pard_psych_assessment;
+            if (!diagnosed_by) {
+                setError("Please complete the psychosocial assessment.");
+                return;
+            }
+        }
+
         setError(null);
+        setErrors({});
         setStep((prev) => prev + 1);
     };
 
@@ -128,14 +274,13 @@ const PARD = () => {
         <>
             <DefaultLayout variant="student">
                 <div className="absolute w-full left-0 -z-1"></div>
-                
                 {/* Mainfrom */}
                 <div className="relative flex flex-col min-h-screen">
                     <div className="mx-auto w-3/4 flex flex-col items-center">
                     </div>
                     <div className="flex flex-col justify-center bg-upmaroon w-full h-60 text-white text-center">
                         <h1 className="font-bold text-4xl -mt-10">Psychosocial Assistance and<br></br> Referral Desk</h1>
-                        <h3 className="text-lg">Online Appointment Schedule</h3>
+                        <h3 className="text-xl">Online Appointment Schedule</h3>
                     </div>
                     <div className="bg-white rounded-[15px] p-8 shadow-md box-border w-3/4 mx-auto mb-[70px] -mt-15">
                         <div className="flex lg:flex-row flex-col w-full items-stretch">
@@ -148,9 +293,9 @@ const PARD = () => {
                                         <>
                                             {step === 1 && <PARDIntroduction/>}
                                             {step === 2 && <PARDConsent formData={formData} setFormData={setFormData} setError={setError} />}
-                                            {step === 3 && <PARDDemogProfile/>}
-                                            {step === 4 && <PARDContactInfo/>}
-                                            {step === 5 && <PARDPsychAssessment/>}
+                                            {step === 3 && <PARDDemogProfile formData={formData} setFormData={setFormData} errors={errors} setErrors={setErrors} />}
+                                            {step === 4 && <PARDContactInfo formData={formData} setFormData={setFormData} errors={errors} setErrors={setErrors} />}
+                                            {step === 5 && <PARDPsychAssessment formData={formData} setFormData={setFormData} errors={errors} setErrors={setErrors}/>}
                                             {step === 6 && <PARDAuthorization formData={formData} setFormData={setFormData} setError={setError} />}
                                         </>
                                     ) : (
