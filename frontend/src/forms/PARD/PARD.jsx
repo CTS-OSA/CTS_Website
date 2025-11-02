@@ -215,13 +215,6 @@ const PARD = () => {
             return;
         }
 
-        if (step === 5) {
-            const { diagnosed_by } = formData.pard_psych_assessment;
-            if (!diagnosed_by) {
-                setError("Please complete the psychosocial assessment.");
-                return;
-            }
-        }
 
         setError(null);
         setErrors({});
@@ -279,8 +272,8 @@ const PARD = () => {
                     <div className="mx-auto w-3/4 flex flex-col items-center">
                     </div>
                     <div className="flex flex-col justify-center bg-upmaroon w-full h-60 text-white text-center">
-                        <h1 className="font-bold text-4xl -mt-10">Psychosocial Assistance and<br></br> Referral Desk</h1>
-                        <h3 className="text-xl">Online Appointment Schedule</h3>
+                        <h1 className="font-bold text-2xl sm:text-4xl -mt-10">Psychosocial Assistance and<br></br> Referral Desk</h1>
+                        <h3 className="text-base sm:text-xl">Online Appointment Schedule</h3>
                     </div>
                     <div className="bg-white rounded-[15px] p-8 shadow-md box-border w-3/4 mx-auto mb-[70px] -mt-15">
                         <div className="flex lg:flex-row flex-col w-full items-stretch">

@@ -30,7 +30,7 @@ const PARDDemogProfile = ({ formData, setFormData, errors = {}, setErrors }) => 
     };
     return (
         <div className="p-4">
-            <h3 className="text-upmaroon font-bold text-2xl mb-5">
+            <h3 className="text-upmaroon font-bold text-xl sm:text-2xl mb-5">
                 DEMOGRAPHIC PROFILE
             </h3>
 

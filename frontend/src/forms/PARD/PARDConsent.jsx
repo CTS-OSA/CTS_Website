@@ -3,10 +3,10 @@ import React from "react";
 const PARDConsent = ({ formData, setFormData, setError }) => {
     return (
         <div className="px-4 pt-4">
-            <h3 className="text-upmaroon font-bold text-2xl mb-3">
+            <h3 className="text-upmaroon font-bold text-xl sm:text-2xl mb-3">
                 CONSENT
             </h3>
-            <p className="leading-7">
+            <p className="leading-7 text-sm sm:text-base">
                 I agree to be contacted through the indicated platform of communication by the
                 CTS-OSA as indicated in the preferred time of the
                 client/counselee/student/personnel. I have read and understood the provisions
@@ -19,7 +19,7 @@ const PARDConsent = ({ formData, setFormData, setError }) => {
             
             {/* CHECKBOX SECTION*/}
             <div className="mt-10">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 text-sm sm:text-base">
                     <input 
                         type="checkbox" 
                         required
