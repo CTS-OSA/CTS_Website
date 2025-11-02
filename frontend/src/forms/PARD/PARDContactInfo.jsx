@@ -1,11 +1,25 @@
 import React from "react";
 import FormField from "../../components/FormField";
 
-const PARDContactInfo = () => {
+const PARDContactInfo = ({ formData, setFormData, errors = {}, setErrors }) => {
     
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        setFormData((prev) => ({
+            ...prev,
+            pard_contact_info: {
+                ...prev.pard_contact_info,
+                [`student_${name}`]: value
+            }
+        }));
+        
+        // Clear the specific field error when user types
+        if (errors[`student_${name}`]) {
+            setErrors(prev => ({
+                ...prev,
+                [`student_${name}`]: null
+            }));
+        }
     };
 
     return (
@@ -22,6 +36,7 @@ const PARDContactInfo = () => {
                         type="text"
                         name="contact_number"
                     />
+                    {errors.student_contact_number && <div className="text-[#D32F2F] text-xs  italic">{errors.student_contact_number}</div>}
                 </div>
                 <div>
                     <FormField
@@ -29,20 +44,23 @@ const PARDContactInfo = () => {
                         type="text"
                         name="email_address"
                     />
+                    {errors.student_email && <div className="text-[#D32F2F] text-xs  italic">{errors.student_email}</div>}
                 </div>
                 <div className="col-span-2">
                     <FormField
                         label="Hometown Address"
                         type="text"
                         name="address"
-                    />
+                        />
+                    {errors.student_hometown_address && <div className="text-[#D32F2F] text-xs  italic">{errors.student_hometown_address}</div>}
                 </div>
                 <div className="col-span-2">
                     <FormField
                         label="Current Address"
                         type="text"
                         name="current_address"
-                    />
+                        />
+                    {errors.student_current_address && <div className="text-[#D32F2F] text-xs  italic">{errors.student_current_address}</div>}
                 </div>
                 <div>
                     <label>
@@ -52,7 +70,8 @@ const PARDContactInfo = () => {
                         type="date"
                         name="date"
                         onChange={handleChange}
-                    />
+                        />
+                    {errors.student_preferred_date && <div className="text-[#D32F2F] text-xs  italic">{errors.student_preferred_date}</div>}
                 </div>
                 <div>
                     <label>
@@ -62,7 +81,8 @@ const PARDContactInfo = () => {
                         type="time"
                         name="time"
                         onChange={handleChange}
-                    />
+                        />
+                    {errors.student_preferred_time && <div className="text-[#D32F2F] text-xs  italic">{errors.student_preferred_time}</div>}
                 </div>
             </div>
 

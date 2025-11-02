@@ -56,9 +56,102 @@ const PARD = () => {
         authorization_agreed: false,
       });
 
-    const [error, setError] = useState(null);
-    
+    const rules = {
+        pard_demographic_profile: {
+            student_last_name: { 
+                required: true,
+                message: "This field is required.",
+            },
+            student_first_name: {
+                required: true,
+                message: "This field is required.",
+            },
+            student_middle_name: {
+                required: true,
+                message: "This field is required.",
+            },
+            student_nickname: {
+                required: true,
+                message: "This field is required.",
+            },
+            student_year: {
+                required: true,
+                message: "This field is required.",
+            },
+            student_degree_program: {
+                required: true,
+                message: "This field is required.",
+            },
+        },
+        pard_contact_info: {
+            student_contact_number: {
+                required: true,
+                message: "This field is required.",
+                pattern: /^[0-9]+$/,
+                patternMessage: "Please enter a valid phone number."
+            },
+            student_email: {
+                required: true,
+                message: "This field is required.",
+                pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                patternMessage: "Please enter a valid email address."
+            },
+            hometown_address: {
+                required: true,
+                message: "This field is required.",
+            },
+            current_address: {
+                required: true,
+                message: "This field is required.",
+            },
+            preferred_date: {
+                required: true,
+                message: "This field is required.",
+            },
+            preferred_time: {
+                required: true,
+                message: "This field is required.",
+            },
+        },
+        pard_psych_assessment: {
+            diagnosed_by: {
+                required: true,
+                message: "This field is required.",
+            },
+        }
+    };
 
+    const validateStep = (stepNumber) => {
+        const stepMap = {
+            3: 'pard_demographic_profile',
+            4: 'pard_contact_info',
+            5: 'pard_psych_assessment'
+        };
+        
+        const sectionKey = stepMap[stepNumber];
+        if (!sectionKey) return {};
+        
+        const sectionRules = rules[sectionKey];
+        const sectionData = formData[sectionKey];
+        const newErrors = {};
+        
+        Object.keys(sectionRules).forEach(fieldKey => {
+            const rule = sectionRules[fieldKey];
+            const value = sectionData[fieldKey];
+            
+            if (rule.required && (!value || value.trim() === '')) {
+                newErrors[fieldKey] = rule.message;
+            } else if (rule.pattern && value && !rule.pattern.test(value)) {
+                newErrors[fieldKey] = rule.patternMessage || 'Invalid format.';
+            }
+        });
+        
+        return newErrors;
+    };
+
+    const [error, setError] = useState(null);
+    const [errors, setErrors] = useState({});
+    
     const handleSaveDraft = async () => {
         if (!submissionId) {
             alert("Submission ID is missing. Try reloading the page.");
@@ -83,13 +176,28 @@ const PARD = () => {
 
     const handleNextStep = () => {
 
-        // Validation for consent step 2 and 6
+        // Validation for consent step 2 
         if (step === 2 && !formData.consent_agreed) {
             setError("Please agree to the consent before proceeding.");
             return;
         }
 
+        const stepErrors = validateStep(step);
+        if (Object.keys(stepErrors).length > 0) {
+            setErrors(stepErrors);
+            return;
+        }
+
+        if (step === 5) {
+            const { diagnosed_by } = formData.pard_psych_assessment;
+            if (!diagnosed_by) {
+                setError("Please complete the psychosocial assessment.");
+                return;
+            }
+        }
+
         setError(null);
+        setErrors({});
         setStep((prev) => prev + 1);
     };
 
@@ -139,7 +247,6 @@ const PARD = () => {
         <>
             <DefaultLayout variant="student">
                 <div className="absolute w-full left-0 -z-1"></div>
-                
                 {/* Mainfrom */}
                 <div className="relative flex flex-col min-h-screen">
                     <div className="mx-auto w-3/4 flex flex-col items-center">
@@ -159,8 +266,8 @@ const PARD = () => {
                                         <>
                                             {step === 1 && <PARDIntroduction/>}
                                             {step === 2 && <PARDConsent formData={formData} setFormData={setFormData} setError={setError} />}
-                                            {step === 3 && <PARDDemogProfile/>}
-                                            {step === 4 && <PARDContactInfo/>}
+                                            {step === 3 && <PARDDemogProfile formData={formData} setFormData={setFormData} errors={errors} setErrors={setErrors} />}
+                                            {step === 4 && <PARDContactInfo formData={formData} setFormData={setFormData} errors={errors} setErrors={setErrors} />}
                                             {step === 5 && <PARDPsychAssessment formData={formData} setFormData={setFormData}/>}
                                             {step === 6 && <PARDAuthorization formData={formData} setFormData={setFormData} setError={setError} />}
                                         </>
