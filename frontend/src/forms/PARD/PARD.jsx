@@ -40,6 +40,17 @@ const PARD = () => {
             student_nickname: "",
             student_year: "",
             student_degree_program: "",
+        }, 
+        pard_contact_info: {
+            student_contact_number: "",
+            student_email: "",
+            hometown_address: "",
+            current_address: "",
+            preferred_date: "",
+            preferred_time: "",
+        },
+        pard_psych_assessment: {
+            diagnosed_by: "",
         },
         consent_agreed: false,
         authorization_agreed: false,
@@ -150,7 +161,7 @@ const PARD = () => {
                                             {step === 2 && <PARDConsent formData={formData} setFormData={setFormData} setError={setError} />}
                                             {step === 3 && <PARDDemogProfile/>}
                                             {step === 4 && <PARDContactInfo/>}
-                                            {step === 5 && <PARDPsychAssessment/>}
+                                            {step === 5 && <PARDPsychAssessment formData={formData} setFormData={setFormData}/>}
                                             {step === 6 && <PARDAuthorization formData={formData} setFormData={setFormData} setError={setError} />}
                                         </>
                                     ) : (

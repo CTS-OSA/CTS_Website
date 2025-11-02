@@ -10,8 +10,8 @@ const PARDContactInfo = () => {
 
     return (
         <div className="p-4">
-            <h3 className="text-upmaroon font-bold text-2xl mb-5">
-                CONTACT INFORMATION
+            <h3 className="text-upmaroon font-bold text-2xl mb-3">
+                CONTACT INFO
             </h3>
 
             {/* Form section */}
@@ -30,14 +30,14 @@ const PARDContactInfo = () => {
                         name="email_address"
                     />
                 </div>
-                <div>
+                <div className="col-span-2">
                     <FormField
                         label="Hometown Address"
                         type="text"
                         name="address"
                     />
                 </div>
-                <div>
+                <div className="col-span-2">
                     <FormField
                         label="Current Address"
                         type="text"
