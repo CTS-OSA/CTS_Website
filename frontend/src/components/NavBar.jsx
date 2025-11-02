@@ -200,6 +200,7 @@ export default function Navbar() {
                           >
                             My Profile
                           </button>
+
                           <button
                             className="w-full px-4 py-2 hover:bg-gray-100"
                             onClick={() => go("/public-forms")}

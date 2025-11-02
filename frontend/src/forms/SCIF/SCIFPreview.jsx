@@ -1,7 +1,5 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import "./../SetupProfile/css/multistep.css";
-import "./../../components/css/Modal.css";
 import SCIFCredentials from "./SCIFCredentials";
 import SCIFPersonalData from "./SCIFPersonalData";
 import SCIFFamilyData from "./SCIFFamilyData";
@@ -14,15 +12,26 @@ import { X } from "react-feather";
 
 const SCIFPreview = ({ profileData, formData, onClose }) => {
   const modalContent = (
-    <div className="modal-overlay">
-      <div className="modal-content large-modal">
-        <button className="modal-close-btn" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+      <div className="relative w-11/12 max-w-5xl max-h-[90vh] bg-white rounded-2xl shadow-xl overflow-y-auto p-6">
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="sticky top-2 right-2 float-right bg-white rounded-full p-1 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition z-50"
+        >
           <X size={24} />
         </button>
-          <h1 className="step-title">Student Cumulative Information File</h1>
-          <p className="step-info">(Preview)</p>
-          <SCIFCredentials data={profileData} />
-          <SCIFPersonalData data={profileData} />
+
+        {/* Header */}
+        <h1 className="text-2xl font-semibold text-center text-gray-800 mt-2">
+          Student Cumulative Information File
+        </h1>
+        <p className="text-center text-gray-500 mb-6">(Preview)</p>
+
+        {/* Content (locked for editing) */}
+        <div className="space-y-8 pointer-events-none select-none">
+          <SCIFCredentials data={profileData} readOnly={true} />
+          <SCIFPersonalData data={profileData} readOnly={true} />
           <SCIFFamilyData
             data={{
               family_data: formData.family_data,
@@ -30,12 +39,7 @@ const SCIFPreview = ({ profileData, formData, onClose }) => {
             }}
             readOnly={true}
           />
-          <SCIFHealthData
-            data={{
-              ...formData.health_data,
-            }}
-            readOnly={true}
-          />
+          <SCIFHealthData data={formData.health_data} readOnly={true} />
           <SCIFPreviousSchoolRecord
             data={formData.previous_school_record}
             readOnly={true}
@@ -49,10 +53,12 @@ const SCIFPreview = ({ profileData, formData, onClose }) => {
             }}
             readOnly={true}
           />
-          <SCIFCertify data={formData} readOnly={true}  style={{padding: 0}}/>
+          <SCIFCertify data={formData} readOnly={true} style={{ padding: 0 }} />
         </div>
       </div>
+    </div>
   );
+
   return ReactDOM.createPortal(modalContent, document.body);
 };
 

@@ -36,13 +36,13 @@ const ReferralSlip = () => {
   const [errors, setErrors] = useState(null);
   const navigate = useNavigate();
 
-// Change to Referral Slip APIs
-//   const {
-//     createDraftSubmission,
-//     getFormBundle,
-//     saveDraft,
-//     finalizeSubmission,
-//   } = useFormApi();
+  // Change to Referral Slip APIs
+  //   const {
+  //     createDraftSubmission,
+  //     getFormBundle,
+  //     saveDraft,
+  //     finalizeSubmission,
+  //   } = useFormApi();
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [showDraftSuccessToast, setShowDraftSuccessToast] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -79,73 +79,73 @@ const ReferralSlip = () => {
   const [error, setError] = useState(null);
   const [readOnly, setReadOnly] = useState(false);
 
-// Change to Referral Slip section validations
-//   const validateStep = (step, formData) => {
-//     switch (step) {
-//       case 2:
-//         const errors = {
-//           ...validateSocioEconomicStatus(formData),
-//           ...validateSupport(formData),
-//         };
-//         return errors;
-//       case 3:
-//         return validatePreferences(formData);
-//       case 4:
-//         return validateScholasticStatus(formData);
-//       case 5:
-//         if (!formData.privacy_consent.has_consented) {
-//           setShowPrivacyModal(true);
-//           return false;
-//         }
-//         return true;
-//       default:
-//         return true;
-//     }
-//   };
+  // Change to Referral Slip section validations
+  //   const validateStep = (step, formData) => {
+  //     switch (step) {
+  //       case 2:
+  //         const errors = {
+  //           ...validateSocioEconomicStatus(formData),
+  //           ...validateSupport(formData),
+  //         };
+  //         return errors;
+  //       case 3:
+  //         return validatePreferences(formData);
+  //       case 4:
+  //         return validateScholasticStatus(formData);
+  //       case 5:
+  //         if (!formData.privacy_consent.has_consented) {
+  //           setShowPrivacyModal(true);
+  //           return false;
+  //         }
+  //         return true;
+  //       default:
+  //         return true;
+  //     }
+  //   };
 
-//   useEffect(() => {
-//     if (profileData?.is_complete !== true) {
-//       navigate("/myprofile");
-//     }
-//   }, [profileData, navigate]);
+  //   useEffect(() => {
+  //     if (profileData?.is_complete !== true) {
+  //       navigate("/myprofile");
+  //     }
+  //   }, [profileData, navigate]);
 
-// Change to Referral Slip Content Management Logic from its own API
-//   useEffect(() => {
-//     const fetchFormData = async () => {
-//       setLoading(true);
-//       try {
-//         let response = await getFormBundle(studentNumber);
+  // Change to Referral Slip Content Management Logic from its own API
+  //   useEffect(() => {
+  //     const fetchFormData = async () => {
+  //       setLoading(true);
+  //       try {
+  //         let response = await getFormBundle(studentNumber);
 
-//         if (!response) {
-//           response = await createDraftSubmission(studentNumber);
-//           response = await getFormBundle(studentNumber);
-//         }
+  //         if (!response) {
+  //           response = await createDraftSubmission(studentNumber);
+  //           response = await getFormBundle(studentNumber);
+  //         }
 
-//         if (response) {
-//           setFormData({
-//             socio_economic_status: response.socio_economic_status || {},
-//             scholastic_status: response.scholastic_status || {},
-//             preferences: response.preferences || {},
-//             student_support: response.student_support || {},
-//             privacy_consent: response.privacy_consent || false,
-//           });
-//           setSubmissionId(response.submission.id);
+  //         if (response) {
+  //           setFormData({
+  //             socio_economic_status: response.socio_economic_status || {},
+  //             scholastic_status: response.scholastic_status || {},
+  //             preferences: response.preferences || {},
+  //             student_support: response.student_support || {},
+  //             privacy_consent: response.privacy_consent || false,
+  //           });
+  //           setSubmissionId(response.submission.id);
 
-//           if (response.submission.status === "submitted") {
-//             setReadOnly(true);
-//           }
-//         } else {
-//           setError("Failed to create or fetch the form.");
-//         }
-//       } catch (err) {
-//         setError("Error fetching or creating form.");
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
+  //           if (response.submission.status === "submitted") {
+  //             setReadOnly(true);
+  //           }
+  //         } else {
+  //           setError("Failed to create or fetch the form.");
+  //         }
+  //       } catch (err) {
+  //         setError("Error fetching or creating form.");
+  //       } finally {
+  //         setLoading(false);
+  //       }
+  //     };
 
-//     if (studentNumber) fetchFormData();
-//   }, [studentNumber]);
+  //     if (studentNumber) fetchFormData();
+  //   }, [studentNumber]);
 
   const handleSaveDraft = async () => {
     if (!submissionId) {
@@ -274,7 +274,8 @@ const ReferralSlip = () => {
                 Counseling Referral Slip
               </h1>
               <p className="text-center text-white my-5 text-base w-full max-w-2xl mx-auto whitespace-normal">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+                eiusmod tempor incididunt ut labore et dolore magna aliqua.
               </p>
             </div>
 
@@ -323,14 +324,12 @@ const ReferralSlip = () => {
                     //   setErrors={setErrors}
                     />
                   )}
-                  {step === 4 && (
-                    <RSSubmit />
-                  )}
+                  {step === 4 && <RSSubmit />}
                   <div className="main-form-buttons">
                     {/* Step 1: 'Save Draft' and 'Next' button */}
                     {step === 1 && !loading && (
-                       <> 
-                       {!readOnly && (
+                      <>
+                        {!readOnly && (
                           <Button
                             variant="tertiary"
                             onClick={handleSaveDraft}
@@ -340,9 +339,9 @@ const ReferralSlip = () => {
                             {loading ? "Saving Draft..." : "Save Draft"}
                           </Button>
                         )}
-                      <Button variant="primary" onClick={handleNextStep}>
-                        Next
-                      </Button>
+                        <Button variant="primary" onClick={handleNextStep}>
+                          Next
+                        </Button>
                       </>
                     )}
 

@@ -8,8 +8,8 @@
 .form-group label {
   position: absolute;
   left: 12px;
-  top: 18px;  
-  transform: none; 
+  top: 18px;
+  transform: none;
   transition: all 0.2s ease;
   font-size: 14px;
   color: rgba(0, 0, 0, 0.6);
@@ -76,24 +76,24 @@
 /* --- Focus State --- */
 .form-input:focus,
 .form-group select:focus {
-  border-color: #1976D2;
+  border-color: #1976d2;
   outline: none;
 }
 
 /* --- Error Styles --- */
 .form-group.error .form-input,
 .form-group.error select {
-  border-color: #D32F2F;
+  border-color: #d32f2f;
 }
 
 .form-group.error label {
-  color: #D32F2F;
+  color: #d32f2f;
 }
 
 /* --- Error Message --- */
 .form-group .error-message {
   font-size: 12px;
-  color: #D32F2F;
+  color: #d32f2f;
   margin-top: 4px;
 }
 
@@ -179,12 +179,11 @@
   cursor: pointer;
 }
 
-
 /* Textarea */
 textarea.form-input {
-  height: 150px; 
+  height: 150px;
   width: 100%;
-  resize: vertical; 
+  resize: vertical;
 }
 
 .helper-text {
@@ -200,25 +199,26 @@ textarea.form-input {
 }
 
 .form-group.error textarea.custom-form-input {
-  border-color: #D32F2F;
+  border-color: #d32f2f;
 }
 
 .form-group.error textarea.custom-form-input:focus,
 .form-group.error textarea.custom-form-input.filled {
-  border-color: #1976D2;
+  border-color: #1976d2;
 }
 
 .form-group.error textarea.custom-form-input:focus + label,
 .form-group.error textarea.custom-form-input.filled + label {
-  color: #1976D2;
+  color: #1976d2;
 }
 
 .form-input.error {
-  border-color: #D32F2F !important;
+  border-color: #d32f2f !important;
 }
 
 @media (max-width: 768px) {
-  .form-row, .form-row.three-columns {
+  .form-row,
+  .form-row.three-columns {
     display: block;
   }
 }

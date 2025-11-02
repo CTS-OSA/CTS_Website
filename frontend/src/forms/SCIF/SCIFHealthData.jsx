@@ -1,14 +1,18 @@
 import React from "react";
 import FormField from "../../components/FormField";
-import "../SetupProfile/css/multistep.css";
 import { clearError } from "../../utils/helperFunctions";
 import {
   filterGeneralText,
   filterDecimalNumbers,
 } from "../../utils/inputFilters";
 
-const SCIFHealthData = ({ data, updateData, readOnly = false, errors, setErrors }) => {
-
+const SCIFHealthData = ({
+  data,
+  updateData,
+  readOnly = false,
+  errors,
+  setErrors,
+}) => {
   const normalizeText = (value) => {
     if (readOnly) return;
     return value === "" ? null : value;
@@ -29,54 +33,66 @@ const SCIFHealthData = ({ data, updateData, readOnly = false, errors, setErrors 
     }
   };
 
-  const handleTextFieldChange = (field, value, filterFn = filterGeneralText) => {
+  const handleTextFieldChange = (
+    field,
+    value,
+    filterFn = filterGeneralText
+  ) => {
     if (readOnly) return;
 
     const filteredValue = filterFn(value);
-    
-    updateData({ 
-        ...data, 
-        [field]: filteredValue 
+    updateData({
+      ...data,
+      [field]: filteredValue,
     });
   };
 
   return (
-    <div className="form-section">
-      <fieldset className="form-section" disabled={readOnly}>
-        <h2 className="step-title">Health Data</h2>
+    <div className="space-y-10">
+      <h2 className="text-2xl font-bold text-gray-800">Health Data</h2>
 
+      <section className="p-6 border border-gray-200 rounded-xl bg-gray-50 space-y-6">
         {/* Health Condition (Radio Buttons) */}
-        <div className="radio-form ">
-          <label className="form-label ">Health Condition:</label>
-          <div className="radio-group form-row .span-two-columns">
+        <div>
+          <label className="block text-gray-700 font-medium mb-2">
+            Health Condition:
+          </label>
+          <div className="flex flex-wrap gap-4">
             {["Excellent", "Very Good", "Good", "Poor"].map((condition) => (
-              <label key={condition} className="radio-label">
+              <label key={condition} className="flex items-center space-x-2">
                 <input
                   type="radio"
                   name="health_condition"
                   value={condition}
                   checked={data.health_condition === condition}
                   onChange={() => handleHealthConditionChange(condition)}
+                  disabled={readOnly}
+                  className="accent-blue-600"
                 />
-                {condition}
+                <span className="text-gray-700">{condition}</span>
               </label>
             ))}
           </div>
-            {errors?.["health_data.health_condition"] && (
-              <p className="error-message">{errors["health_data.health_condition"]}</p>
-            )}  
+          {errors?.["health_data.health_condition"] && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors["health_data.health_condition"]}
+            </p>
+          )}
         </div>
 
         {/* Height and Weight */}
-        <div className="subsection-form"></div>
-         <div className="form-row">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             label="Height (m)"
             type="text"
             value={data.height ?? ""}
             onFocus={() => clearError("health_data.height")}
             onChange={(e) =>
-              handleTextFieldChange('height', e.target.value, filterDecimalNumbers)
+              handleTextFieldChange(
+                "height",
+                e.target.value,
+                filterDecimalNumbers
+              )
             }
             error={errors?.["health_data.height"]}
             required
@@ -88,7 +104,11 @@ const SCIFHealthData = ({ data, updateData, readOnly = false, errors, setErrors 
             value={data.weight ?? ""}
             onFocus={() => clearError("health_data.weight")}
             onChange={(e) =>
-              handleTextFieldChange('weight', e.target.value, filterDecimalNumbers)
+              handleTextFieldChange(
+                "weight",
+                e.target.value,
+                filterDecimalNumbers
+              )
             }
             error={errors?.["health_data.weight"]}
             required
@@ -96,7 +116,7 @@ const SCIFHealthData = ({ data, updateData, readOnly = false, errors, setErrors 
         </div>
 
         {/* Eye Sight and Hearing */}
-         <div className="form-row">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             label="Eye Sight"
             type="select"
@@ -135,7 +155,7 @@ const SCIFHealthData = ({ data, updateData, readOnly = false, errors, setErrors 
         </div>
 
         {/* Disabilities and Ailments */}
-        <div className="form-row">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             label="Any Physical Disability"
             type="text"
@@ -148,11 +168,11 @@ const SCIFHealthData = ({ data, updateData, readOnly = false, errors, setErrors 
               })
             }
             error={errors?.["health_data.physical_disabilities"]}
-            helpertext="Enter multiple items separated by a comma (e.g., Paralysis, Deafness, Asthma)"
+            helpertext="Enter multiple items separated by commas (e.g., Paralysis, Deafness, Asthma)"
           />
 
           <FormField
-            label="Common/ Frequent Ailment"
+            label="Common/Frequent Ailment"
             type="text"
             value={data.common_ailments || ""}
             onFocus={() => clearError("health_data.common_ailments")}
@@ -163,22 +183,23 @@ const SCIFHealthData = ({ data, updateData, readOnly = false, errors, setErrors 
               })
             }
             error={errors?.["health_data.common_ailments"]}
-            helpertext="Enter multiple items separated by a comma (e.g., Colds, Flu, Cough)"
+            helpertext="Enter multiple items separated by commas (e.g., Colds, Flu, Cough)"
           />
         </div>
 
         {/* Hospitalization */}
-         <div className="custom-form-row">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             label="Last Hospitalization (MM/DD/YYYY)"
             type="date"
+            placeholder="MM/DD/YYYY"
             value={data.last_hospitalization || ""}
             onFocus={() => clearError("health_data.last_hospitalization")}
             onChange={(e) =>
               updateData({ ...data, last_hospitalization: e.target.value })
             }
-            className="custom-form-input form-input"
             error={errors?.["health_data.last_hospitalization"]}
+            className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
           />
 
           <FormField
@@ -187,13 +208,15 @@ const SCIFHealthData = ({ data, updateData, readOnly = false, errors, setErrors 
             value={data.reason_of_hospitalization || ""}
             onFocus={() => clearError("health_data.reason_of_hospitalization")}
             onChange={(e) =>
-              updateData({ ...data, reason_of_hospitalization: e.target.value })
+              updateData({
+                ...data,
+                reason_of_hospitalization: e.target.value,
+              })
             }
-            className="custom-form-input form-input"
             error={errors?.["health_data.reason_of_hospitalization"]}
           />
         </div>
-      </fieldset>
+      </section>
     </div>
   );
 };

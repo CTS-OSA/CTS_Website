@@ -9,17 +9,17 @@
   box-sizing: border-box;
   width: 100%;
   min-height: 50px;
-  height: auto; 
+  height: auto;
   padding: 18px 12px 6px 12px;
   border: 1px solid gray;
   border-radius: 4px;
   font-family: Arial, Helvetica, sans-serif;
   font-size: 16px;
   line-height: 1.2;
-  overflow-y: auto; 
-  text-align: left; 
-  vertical-align: top; 
-  padding-top: 10px; 
+  overflow-y: auto;
+  text-align: left;
+  vertical-align: top;
+  padding-top: 10px;
   display: flex;
   align-items: center;
   box-sizing: border-box;
@@ -28,15 +28,15 @@
 /* --- Display Label Styling (Floating Effect) --- */
 .display-label {
   font-size: 14px;
-  color: rgba(0, 0, 0, 0.6);
   position: absolute;
+  font-family: Roboto;
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
   transition: all 0.2s ease;
-  background-color: white;
   padding: 0 4px;
+  background-color: white;
   width: auto;
 }
 
@@ -44,7 +44,7 @@
 .display-group.filled .display-label {
   top: -7px;
   font-size: 11px;
-  color: #1976D2;
+  color: #7b1113;
   transform: none;
   padding: 1px;
 }

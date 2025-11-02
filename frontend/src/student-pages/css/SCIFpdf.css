@@ -1,26 +1,26 @@
-.SCIF-Name{
-    margin-bottom: 20px;
+.SCIF-Name {
+  margin-bottom: 20px;
 }
 
-.SCIF-name-value, .SCIF-name-label{
-    display: flex;
-    text-align: center;
-    margin-bottom: -20px;
+.SCIF-name-value,
+.SCIF-name-label {
+  display: flex;
+  text-align: center;
+  margin-bottom: -20px;
 }
 
 .SCIF-name-value input {
-    text-align: center;
+  text-align: center;
 }
 
 .SCIF-inline {
   display: flex;
-  gap: 1rem; 
-  flex-wrap: wrap; 
+  gap: 1rem;
+  flex-wrap: wrap;
   align-items: center;
   margin-bottom: -30px;
   width: 100%;
   margin-top: -30px;
-
 }
 
 .SCIF-inline label {
@@ -29,52 +29,55 @@
   gap: 0.5rem;
 }
 
-.SCIF-section-1, .SCIF-section-2{
-    display: flex;
-    gap: 30px;
+.SCIF-section-1,
+.SCIF-section-2 {
+  display: flex;
+  gap: 30px;
 }
 
-.SCIF-right, .SCIF-right input{
-    text-align: center;
+.SCIF-right,
+.SCIF-right input {
+  text-align: center;
 }
 
-.SCIF-right label{
-    margin-top: -10px;
+.SCIF-right label {
+  margin-top: -10px;
 }
 
-.pdf .graduation{
-    border: 1px black solid;
-    padding: 20px;
+.pdf .graduation {
+  border: 1px black solid;
+  padding: 20px;
 }
 
 .SCIF-left {
-    width: 70%;
+  width: 70%;
 }
 
-.SCIF-left input, .SCIF-right label{
-    height: auto;
+.SCIF-left input,
+.SCIF-right label {
+  height: auto;
 }
 
-.SCIF-section-2 .SCIF-left label{
-    margin-bottom: -40px;
-    display: flex;
+.SCIF-section-2 .SCIF-left label {
+  margin-bottom: -40px;
+  display: flex;
 }
 
-.SCIF-section-2 .SCIF-inline  {
-    gap: 0.8rem;
-    display: flex;
+.SCIF-section-2 .SCIF-inline {
+  gap: 0.8rem;
+  display: flex;
 }
 
-.SCIF-section{
-    margin-top: 30px;
+.SCIF-section {
+  margin-top: 30px;
 }
 
-.graduation label{
-    margin-bottom: -10px;
+.graduation label {
+  margin-bottom: -10px;
 }
 
-.SCIF-section-2 .section-title{
-    margin-bottom: 20px;
+.SCIF-section-2 .section-title {
+  margin-bottom: 20px;
 }
 
 .siblings-table {
@@ -96,18 +99,19 @@
   font-weight: bold;
 }
 
-.health-condition-inline{
+.health-condition-inline {
   display: flex;
   align-items: normal;
   gap: 1rem;
 }
 
 .closest-to-inline {
-    margin: 10px 0;
+  margin: 10px 0;
 }
-.health-condition-inline label, .closest-to-inline label {
-    width: fit-content;
-    align-items: normal;
+.health-condition-inline label,
+.closest-to-inline label {
+  width: fit-content;
+  align-items: normal;
 }
 .radio-group-inline {
   display: flex;
@@ -124,7 +128,6 @@
   padding: 0.25rem;
   width: 200px;
 }
-
 
 .school-records-table {
   width: 100%;
@@ -146,12 +149,12 @@
 }
 
 .SCIF-section.school {
-    margin-top: 50px;
+  margin-top: 50px;
 }
 
-.school label{
-    text-align: right;
-    margin-top: 20px;
+.school label {
+  text-align: right;
+  margin-top: 20px;
 }
 
 .scif-table {
@@ -189,12 +192,11 @@
   font-weight: bold;
 }
 
-
 .guidance-notes {
   width: 100%;
   border: 1px solid #ccc;
   padding: 10px;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-size: 14px;
   line-height: 1.5;
   resize: none;
@@ -202,8 +204,7 @@
   color: #333;
 }
 
-
-.SCIF-section .section-title{
-    font-size: 14px;
-    padding-bottom: 10px;
+.SCIF-section .section-title {
+  font-size: 14px;
+  padding-bottom: 10px;
 }
