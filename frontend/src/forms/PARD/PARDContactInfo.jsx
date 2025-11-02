@@ -5,19 +5,21 @@ const PARDContactInfo = ({ formData, setFormData, errors = {}, setErrors }) => {
     
     const handleChange = (e) => {
         const { name, value } = e.target;
+        const fieldName = name;
+        
         setFormData((prev) => ({
             ...prev,
             pard_contact_info: {
                 ...prev.pard_contact_info,
-                [`student_${name}`]: value
+                [fieldName]: value
             }
         }));
         
         // Clear the specific field error when user types
-        if (errors[`student_${name}`]) {
+        if (errors[fieldName]) {
             setErrors(prev => ({
                 ...prev,
-                [`student_${name}`]: null
+                [fieldName]: null
             }));
         }
     };
@@ -34,7 +36,9 @@ const PARDContactInfo = ({ formData, setFormData, errors = {}, setErrors }) => {
                     <FormField
                         label="Contact Number"
                         type="text"
-                        name="contact_number"
+                        name="student_contact_number"
+                        value={formData.pard_contact_info?.student_contact_number || ""}
+                        onChange={handleChange}
                     />
                     {errors.student_contact_number && <div className="text-[#D32F2F] text-xs  italic">{errors.student_contact_number}</div>}
                 </div>
@@ -42,7 +46,9 @@ const PARDContactInfo = ({ formData, setFormData, errors = {}, setErrors }) => {
                     <FormField
                         label="Email Address"
                         type="text"
-                        name="email_address"
+                        name="student_email"
+                        value={formData.pard_contact_info?.student_email || ""}
+                        onChange={handleChange}
                     />
                     {errors.student_email && <div className="text-[#D32F2F] text-xs  italic">{errors.student_email}</div>}
                 </div>
@@ -50,17 +56,21 @@ const PARDContactInfo = ({ formData, setFormData, errors = {}, setErrors }) => {
                     <FormField
                         label="Hometown Address"
                         type="text"
-                        name="address"
+                        name="hometown_address"
+                        value={formData.pard_contact_info?.hometown_address || ""}
+                        onChange={handleChange}
                         />
-                    {errors.student_hometown_address && <div className="text-[#D32F2F] text-xs  italic">{errors.student_hometown_address}</div>}
+                    {errors.hometown_address && <div className="text-[#D32F2F] text-xs  italic">{errors.hometown_address}</div>}
                 </div>
                 <div className="col-span-2">
                     <FormField
                         label="Current Address"
                         type="text"
                         name="current_address"
+                        value={formData.pard_contact_info?.current_address || ""}
+                        onChange={handleChange}
                         />
-                    {errors.student_current_address && <div className="text-[#D32F2F] text-xs  italic">{errors.student_current_address}</div>}
+                    {errors.current_address && <div className="text-[#D32F2F] text-xs  italic">{errors.current_address}</div>}
                 </div>
                 <div>
                     <label>
@@ -68,10 +78,11 @@ const PARDContactInfo = ({ formData, setFormData, errors = {}, setErrors }) => {
                     </label>
                     <FormField
                         type="date"
-                        name="date"
+                        name="preferred_date"
+                        value={formData.pard_contact_info?.preferred_date || ""}
                         onChange={handleChange}
                         />
-                    {errors.student_preferred_date && <div className="text-[#D32F2F] text-xs  italic">{errors.student_preferred_date}</div>}
+                    {errors.preferred_date && <div className="text-[#D32F2F] text-xs  italic">{errors.preferred_date}</div>}
                 </div>
                 <div>
                     <label>
@@ -79,10 +90,11 @@ const PARDContactInfo = ({ formData, setFormData, errors = {}, setErrors }) => {
                     </label>
                     <FormField
                         type="time"
-                        name="time"
+                        name="preferred_time"
+                        value={formData.pard_contact_info?.preferred_time || ""}
                         onChange={handleChange}
                         />
-                    {errors.student_preferred_time && <div className="text-[#D32F2F] text-xs  italic">{errors.student_preferred_time}</div>}
+                    {errors.preferred_time && <div className="text-[#D32F2F] text-xs  italic">{errors.preferred_time}</div>}
                 </div>
             </div>
 

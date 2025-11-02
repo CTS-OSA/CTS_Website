@@ -50,6 +50,11 @@ const PARD = () => {
             preferred_time: "",
         },
         pard_psych_assessment: {
+            date_started: "",
+            is_diagnosed: "",
+            symptoms_observed: "",
+            communication_platform: "",
+            date_diagnosed: "",
             diagnosed_by: "",
         },
         consent_agreed: false,
@@ -114,6 +119,26 @@ const PARD = () => {
             },
         },
         pard_psych_assessment: {
+            date_started: {
+                required: true,
+                message: "This field is required.",
+            },
+            is_diagnosed: {
+                required: true,
+                message: "This field is required.",
+            },
+            symptoms_observed: {
+                required: true,
+                message: "This field is required.",
+            },
+            communication_platform: {
+                required: true,
+                message: "This field is required.",
+            },
+            date_diagnosed: {
+                required: true,
+                message: "This field is required.",
+            },
             diagnosed_by: {
                 required: true,
                 message: "This field is required.",
@@ -122,10 +147,12 @@ const PARD = () => {
     };
 
     const validateStep = (stepNumber) => {
+
+        // NOTE: UNCOMMENT THIS TO VIEW VALIDATION
         const stepMap = {
-            3: 'pard_demographic_profile',
-            4: 'pard_contact_info',
-            5: 'pard_psych_assessment'
+            // 3: 'pard_demographic_profile',
+            // 4: 'pard_contact_info',
+            // 5: 'pard_psych_assessment'
         };
         
         const sectionKey = stepMap[stepNumber];
@@ -268,7 +295,7 @@ const PARD = () => {
                                             {step === 2 && <PARDConsent formData={formData} setFormData={setFormData} setError={setError} />}
                                             {step === 3 && <PARDDemogProfile formData={formData} setFormData={setFormData} errors={errors} setErrors={setErrors} />}
                                             {step === 4 && <PARDContactInfo formData={formData} setFormData={setFormData} errors={errors} setErrors={setErrors} />}
-                                            {step === 5 && <PARDPsychAssessment formData={formData} setFormData={setFormData}/>}
+                                            {step === 5 && <PARDPsychAssessment formData={formData} setFormData={setFormData} errors={errors} setErrors={setErrors}/>}
                                             {step === 6 && <PARDAuthorization formData={formData} setFormData={setFormData} setError={setError} />}
                                         </>
                                     ) : (
