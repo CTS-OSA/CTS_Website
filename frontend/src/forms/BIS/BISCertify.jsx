@@ -1,58 +1,72 @@
-import React from 'react';
-import '../SetupProfile/css/multistep.css';
+import React from "react";
 
-const BISCertify = ({ data, updateData, showError, readOnly = false }) => {
-  const hasConsented = data?.privacy_consent?.has_consented || false;
-
-  const handleChange = (e) => {
-    if (readOnly) return;
-
-    const isChecked = e.target.checked;
-    updateData(isChecked);
-  };
-
+const BISCertify = ({ data, updateData, readOnly = false, setError }) => {
   return (
-    <div className="form-section">
-      <fieldset className="form-section" disabled={readOnly}>
-      <h2 className="step-title">Privacy Statement</h2>
+    <div className="p-4">
+      <h3 className="text-upmaroon font-bold text-2xl mb-5">
+        PRIVACY STATEMENT
+      </h3>
 
-      <p className="privacy-description">
-        The University of the Philippines takes your privacy seriously and we are committed to protecting your personal information.
-        For the UP Privacy Policy, please visit{' '}
-        <a
-          href="https://privacy.up.edu.ph"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          https://privacy.up.edu.ph
-        </a>.
-      </p>
+      <div className="space-y-4 text-sm leading-7 text-gray-700">
+        <p>
+          The University of the Philippines takes your privacy seriously and we are committed to protecting your personal information.
+        </p>
+        
+        <p>
+          By submitting this form, you acknowledge that you have read and understood the UP Privacy Notice and consent to the collection, 
+          use, and processing of your personal information as described therein.
+        </p>
 
-      <div className="certify-agreement">
-        <label className="form-label">
-          <input
-            type="checkbox"
-            name="has_consented"
-            checked={hasConsented}
-            onChange={handleChange}
-            className="certify-checkbox"
-          />
-          <span className="certify-text">
-              I have read the University of the Philippines’ Privacy Notice for Students.
-            I understand that for the UP System to carry out its mandate under the 1987 Constitution, the UP Charter, and other laws,
-            the University must necessarily process my personal and sensitive personal information.
-            Therefore, I recognize the authority of the University of the Philippines to process my personal and sensitive personal
-            information, pursuant to the UP Privacy Notice and applicable laws.
-          </span>
-        </label>
+        <p>
+          Read our full privacy policy at{" "}
+          <a 
+            href="https://privacy.up.edu.ph" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-upmaroon hover:underline font-medium"
+          >
+            https://privacy.up.edu.ph
+          </a>
+        </p>
 
-        {showError && !hasConsented && (
-          <div className="error-message">
-            <span>Please agree to the privacy notice to proceed.</span>
-          </div>
-        )}
+        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 my-6">
+          <h4 className="font-semibold text-gray-800 mb-3">Data Collection and Use</h4>
+          <p className="text-sm text-gray-600">
+            The information provided in this Basic Information Sheet will be used for student records, 
+            academic planning, and institutional research purposes. Your data will be kept confidential 
+            and will only be accessed by authorized university personnel.
+          </p>
+        </div>
       </div>
-      </fieldset>
+
+      {/* Checkbox Section */}
+      <div className="mt-8 p-4 bg-upmaroon/5 rounded-lg border-2 border-upmaroon/20">
+        <div className="flex items-start gap-3">
+          <input 
+            type="checkbox" 
+            required
+            checked={data.privacy_consent?.has_consented || false}
+            onChange={(e) => {
+              updateData(e.target.checked);
+              if (e.target.checked) {
+                setError(null);
+              }
+            }}
+            disabled={readOnly}
+            className="w-5 h-5 mt-0.5 text-upmaroon focus:ring-upmaroon rounded cursor-pointer"
+          />
+          <label className="text-sm font-medium text-gray-700 cursor-pointer">
+            I certify that I have read and understood the UP Privacy Notice, and I give my full consent 
+            to the collection, use, and processing of my personal information as stated above.
+          </label>
+        </div>
+      </div>
+
+      {!data.privacy_consent?.has_consented && (
+        <p className="text-xs text-gray-500 mt-3 italic">
+          * You must agree to the Privacy Statement before you can submit this form.
+        </p>
+      )}
     </div>
   );
 };

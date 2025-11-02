@@ -1,6 +1,4 @@
 import React from "react";
-import FormField from "../../components/FormField";
-import "../SetupProfile/css/multistep.css";
 import { clearError } from "../../utils/helperFunctions";
 
 const ALPHA_REGEX = /^[A-Za-z\s]*$/;
@@ -48,20 +46,19 @@ const BISPresentScholastic = ({
     data.first_choice_course !== data.admitted_course;
 
   return (
-    <div className="form-section">
-      <fieldset className="form-section" disabled={readOnly}>
-        <h2 className="step-title">Present Scholastic Information</h2>
+    <div className="p-4">
+      <fieldset className="space-y-6" disabled={readOnly}>
+        <h2 className="text-upmaroon text-2xl font-bold mb-5">
+          Present Scholastic Information
+        </h2>
 
-        <div className="form-row full-width">
-          <label className="form-label">
-            What course did you intend to take up after graduation from Senior
-            High?
+        {/* Intended course */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            What course did you intend to take up after graduation from Senior High?
           </label>
           <input
             type="text"
-            className={`form-input ${
-              errors?.["scholastic_status.intended_course"] ? "error" : ""
-            }`}
             name="intended_course"
             value={data.intended_course || ""}
             onChange={handleChange}
@@ -72,22 +69,25 @@ const BISPresentScholastic = ({
                 ["scholastic_status.intended_course"]: undefined,
               }));
             }}
+            disabled={readOnly}
+            className={`w-full px-4 py-2.5 border rounded focus:outline-none focus:ring-2 focus:ring-upmaroon/20 ${
+              errors?.["scholastic_status.intended_course"] ? "border-red-500" : "border-gray-300"
+            } ${readOnly ? "bg-gray-50 text-gray-600" : "bg-white"}`}
           />
           {errors?.["scholastic_status.intended_course"] && (
-            <small className="error-message">{errors["scholastic_status.intended_course"]}</small>
+            <small className="text-red-500 text-xs">
+              {errors["scholastic_status.intended_course"]}
+            </small>
           )}
         </div>
 
-        <div className="form-row full-width">
-          <label className="form-label">
-            What course did you indicate as 1st choice in the UPCAT application
-            form?
+        {/* First choice course */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            What course did you indicate as 1st choice in the UPCAT application form?
           </label>
           <input
             type="text"
-            className={`form-input ${
-              errors?.["scholastic_status.first_choice_course"] ? "error" : ""
-            }`}
             name="first_choice_course"
             value={data.first_choice_course || ""}
             onChange={handleChange}
@@ -98,23 +98,25 @@ const BISPresentScholastic = ({
                 ["scholastic_status.first_choice_course"]: undefined,
               }));
             }}
+            disabled={readOnly}
+            className={`w-full px-4 py-2.5 border rounded focus:outline-none focus:ring-2 focus:ring-upmaroon/20 ${
+              errors?.["scholastic_status.first_choice_course"] ? "border-red-500" : "border-gray-300"
+            } ${readOnly ? "bg-gray-50 text-gray-600" : "bg-white"}`}
           />
           {errors?.["scholastic_status.first_choice_course"] && (
-            <small className="error-message">
+            <small className="text-red-500 text-xs">
               {errors["scholastic_status.first_choice_course"]}
             </small>
           )}
         </div>
 
-        <div className="form-row full-width">
-          <label className="form-label">
+        {/* Admitted course */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
             What course were you admitted to?
           </label>
           <input
             type="text"
-            className={`form-input ${
-              errors?.["scholastic_status.admitted_course"] ? "error" : ""
-            }`}
             name="admitted_course"
             value={data.admitted_course || ""}
             onChange={handleChange}
@@ -125,21 +127,25 @@ const BISPresentScholastic = ({
                 ["scholastic_status.admitted_course"]: undefined,
               }));
             }}
+            disabled={readOnly}
+            className={`w-full px-4 py-2.5 border rounded focus:outline-none focus:ring-2 focus:ring-upmaroon/20 ${
+              errors?.["scholastic_status.admitted_course"] ? "border-red-500" : "border-gray-300"
+            } ${readOnly ? "bg-gray-50 text-gray-600" : "bg-white"}`}
           />
           {errors?.["scholastic_status.admitted_course"] && (
-            <small className="error-message">{errors["scholastic_status.admitted_course"]}</small>
+            <small className="text-red-500 text-xs">
+              {errors["scholastic_status.admitted_course"]}
+            </small>
           )}
         </div>
 
+        {/* Conditional next plan field */}
         {showNextPlanField && (
-          <div className="form-row full-width">
-            <label className="form-label">
-              If your 1st choice in UPCAT is different from your admitted
-              course, what would be your next plan?
+          <div className="space-y-2 pl-6 border-l-4 border-upmaroon/20">
+            <label className="block text-sm font-medium text-gray-700">
+              If your 1st choice in UPCAT is different from your admitted course, what would be your next plan?
             </label>
-            <input
-              type="text"
-              className={`form-input ${errors?.["scholastic_status.next_plan"] ? "error" : ""}`}
+            <textarea
               name="next_plan"
               value={data.next_plan || ""}
               onChange={handleChange}
@@ -150,9 +156,16 @@ const BISPresentScholastic = ({
                   ["scholastic_status.next_plan"]: undefined,
                 }));
               }}
+              disabled={readOnly}
+              rows={4}
+              className={`w-full px-4 py-2.5 border rounded focus:outline-none focus:ring-2 focus:ring-upmaroon/20 resize-none ${
+                errors?.["scholastic_status.next_plan"] ? "border-red-500" : "border-gray-300"
+              } ${readOnly ? "bg-gray-50 text-gray-600" : "bg-white"}`}
             />
             {errors?.["scholastic_status.next_plan"] && (
-              <small className="error-message">{errors["scholastic_status.next_plan"]}</small>
+              <small className="text-red-500 text-xs">
+                {errors["scholastic_status.next_plan"]}
+              </small>
             )}
           </div>
         )}
