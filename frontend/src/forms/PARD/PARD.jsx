@@ -280,7 +280,7 @@ const PARD = () => {
                     </div>
                     <div className="flex flex-col justify-center bg-upmaroon w-full h-60 text-white text-center">
                         <h1 className="font-bold text-4xl -mt-10">Psychosocial Assistance and<br></br> Referral Desk</h1>
-                        <h3 className="text-lg">Online Appointment Schedule</h3>
+                        <h3 className="text-xl">Online Appointment Schedule</h3>
                     </div>
                     <div className="bg-white rounded-[15px] p-8 shadow-md box-border w-3/4 mx-auto mb-[70px] -mt-15">
                         <div className="flex lg:flex-row flex-col w-full items-stretch">
