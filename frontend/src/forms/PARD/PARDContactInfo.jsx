@@ -26,7 +26,7 @@ const PARDContactInfo = ({ formData, setFormData, errors = {}, setErrors }) => {
 
     return (
         <div className="p-4">
-            <h3 className="text-upmaroon font-bold text-2xl mb-3">
+            <h3 className="text-upmaroon font-bold text-xl sm:text-2xl mb-3">
                 CONTACT INFO
             </h3>
 
@@ -73,7 +73,7 @@ const PARDContactInfo = ({ formData, setFormData, errors = {}, setErrors }) => {
                     {errors.current_address && <div className="text-[#D32F2F] text-xs  italic">{errors.current_address}</div>}
                 </div>
                 <div>
-                    <label>
+                    <label className="text-xs sm:text-sm md:text-base">
                         Preferred day to be contacted
                     </label>
                     <FormField
@@ -85,7 +85,7 @@ const PARDContactInfo = ({ formData, setFormData, errors = {}, setErrors }) => {
                     {errors.preferred_date && <div className="text-[#D32F2F] text-xs  italic">{errors.preferred_date}</div>}
                 </div>
                 <div>
-                    <label>
+                    <label className="text-xs sm:text-sm md:text-base">
                         Preferred time to be contacted
                     </label>
                     <FormField

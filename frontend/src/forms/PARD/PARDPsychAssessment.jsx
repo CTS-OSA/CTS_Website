@@ -54,18 +54,18 @@ const PARDPsychAssessment = ({ formData, setFormData, errors = {}, setErrors }) 
 
     return (
         <div className="p-4">
-            <h3 className="text-upmaroon font-bold text-2xl mb-3">
+            <h3 className="text-upmaroon font-bold text-xl sm:text-2xl mb-3 ">
                 PSYCHOSOCIAL ASSESSMENT
             </h3>
 
-            <h4 className="text-sm mb-5">Chief complaint(s)/problems/concerns/disturbances:</h4>
+            <h4 className="text-sm md:text-base mb-5">Chief complaint(s)/problems/concerns/disturbances:</h4>
 
             <hr />
 
             {/* Form section */}
             <div className="grid grid-cols-2 gap-10 mt-3">
                 <div>
-                    <label>
+                    <label className="text-sm sm:text-base">
                         Started when (attacks or episodes):    
                     </label>
                     <FormField
@@ -77,7 +77,7 @@ const PARDPsychAssessment = ({ formData, setFormData, errors = {}, setErrors }) 
                     {errors.date_started && <div className="text-[#D32F2F] text-xs  italic">{errors.date_started}</div>}
                 </div>
                 <div>
-                    <label>
+                    <label className="text-sm sm:text-base">
                         If you have been diagnosed, when?   
                     </label>
                     <div className="flex gap-4 mt-2">
@@ -120,7 +120,7 @@ const PARDPsychAssessment = ({ formData, setFormData, errors = {}, setErrors }) 
                     {errors.symptoms_observed && <div className="text-[#D32F2F] text-xs  italic">{errors.symptoms_observed}</div>}
                 </div>
                 <div>
-                    <label>
+                    <label className="text-sm sm:text-base">
                         Preferred Communication platform
                     </label>
                     <FormField
@@ -137,7 +137,7 @@ const PARDPsychAssessment = ({ formData, setFormData, errors = {}, setErrors }) 
                 </div>
                 
                 <div>
-                    <label>
+                    <label className="text-sm sm:text-base">
                         If you have been diagnosed, when?   
                     </label>
                     <FormField
@@ -150,14 +150,14 @@ const PARDPsychAssessment = ({ formData, setFormData, errors = {}, setErrors }) 
                 </div>
 
                 <div>
-                    <label>
+                    <label className="text-sm sm:text-base">
                         Have been diagnosed by: 
                     </label>
 
                     {/* CHECKBOX SECTION*/}
                     <div className="mt-3">
                         {profession.map((option) => (
-                            <div key={option} className="flex items-center gap-2 mb-2">
+                            <div key={option} className="flex items-center gap-2 mb-2 text-sm md:text-base">
                                 <input
                                     type="checkbox"
                                     id={option}
