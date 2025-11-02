@@ -64,7 +64,6 @@
   margin-top: 1rem;
 }
 
-
 fieldset {
   border: none;
   padding: 0;
@@ -113,11 +112,12 @@ textarea {
   font-family: inherit;
   box-sizing: border-box;
   transition: border-color 0.2s ease;
+  background-color: #f9fafb;
 }
 
 .form-input:focus,
 textarea:focus {
-  border-color: #007bff;
+  border-color: #7b1113;
   outline: none;
 }
 
@@ -255,7 +255,7 @@ textarea:focus {
 
 .modal-content h2 {
   font-size: 18px;
-  text-align: left ;
+  text-align: left;
 }
 
 .modal-close {
@@ -333,7 +333,7 @@ textarea:focus {
   box-sizing: border-box;
 }
 
-.line{
+.line {
   border-bottom: #7b1113 solid 1px;
   margin: 10px 0;
 }
@@ -356,7 +356,6 @@ textarea:focus {
   .main-form-subtitle {
     font-size: 1em;
   }
-
 
   .form-grid {
     grid-template-columns: 1fr;

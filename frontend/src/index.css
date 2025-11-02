@@ -15,3 +15,42 @@
   --font-condensed: "Roboto Condensed";
   --font-spartan: "League Spartan";
 }
+
+input[type="checkbox"] {
+  accent-color: #7b1113;
+}
+input[type="radio"] {
+  accent-color: #7b1113;
+}
+
+input,
+select {
+  background-color: #f9fafb;
+}
+
+label {
+  font-family: Roboto;
+  color: #7b1113;
+}
+
+/* Date picker */
+input[type="date"] {
+  color: #111827;
+  background-color: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
+  width: 100%;
+  appearance: none;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+input[type="date"]:focus {
+  border-color: #7b1113;
+  box-shadow: none;
+  outline: none;
+}

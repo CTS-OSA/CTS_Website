@@ -28,12 +28,12 @@
   flex: 1;
 }
 
-.pdfHeader h2{
+.pdfHeader h2 {
   font-size: 18px;
 }
 
-.pdfHeader p{
-  font-size: 16px  ;
+.pdfHeader p {
+  font-size: 16px;
 }
 
 .pdfHeader .right {
@@ -59,7 +59,7 @@
   font-size: 16px;
 }
 
-.sub-info p{
+.sub-info p {
   font-size: 12px;
 }
 
@@ -225,7 +225,8 @@ textarea {
 }
 
 @media (max-width: 768px) {
-  .pdf.flex-row, .pdf.flex-row label{
+  .pdf.flex-row,
+  .pdf.flex-row label {
     display: block;
   }
 }
@@ -242,12 +243,12 @@ textarea {
   flex: 1;
 }
 
-.pdfHeader h2{
+.pdfHeader h2 {
   font-size: 12px;
 }
 
-.pdfHeader p{
-  font-size: 10px  ;
+.pdfHeader p {
+  font-size: 10px;
 }
 
 .pdfHeader .right {
@@ -255,7 +256,7 @@ textarea {
   font-size: 0.875rem;
 }
 
-.pdf-buttons{
+.pdf-buttons {
   display: flex;
   justify-content: space-between;
   margin: 20px;
@@ -291,7 +292,8 @@ textarea {
     background: none !important;
   }
 
-  .pdf.flex-row, .pdf.flex-row label{
+  .pdf.flex-row,
+  .pdf.flex-row label {
     display: block;
   }
 }

@@ -1,29 +1,31 @@
-import React from 'react';
-import FormField from '../../components/FormField';
+import React from "react";
+import FormField from "../../components/FormField";
 
 const SCIFScholarships = ({ data, updateData, readOnly = false }) => {
-const handleRawChange = (newValue) => {
+  const handleRawChange = (newValue) => {
     if (readOnly) return;
-    // Store the raw string input directly
-    updateData({ scholarships_and_assistance: newValue }); 
+    updateData({ scholarships_and_assistance: newValue });
   };
 
-  const scholarshipsRawText = typeof data.scholarships_and_assistance === 'string'
-    ? data.scholarships_and_assistance
-    : data.scholarships_and_assistance?.join('\n') || '';
+  const scholarshipsRawText =
+    typeof data.scholarships_and_assistance === "string"
+      ? data.scholarships_and_assistance
+      : data.scholarships_and_assistance?.join("\n") || "";
 
   const scholarshipsArray = scholarshipsRawText
-    .split('\n')
-    .map(item => item.trim())
-    .filter(item => item);
+    .split("\n")
+    .map((item) => item.trim())
+    .filter((item) => item);
 
   return (
-    <div className="form-section">
-      <fieldset className="form-section" disabled={readOnly}>
-        <h2 className="step-title">List of Scholarships & Financial Assistance While in College</h2>
+    <div className="form-section ">
+      <fieldset className="" disabled={readOnly}>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">
+          List of Scholarships & Financial Assistance While in College
+        </h2>
 
         {readOnly && scholarshipsArray.length === 0 ? (
-          <p style={{ fontStyle: 'italic', color: '#666' }}>None</p>
+          <p style={{ fontStyle: "italic", color: "#666" }}>None</p>
         ) : (
           <FormField
             label="List your Scholarship/s and Financial Assistance here:"

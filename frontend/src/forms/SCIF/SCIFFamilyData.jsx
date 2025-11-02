@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import FormField from "../../components/FormField"; // Import your FormField component
-import "../SetupProfile/css/multistep.css";
+import FormField from "../../components/FormField";
 import Button from "../../components/UIButton";
 import { clearError } from "../../utils/helperFunctions";
 import {
@@ -20,6 +19,19 @@ const SCIFFamilyData = ({
 
   const [languageInput, setLanguageInput] = useState(
     family_data.guardian?.language_dialect?.join(", ") || ""
+  );
+
+  const [isFatherDeceased, setIsFatherDeceased] = useState(
+    family_data.father?.is_deceased || false
+  );
+  const [isMotherDeceased, setIsMotherDeceased] = useState(
+    family_data.mother?.is_deceased || false
+  );
+  const [isFatherNone, setIsFatherNone] = useState(
+    family_data.father?.is_none || false
+  );
+  const [isMotherNone, setIsMotherNone] = useState(
+    family_data.mother?.is_none || false
   );
 
   const fieldTypes = {
@@ -50,13 +62,9 @@ const SCIFFamilyData = ({
     let filteredValue = value;
     const fieldType = fieldTypes[field];
 
-    if (fieldType === "alphabet") {
-      filteredValue = filterAlphabetsOnly(value);
-    } else if (fieldType === "number") {
-      filteredValue = filterNumbersOnly(value);
-    } else if (fieldType === "general") {
-      filteredValue = filterGeneralText(value);
-    }
+    if (fieldType === "alphabet") filteredValue = filterAlphabetsOnly(value);
+    else if (fieldType === "number") filteredValue = filterNumbersOnly(value);
+    else if (fieldType === "general") filteredValue = filterGeneralText(value);
 
     updateData("family_data", {
       ...family_data,
@@ -67,35 +75,109 @@ const SCIFFamilyData = ({
     });
   };
 
-  const addSibling = () => {
-    if (Array.isArray(siblings)) {
-      updateData("siblings", [
-        ...siblings,
-        {
-          first_name: "",
-          last_name: "",
-          sex: "",
-          age: null,
-          job_occupation: "",
-          company_school: "",
-          educational_attainment: "",
-          students: [],
-        },
-      ]);
+  // FILLERS
+  const fillDeceasedFields = (parent) => {
+    const currentParent = family_data[parent] || {};
+
+    updateData("family_data", {
+      ...family_data,
+      [parent]: {
+        ...currentParent,
+        first_name: currentParent.first_name || "",
+        last_name: currentParent.last_name || "",
+        age: "0",
+        contact_number: "00000000000",
+        highest_educational_attainment: "N/A",
+        job_occupation: "N/A",
+        company_agency: "N/A",
+        company_address: "N/A",
+        is_deceased: true,
+        is_none: false,
+      },
+    });
+  };
+
+  const fillNoneFields = (parent) => {
+    const fields = {
+      first_name: "None",
+      last_name: "None",
+      age: "N/A",
+      contact_number: "N/A",
+      highest_educational_attainment: "N/A",
+      job_occupation: "N/A",
+      company_agency: "N/A",
+      company_address: "N/A",
+      is_none: true,
+      is_deceased: false,
+    };
+
+    updateData("family_data", {
+      ...family_data,
+      [parent]: fields,
+    });
+  };
+
+  const clearParentFields = (parent) => {
+    updateData("family_data", {
+      ...family_data,
+      [parent]: {
+        is_deceased: false,
+        is_none: false,
+        first_name: "",
+        last_name: "",
+        age: "",
+        contact_number: "",
+        highest_educational_attainment: "",
+        job_occupation: "",
+        company_agency: "",
+        company_address: "",
+      },
+    });
+  };
+
+  const handleParentToggle = (parent, field, value) => {
+    if (readOnly) return;
+
+    if (parent === "father") {
+      if (field === "deceased") {
+        setIsFatherDeceased(value);
+        setIsFatherNone(false);
+        value ? fillDeceasedFields("father") : clearParentFields("father");
+      } else {
+        setIsFatherNone(value);
+        setIsFatherDeceased(false);
+        value ? fillNoneFields("father") : clearParentFields("father");
+      }
     } else {
-      updateData("siblings", [
-        {
-          first_name: "",
-          last_name: "",
-          sex: "",
-          age: null,
-          job_occupation: "",
-          company_school: "",
-          educational_attainment: "",
-          students: [],
-        },
-      ]);
+      if (field === "deceased") {
+        setIsMotherDeceased(value);
+        setIsMotherNone(false);
+        value ? fillDeceasedFields("mother") : clearParentFields("mother");
+      } else {
+        setIsMotherNone(value);
+        setIsMotherDeceased(false);
+        value ? fillNoneFields("mother") : clearParentFields("mother");
+      }
     }
+  };
+
+  // SIBLING LOGIC
+  const addSibling = () => {
+    const newSibling = {
+      first_name: "",
+      last_name: "",
+      sex: "",
+      age: "",
+      job_occupation: "",
+      company_school: "",
+      educational_attainment: "",
+      students: [],
+    };
+
+    updateData(
+      "siblings",
+      Array.isArray(siblings) ? [...siblings, newSibling] : [newSibling]
+    );
   };
 
   const removeSibling = (index) => {
@@ -110,14 +192,9 @@ const SCIFFamilyData = ({
 
     let filteredValue = value;
     const fieldType = siblingFieldTypes[field];
-
-    if (fieldType === 'alphabet') {
-      filteredValue = filterAlphabetsOnly(value);
-    } else if (fieldType === 'number') {
-      filteredValue = filterNumbersOnly(value);
-    } else if (fieldType === 'general') {
-      filteredValue = filterGeneralText(value);
-    }
+    if (fieldType === "alphabet") filteredValue = filterAlphabetsOnly(value);
+    else if (fieldType === "number") filteredValue = filterNumbersOnly(value);
+    else if (fieldType === "general") filteredValue = filterGeneralText(value);
 
     updateData(
       "siblings",
@@ -127,9 +204,15 @@ const SCIFFamilyData = ({
     );
   };
 
+  // CONTACT & LANGUAGE HANDLERS
+  const handleContactChange = (section, value) => {
+    if (readOnly) return;
+    const filtered = filterNumbersOnly(value).slice(0, 11);
+    handleFieldChange(section, "contact_number", filtered);
+  };
+
   const handleLanguageChange = (e) => {
     if (readOnly) return;
-
     const value = e.target.value;
     const filteredValue = filterGeneralText(value);
     setLanguageInput(filteredValue);
@@ -144,523 +227,492 @@ const SCIFFamilyData = ({
   };
 
   return (
-    <div className="form-section">
-      <fieldset className="form-section" disabled={readOnly}>
-        <h2 className="step-title">Family Data</h2>
-        <small>
-          Provide complete details of your parents and siblings; indicate “N/A”
-          or “Deceased” if applicable. If your guardians are also your parents,
-          write “N/A” or leave the guardian section blank; otherwise, specify
-          your guardian while staying in UP.
-        </small>
+    <div className="space-y-2">
+      <h2 className="text-2xl font-bold text-gray-800 ">Family Data</h2>
+      <small className="text-gray-600 block mb-4">
+        Provide complete details of your parents and siblings; indicate “N/A”,
+        “Deceased”, or “None” if applicable.
+      </small>
 
-        {/* Father */}
-        <section className="subsection-form family-data-father">
-          <p className="step-info">
-            <strong>FATHER</strong>
-          </p>
-          <div className="form-row three-columns">
-            <FormField
-              label="Father's First Name"
-              type="text"
-              value={family_data.father?.first_name || ""}
-              onFocus={() => clearError(errors, setErrors, "father.first_name")}
-              onChange={(e) =>
-                handleFieldChange("father", "first_name", e.target.value)
-              }
-              error={errors?.["father.first_name"]}
-              required
-            />
-            <FormField
-              label="Father's Last Name"
-              type="text"
-              value={family_data.father?.last_name || ""}
-              onFocus={() => clearError(errors, setErrors, "father.last_name")}
-              onChange={(e) =>
-                handleFieldChange("father", "last_name", e.target.value)
-              }
-              error={errors?.["father.last_name"]}
-              required
-            />
-            <FormField
-              label="Age"
-              type="text"
-              value={family_data.father?.age ?? ""}
-              onFocus={() => clearError(errors, setErrors, "father.age")}
-              onChange={(e) =>
-                handleFieldChange("father", "age", e.target.value)
-              }
-              error={errors?.["father.age"]}
-              required
-            />
-          </div>
-          <div className="form-row three-columns">
-            <FormField
-              label="Highest Educational Attainment"
-              type="text"
-              value={family_data.father?.highest_educational_attainment || ""}
-              onFocus={() =>
-                clearError(
-                  errors,
-                  setErrors,
-                  "father.highest_educational_attainment"
-                )
-              }
-              onChange={(e) =>
-                handleFieldChange(
-                  "father",
-                  "highest_educational_attainment",
-                  e.target.value
-                )
-              }
-              error={errors?.["father.highest_educational_attainment"]}
-            />
-            <FormField
-              label="Job/Occupation"
-              type="text"
-              value={family_data.father?.job_occupation || ""}
-              onFocus={() =>
-                clearError(errors, setErrors, "father.job_occupation")
-              }
-              onChange={(e) =>
-                handleFieldChange("father", "job_occupation", e.target.value)
-              }
-              error={errors?.["father.job_occupation"]}
-            />
-            <FormField
-              label="Contact Number"
-              type="text"
-              value={family_data.father?.contact_number || ""}
-              onFocus={() =>
-                clearError(errors, setErrors, "father.contact_number")
-              }
-              onChange={(e) =>
-                handleFieldChange("father", "contact_number", e.target.value)
-              }
-              error={errors?.["father.contact_number"]}
-              required
-            />
-          </div>
-          <div className="form-row three-columns">
-            <div>
-              <FormField
-                label="Company/Agency"
-                type="text"
-                value={family_data.father?.company_agency || ""}
-                onFocus={() =>
-                  clearError(errors, setErrors, "father.company_agency")
-                }
+      {/* Father Section */}
+      <section className="p-6 border border-gray-200 rounded-xl bg-gray-50">
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-lg font-semibold text-gray-700">FATHER</p>
+          <div className="flex gap-6">
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={isFatherDeceased}
                 onChange={(e) =>
-                  handleFieldChange("father", "company_agency", e.target.value)
+                  handleParentToggle("father", "deceased", e.target.checked)
                 }
-                error={errors?.["father.company_agency"]}
+                disabled={readOnly}
               />
-            </div>
-            <div className="span-two-columns">
-              <FormField
-                label="Company Address"
-                type="text"
-                value={family_data.father?.company_address || ""}
-                onFocus={() =>
-                  clearError(errors, setErrors, "father.company_address")
-                }
+              <span className="text-gray-700">Deceased</span>
+            </label>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={isFatherNone}
                 onChange={(e) =>
-                  handleFieldChange("father", "company_address", e.target.value)
+                  handleParentToggle("father", "none", e.target.checked)
                 }
-                error={errors?.["father.company_address"]}
+                disabled={readOnly}
               />
-            </div>
+              <span className="text-gray-700">None</span>
+            </label>
           </div>
-        </section>
+        </div>
 
-        {/* Mother */}
-        <section className="subsection-form family-data-mother">
-          <p className="step-info">
-            <strong>MOTHER</strong>
-          </p>
-          <div className="form-row three-columns">
-            <FormField
-              label="Mother's First Name"
-              type="text"
-              value={family_data.mother?.first_name || ""}
-              onFocus={() => clearError(errors, setErrors, "mother.first_name")}
-              onChange={(e) =>
-                handleFieldChange("mother", "first_name", e.target.value)
-              }
-              error={errors?.["mother.first_name"]}
-              required
-            />
-            <FormField
-              label="Mother's Last Name"
-              type="text"
-              value={family_data.mother?.last_name || ""}
-              onFocus={() => clearError(errors, setErrors, "mother.last_name")}
-              onChange={(e) =>
-                handleFieldChange("mother", "last_name", e.target.value)
-              }
-              error={errors?.["mother.last_name"]}
-              required
-            />
-            <FormField
-              label="Age"
-              type="text"
-              value={family_data.mother?.age ?? ""}
-              onFocus={() => clearError(errors, setErrors, "mother.age")}
-              onChange={(e) =>
-                handleFieldChange("mother", "age", e.target.value)
-              }
-              error={errors?.["mother.age"]}
-              required
-            />
-          </div>
-          <div className="form-row three-columns">
-            <FormField
-              label="Highest Educational Attainment"
-              type="text"
-              value={family_data.mother?.highest_educational_attainment || ""}
-              onFocus={() =>
-                clearError(
-                  errors,
-                  setErrors,
-                  "mother.highest_educational_attainment"
-                )
-              }
-              onChange={(e) =>
-                handleFieldChange(
-                  "mother",
-                  "highest_educational_attainment",
-                  e.target.value
-                )
-              }
-              error={errors?.["mother.highest_educational_attainment"]}
-            />
-            <FormField
-              label="Job/Occupation"
-              type="text"
-              value={family_data.mother?.job_occupation || ""}
-              onFocus={() =>
-                clearError(errors, setErrors, "mother.job_occupation")
-              }
-              onChange={(e) =>
-                handleFieldChange("mother", "job_occupation", e.target.value)
-              }
-              error={errors?.["mother.job_occupation"]}
-            />
-            <FormField
-              label="Contact Number"
-              type="text"
-              value={family_data.mother?.contact_number || ""}
-              onFocus={() =>
-                clearError(errors, setErrors, "mother.contact_number")
-              }
-              onChange={(e) =>
-                handleFieldChange("mother", "contact_number", e.target.value)
-              }
-              error={errors?.["mother.contact_number"]}
-              required
-            />
-          </div>
-          <div className="form-row three-columns">
-            <div>
+        {!isFatherNone && (
+          <>
+            <div
+              className={`grid grid-cols-1 md:grid-cols-2 ${
+                isFatherDeceased ? "lg:grid-cols-2" : "lg:grid-cols-3"
+              } gap-4`}
+            >
               <FormField
-                label="Company/Agency"
+                label="Father's First Name"
                 type="text"
-                value={family_data.mother?.company_agency || ""}
+                value={family_data.father?.first_name || ""}
                 onFocus={() =>
-                  clearError(errors, setErrors, "mother.company_agency")
+                  clearError(errors, setErrors, "father.first_name")
                 }
                 onChange={(e) =>
-                  handleFieldChange("mother", "company_agency", e.target.value)
+                  handleFieldChange("father", "first_name", e.target.value)
                 }
-                error={errors?.["mother.company_agency"]}
+                error={errors?.["father.first_name"]}
+                required
               />
-            </div>
-            <div className="span-two-columns">
               <FormField
-                label="Company Address"
+                label="Father's Last Name"
                 type="text"
-                value={family_data.mother?.company_address || ""}
+                value={family_data.father?.last_name || ""}
                 onFocus={() =>
-                  clearError(errors, setErrors, "mother.company_address")
+                  clearError(errors, setErrors, "father.last_name")
                 }
                 onChange={(e) =>
-                  handleFieldChange("mother", "company_address", e.target.value)
+                  handleFieldChange("father", "last_name", e.target.value)
                 }
-                error={errors?.["mother.company_address"]}
+                error={errors?.["father.last_name"]}
+                required
               />
+              {!isFatherDeceased && (
+                <FormField
+                  label="Age"
+                  type="text"
+                  value={family_data.father?.age || ""}
+                  onChange={(e) =>
+                    handleFieldChange("father", "age", e.target.value)
+                  }
+                  error={errors?.["father.age"]}
+                  required
+                />
+              )}
             </div>
-          </div>
-        </section>
 
-        {/* Siblings */}
-        <section className="subsection-form family-data-sibling">
-          <p className="step-info">
-            <strong>SIBLINGS</strong>
-          </p>
-          {Array.isArray(siblings) &&
-            siblings.map((sibling, index) => (
-              <div
-                key={index}
-                className="sibling-section"
-                style={{ marginBottom: "2rem" }}
-              >
-                <p>
-                  <strong>Sibling {index + 1}</strong>
-                </p>
-                <div
-                  className="form-row three-columns"
-                  style={{ marginTop: "2rem" }}
-                >
+            {!isFatherDeceased && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                   <FormField
-                    label="First Name"
+                    label="Highest Educational Attainment"
                     type="text"
-                    value={sibling.first_name || ""}
-                    onFocus={() =>
-                      clearError(
-                        errors,
-                        setErrors,
-                        `siblings[${index}].first_name`
+                    value={
+                      family_data.father?.highest_educational_attainment || ""
+                    }
+                    onChange={(e) =>
+                      handleFieldChange(
+                        "father",
+                        "highest_educational_attainment",
+                        e.target.value
                       )
                     }
-                    onChange={(e) =>
-                      handleSiblingChange(index, "first_name", e.target.value)
-                    }
-                    error={errors?.[`siblings[${index}].first_name`]}
-                    required
-                  />
-                  <FormField
-                    label="Last Name"
-                    type="text"
-                    value={sibling.last_name || ""}
-                    onFocus={() =>
-                      clearError(
-                        errors,
-                        setErrors,
-                        `siblings[${index}].last_name`
-                      )
-                    }
-                    onChange={(e) =>
-                      handleSiblingChange(index, "last_name", e.target.value)
-                    }
-                    error={errors?.[`siblings[${index}].last_name`]}
-                    required
-                  />
-                  <FormField
-                    label="Sex"
-                    type="select"
-                    value={sibling.sex || ""}
-                    onFocus={() =>
-                      clearError(errors, setErrors, `siblings[${index}].sex`)
-                    }
-                    onChange={(e) =>
-                      handleSiblingChange(index, "sex", e.target.value)
-                    }
-                    options={[
-                      { value: "", label: "Select" },
-                      { value: "Male", label: "Male" },
-                      { value: "Female", label: "Female" },
-                    ]}
-                    error={errors?.[`siblings[${index}].sex`]}
-                    required
-                  />
-                </div>
-                <div className="form-row">
-                  <FormField
-                    label="Age"
-                    type="text"
-                    value={sibling.age ?? ""}
-                    onFocus={() =>
-                      clearError(errors, setErrors, `siblings[${index}].age`)
-                    }
-                    onChange={(e) =>
-                      handleSiblingChange(index, "age", e.target.value)
-                    }
-                    error={errors?.[`siblings[${index}].age`]}
-                    required
                   />
                   <FormField
                     label="Job/Occupation"
                     type="text"
-                    value={sibling.job_occupation || ""}
-                    onFocus={() =>
-                      clearError(
-                        errors,
-                        setErrors,
-                        `siblings[${index}].job_occupation`
-                      )
-                    }
+                    value={family_data.father?.job_occupation || ""}
                     onChange={(e) =>
-                      handleSiblingChange(
-                        index,
+                      handleFieldChange(
+                        "father",
                         "job_occupation",
                         e.target.value
                       )
                     }
-                    error={errors?.[`siblings[${index}].job_occupation`]}
-                  />
-                </div>
-                <div className="form-row">
-                  <FormField
-                    label="Company/School"
-                    type="text"
-                    value={sibling.company_school || ""}
-                    onFocus={() =>
-                      clearError(
-                        errors,
-                        setErrors,
-                        `siblings[${index}].company_school`
-                      )
-                    }
-                    onChange={(e) =>
-                      handleSiblingChange(
-                        index,
-                        "company_school",
-                        e.target.value
-                      )
-                    }
-                    error={errors?.[`siblings[${index}].company_school`]}
                   />
                   <FormField
-                    label="Educational Attainment"
+                    label="Contact Number"
                     type="text"
-                    value={sibling.educational_attainment || ""}
-                    onFocus={() =>
-                      clearError(
-                        errors,
-                        setErrors,
-                        `siblings[${index}].educational_attainment`
-                      )
-                    }
+                    value={family_data.father?.contact_number || ""}
                     onChange={(e) =>
-                      handleSiblingChange(
-                        index,
-                        "educational_attainment",
-                        e.target.value
-                      )
+                      handleContactChange("father", e.target.value)
                     }
-                    error={
-                      errors?.[`siblings[${index}].educational_attainment`]
-                    }
-                    required
                   />
                 </div>
-                {!readOnly && (
-                  <Button
-                    variant="secondary"
-                    onClick={() => removeSibling(index)}
-                    style={{ marginLeft: "0.5rem" }}
-                  >
-                    Remove Sibling
-                  </Button>
-                )}
-              </div>
-            ))}
-          <div className="step-button-form">
-            {!readOnly && (
-              <Button
-                variant="primary"
-                onClick={addSibling}
-                style={{ marginLeft: "0.5rem" }}
-              >
-                Add Sibling
-              </Button>
-            )}
-          </div>
-        </section>
 
-        {/* Guardian */}
-        <section className="subsection-form family-data-guardian">
-          <p className="step-info">
-            <strong>GUARDIAN WHILE STAYING IN UP</strong>
-          </p>
-          <div className="form-row">
-            <FormField
-              label="Guardian's First Name"
-              type="text"
-              value={family_data.guardian?.first_name || ""}
-              onFocus={() =>
-                clearError(errors, setErrors, "guardian.first_name")
-              }
-              onChange={(e) =>
-                handleFieldChange("guardian", "first_name", e.target.value)
-              }
-              error={errors?.["guardian.first_name"]}
-              required
-            />
-            <FormField
-              label="Guardian's Last Name"
-              type="text"
-              value={family_data.guardian?.last_name || ""}
-              onFocus={() =>
-                clearError(errors, setErrors, "guardian.last_name")
-              }
-              onChange={(e) =>
-                handleFieldChange("guardian", "last_name", e.target.value)
-              }
-              error={errors?.["guardian.last_name"]}
-              required
-            />
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+                  <FormField
+                    label="Company/Agency"
+                    type="text"
+                    value={family_data.father?.company_agency || ""}
+                    onChange={(e) =>
+                      handleFieldChange(
+                        "father",
+                        "company_agency",
+                        e.target.value
+                      )
+                    }
+                  />
+                  <div className="lg:col-span-2">
+                    <FormField
+                      label="Company Address"
+                      type="text"
+                      value={family_data.father?.company_address || ""}
+                      onChange={(e) =>
+                        handleFieldChange(
+                          "father",
+                          "company_address",
+                          e.target.value
+                        )
+                      }
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+          </>
+        )}
+      </section>
+
+      {/* Mother Section */}
+      <section className="p-6 border border-gray-200 rounded-xl bg-gray-50">
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-lg font-semibold text-gray-700">MOTHER</p>
+          <div className="flex gap-6">
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={isMotherDeceased}
+                onChange={(e) =>
+                  handleParentToggle("mother", "deceased", e.target.checked)
+                }
+                disabled={readOnly}
+              />
+              <span className="text-gray-700">Deceased</span>
+            </label>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={isMotherNone}
+                onChange={(e) =>
+                  handleParentToggle("mother", "none", e.target.checked)
+                }
+                disabled={readOnly}
+              />
+              <span className="text-gray-700">None</span>
+            </label>
           </div>
-          <div className="form-row">
-            <FormField
-              label="Contact Number"
-              type="text"
-              value={family_data.guardian?.contact_number || ""}
-              onFocus={() =>
-                clearError(errors, setErrors, "guardian.contact_number")
-              }
-              onChange={(e) =>
-                handleFieldChange("guardian", "contact_number", e.target.value)
-              }
-              error={errors?.["guardian.contact_number"]}
-              required
-            />
-            <FormField
-              label="Address"
-              type="text"
-              value={family_data.guardian?.address || ""}
-              onFocus={() => clearError(errors, setErrors, "guardian.address")}
-              onChange={(e) =>
-                handleFieldChange("guardian", "address", e.target.value)
-              }
-              error={errors?.["guardian.address"]}
-              required
-            />
-          </div>
-          <div className="form-row">
-            <FormField
-              label="Relationship to Guardian"
-              type="text"
-              value={family_data.guardian?.relationship_to_guardian || ""}
-              onFocus={() =>
-                clearError(
-                  errors,
-                  setErrors,
-                  "guardian.relationship_to_guardian"
-                )
-              }
-              onChange={(e) =>
-                handleFieldChange(
-                  "guardian",
-                  "relationship_to_guardian",
-                  e.target.value
-                )
-              }
-              error={errors?.["guardian.relationship_to_guardian"]}
-              required
-            />
-            <FormField
-              label="Languages/Dialect Spoken at Home"
-              type="text"
-              value={languageInput}
-              onChange={handleLanguageChange}
-              helpertext="e.g., Tagalog, English"
-              required
-              error={errors?.["guardian.language_dialect"]}
-            />
-          </div>
-        </section>
-      </fieldset>
+        </div>
+
+        {!isMotherNone && (
+          <>
+            <div
+              className={`grid grid-cols-1 md:grid-cols-2 ${
+                isMotherDeceased ? "lg:grid-cols-2" : "lg:grid-cols-3"
+              } gap-4`}
+            >
+              <FormField
+                label="Mother's First Name"
+                type="text"
+                value={family_data.mother?.first_name || ""}
+                onFocus={() =>
+                  clearError(errors, setErrors, "mother.first_name")
+                }
+                onChange={(e) =>
+                  handleFieldChange("mother", "first_name", e.target.value)
+                }
+                error={errors?.["mother.first_name"]}
+                required
+              />
+              <FormField
+                label="Mother's Last Name"
+                type="text"
+                value={family_data.mother?.last_name || ""}
+                onFocus={() =>
+                  clearError(errors, setErrors, "mother.last_name")
+                }
+                onChange={(e) =>
+                  handleFieldChange("mother", "last_name", e.target.value)
+                }
+                error={errors?.["mother.last_name"]}
+                required
+              />
+              {!isMotherDeceased && (
+                <FormField
+                  label="Age"
+                  type="text"
+                  value={family_data.mother?.age || ""}
+                  onChange={(e) =>
+                    handleFieldChange("mother", "age", e.target.value)
+                  }
+                  required
+                />
+              )}
+            </div>
+
+            {!isMotherDeceased && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                  <FormField
+                    label="Highest Educational Attainment"
+                    type="text"
+                    value={
+                      family_data.mother?.highest_educational_attainment || ""
+                    }
+                    onChange={(e) =>
+                      handleFieldChange(
+                        "mother",
+                        "highest_educational_attainment",
+                        e.target.value
+                      )
+                    }
+                  />
+                  <FormField
+                    label="Job/Occupation"
+                    type="text"
+                    value={family_data.mother?.job_occupation || ""}
+                    onChange={(e) =>
+                      handleFieldChange(
+                        "mother",
+                        "job_occupation",
+                        e.target.value
+                      )
+                    }
+                  />
+                  <FormField
+                    label="Contact Number"
+                    type="text"
+                    value={family_data.mother?.contact_number || ""}
+                    onChange={(e) =>
+                      handleContactChange("mother", e.target.value)
+                    }
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+                  <FormField
+                    label="Company/Agency"
+                    type="text"
+                    value={family_data.mother?.company_agency || ""}
+                    onChange={(e) =>
+                      handleFieldChange(
+                        "mother",
+                        "company_agency",
+                        e.target.value
+                      )
+                    }
+                  />
+                  <div className="lg:col-span-2">
+                    <FormField
+                      label="Company Address"
+                      type="text"
+                      value={family_data.mother?.company_address || ""}
+                      onChange={(e) =>
+                        handleFieldChange(
+                          "mother",
+                          "company_address",
+                          e.target.value
+                        )
+                      }
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+          </>
+        )}
+      </section>
+
+      {/* Siblings Section */}
+      <section className="p-6 border border-gray-200 rounded-xl bg-gray-50">
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-lg font-semibold text-gray-700">SIBLINGS</p>
+          {!readOnly && (
+            <Button variant="primary" onClick={addSibling}>
+              + Add Sibling
+            </Button>
+          )}
+        </div>
+
+        {Array.isArray(siblings) &&
+          siblings.map((sibling, index) => (
+            <div
+              key={index}
+              className="border-t border-gray-300 pt-4 mt-4 space-y-4"
+            >
+              <p className="font-semibold text-gray-700">Sibling {index + 1}</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <FormField
+                  label="First Name"
+                  type="text"
+                  value={sibling.first_name || ""}
+                  onChange={(e) =>
+                    handleSiblingChange(index, "first_name", e.target.value)
+                  }
+                  required
+                />
+                <FormField
+                  label="Last Name"
+                  type="text"
+                  value={sibling.last_name || ""}
+                  onChange={(e) =>
+                    handleSiblingChange(index, "last_name", e.target.value)
+                  }
+                  required
+                />
+                <FormField
+                  label="Sex"
+                  type="select"
+                  value={sibling.sex || ""}
+                  onChange={(e) =>
+                    handleSiblingChange(index, "sex", e.target.value)
+                  }
+                  options={[
+                    { value: "", label: "Select" },
+                    { value: "Male", label: "Male" },
+                    { value: "Female", label: "Female" },
+                  ]}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  label="Age"
+                  type="text"
+                  value={sibling.age || ""}
+                  onChange={(e) =>
+                    handleSiblingChange(index, "age", e.target.value)
+                  }
+                  required
+                />
+                <FormField
+                  label="Job/Occupation"
+                  type="text"
+                  value={sibling.job_occupation || ""}
+                  onChange={(e) =>
+                    handleSiblingChange(index, "job_occupation", e.target.value)
+                  }
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  label="Company/School"
+                  type="text"
+                  value={sibling.company_school || ""}
+                  onChange={(e) =>
+                    handleSiblingChange(index, "company_school", e.target.value)
+                  }
+                />
+                <FormField
+                  label="Educational Attainment"
+                  type="text"
+                  value={sibling.educational_attainment || ""}
+                  onChange={(e) =>
+                    handleSiblingChange(
+                      index,
+                      "educational_attainment",
+                      e.target.value
+                    )
+                  }
+                  required
+                />
+              </div>
+
+              {!readOnly && (
+                <Button
+                  variant="secondary"
+                  onClick={() => removeSibling(index)}
+                >
+                  Remove Sibling
+                </Button>
+              )}
+            </div>
+          ))}
+      </section>
+
+      {/* Guardian Section */}
+      <section className="p-6 border border-gray-200 rounded-xl bg-gray-50">
+        <p className="text-lg font-semibold text-gray-700 mb-4">
+          GUARDIAN WHILE STAYING IN UP
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            label="Guardian's First Name"
+            type="text"
+            value={family_data.guardian?.first_name || ""}
+            onChange={(e) =>
+              handleFieldChange("guardian", "first_name", e.target.value)
+            }
+            required
+          />
+          <FormField
+            label="Guardian's Last Name"
+            type="text"
+            value={family_data.guardian?.last_name || ""}
+            onChange={(e) =>
+              handleFieldChange("guardian", "last_name", e.target.value)
+            }
+            required
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <FormField
+            label="Contact Number"
+            type="text"
+            value={family_data.guardian?.contact_number || ""}
+            onChange={(e) => handleContactChange("guardian", e.target.value)}
+            required
+          />
+          <FormField
+            label="Address"
+            type="text"
+            value={family_data.guardian?.address || ""}
+            onChange={(e) =>
+              handleFieldChange("guardian", "address", e.target.value)
+            }
+            required
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <FormField
+            label="Relationship to Guardian"
+            type="text"
+            value={family_data.guardian?.relationship_to_guardian || ""}
+            onChange={(e) =>
+              handleFieldChange(
+                "guardian",
+                "relationship_to_guardian",
+                e.target.value
+              )
+            }
+            required
+          />
+          <FormField
+            label="Languages/Dialect Spoken at Home"
+            type="text"
+            value={languageInput}
+            onChange={handleLanguageChange}
+            helpertext="e.g., Tagalog, English"
+            required
+          />
+        </div>
+      </section>
     </div>
   );
 };
