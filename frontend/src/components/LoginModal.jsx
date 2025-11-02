@@ -62,7 +62,7 @@ export default function LoginModal ({ onClose, onSwitchToSignup}) {
           sm:w-[80%] sm:h-1/9 md:w-[65%] lg:w-[45%]
           ">
           <section 
-            className="bg-[#EDEDED] p-10 sm:p-12 md:p-14 relative flex flex-col justify-center items-center overflow-y-auto rounded-2xl
+            className="bg-white p-10 sm:p-12 md:p-14 relative flex flex-col justify-center items-center overflow-y-auto rounded-2xl
             
             ">
             <button className="absolute right-0 top-0 m-5 cursor-pointer" onClick={onClose}>
