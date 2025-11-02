@@ -7,17 +7,7 @@ import BISPreferences from "./BISPreferences";
 import BISPresentScholastic from "./BISPresentScholastic";
 import BISCertify from "./BISCertify";
 import BISPreview from "./BISPreview";
-import ProgressBar from "../../components/ProgressBar";
-import Navbar from "../../components/NavBar";
-import Footer from "../../components/Footer";
-import "../SetupProfile/css/multistep.css";
-import { useFormApi } from "./BISApi";
-import {
-  validatePreferences,
-  validateScholasticStatus,
-  validateSocioEconomicStatus,
-  validateSupport,
-} from "../../utils/BISValidation";
+import BISSubmissionConfirmation from "./BISSubmissionConfirmation";
 import Button from "../../components/UIButton";
 import ToastMessage from "../../components/ToastMessage";
 import ConfirmDialog from "../../components/ConfirmDialog";
@@ -25,6 +15,13 @@ import ModalMessage from "../../components/ModalMessage";
 import { useNavigate } from "react-router-dom";
 import DefaultLayout from "../../components/DefaultLayout";
 import StepIndicator from "../../components/StepIndicator";
+import { useFormApi } from "./BISApi";
+import {
+  validatePreferences,
+  validateScholasticStatus,
+  validateSocioEconomicStatus,
+  validateSupport,
+} from "../../utils/BISValidation";
 
 const BISForm = () => {
   const { request } = useApiRequest();
@@ -42,6 +39,8 @@ const BISForm = () => {
   const [showDraftSuccessToast, setShowDraftSuccessToast] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  
   const [formData, setFormData] = useState({
     socio_economic_status: {
       student_number: "",
@@ -202,16 +201,25 @@ const BISForm = () => {
     }
 
     setErrors(null);
+    setError(null);
     setStep((prev) => prev + 1);
   };
 
-  const handlePreviousStep = () => setStep((prev) => prev - 1);
+  const handlePreviousStep = () => {
+    setErrors(null);
+    setError(null);
+    setStep((prev) => prev - 1);
+  };
 
   const handlePreview = () => {
     setIsPreviewOpen(true);
   };
 
   const handleConfirmSubmit = () => {
+    if (!formData?.privacy_consent?.has_consented) {
+      setShowPrivacyModal(true);
+      return;
+    }
     setShowConfirmDialog(true);
   };
 
@@ -239,10 +247,10 @@ const BISForm = () => {
       );
 
       if (result.success) {
-        setShowSuccessToast(true);
+        setShowConfirmation(true);
         setTimeout(() => {
           navigate("/submitted-forms/basic-information-sheet");
-        }, 2000);
+        }, 3000);
       } else {
         if (result.status === 400 && result.data.errors) {
           alert(
@@ -274,196 +282,208 @@ const BISForm = () => {
   return (
     <>
       <DefaultLayout variant="student">
-        {/* Background rectangle */}
-        <div className="absolute w-full h-[26em] left-0 top-0 bg-upmaroon -z-1"></div>
+        <div className="absolute w-full left-0 -z-1"></div>
+
         {/* Main Form */}
         <div className="relative flex flex-col min-h-screen">
-          <div className="mt-[30px] mx-auto w-3/4 flex flex-col items-center">
-            <div className="main-form-info">
-              <h1 className="left-1/2 text-center font-bold text-[2rem] text-white">
-                Basic Information Sheet
-              </h1>
-              <p className="text-center text-white my-5 text-base w-full max-w-2xl mx-auto whitespace-normal">
-                Please PROVIDE the information asked for. The data contained in
-                this form will be kept confidential and will serve as your
-                record. Please fill in the blanks carefully and sincerely.
-              </p>
-            </div>
+          <div className="mx-auto w-3/4 flex flex-col items-center"></div>
+          
+          {/* Header Section */}
+          <div className="flex flex-col justify-center bg-upmaroon w-full h-60 text-white text-center">
+            <h1 className="font-bold text-4xl -mt-10">
+              Basic Information Sheet
+            </h1>
+            <p className="text-lg mt-2 px-4">
+              Please provide the information carefully and sincerely. The data will be kept confidential.
+            </p>
+          </div>
 
-            <div className="bg-white rounded-[15px] p-8 w-full mx-auto mb-[70px] shadow-md box-border">
-              <div className="flex lg:flex-row flex-col w-full items-stretch">
-                <div className="lg:w-1/3 lg:bg-upmaroon rounded-lg p-4 pt-10">
-                  <StepIndicator steps={steps} currentStep={step} />
+          {/* Form Container */}
+          <div className="bg-white rounded-[15px] p-8 shadow-md box-border w-3/4 mx-auto mb-[70px] -mt-15">
+            <div className="flex lg:flex-row flex-col w-full items-stretch">
+              {/* Step Indicator */}
+              <div className="lg:w-1/3 lg:bg-upmaroon rounded-lg p-4 pt-10">
+                <StepIndicator steps={steps} currentStep={step} />
+              </div>
+
+              {/* Form Content */}
+              <div className="main-form p-4 w-full flex flex-col">
+                <div className="flex-1">
+                  {!showConfirmation ? (
+                    <>
+                      {step === 1 && <BISPersonalData profileData={profileData} />}
+                      {step === 2 && (
+                        <BISSocioeconomic
+                          data={{
+                            socio_economic_status: formData.socio_economic_status,
+                            student_support: formData.student_support,
+                          }}
+                          updateData={(newData) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              socio_economic_status: {
+                                ...prev.socio_economic_status,
+                                ...newData.socio_economic_status,
+                              },
+                              student_support: {
+                                ...prev.student_support,
+                                ...newData.student_support,
+                              },
+                            }))
+                          }
+                          readOnly={readOnly}
+                          errors={errors}
+                          setErrors={setErrors}
+                        />
+                      )}
+                      {step === 3 && (
+                        <BISPreferences
+                          data={formData.preferences}
+                          updateData={(newData) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              preferences: { ...prev.preferences, ...newData },
+                            }))
+                          }
+                          readOnly={readOnly}
+                          errors={errors}
+                          setErrors={setErrors}
+                        />
+                      )}
+                      {step === 4 && (
+                        <BISPresentScholastic
+                          data={formData.scholastic_status}
+                          updateData={(newData) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              scholastic_status: {
+                                ...prev.scholastic_status,
+                                ...newData,
+                              },
+                            }))
+                          }
+                          readOnly={readOnly}
+                          errors={errors}
+                          setErrors={setErrors}
+                        />
+                      )}
+                      {step === 5 && (
+                        <BISCertify
+                          data={formData}
+                          updateData={(isChecked) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              privacy_consent: {
+                                ...prev.privacy_consent,
+                                has_consented: isChecked,
+                              },
+                            }))
+                          }
+                          readOnly={readOnly}
+                          setError={setError}
+                        />
+                      )}
+                    </>
+                  ) : (
+                    <BISSubmissionConfirmation />
+                  )}
+
+                  {/* Error Message */}
+                  {error && <div className="text-[#D32F2F] text-xs ml-4 mt-4 italic">{error}</div>}
                 </div>
-                <div className="main-form p-4 w-full">
-                  {step === 1 && <BISPersonalData profileData={profileData} />}
-                  {step === 2 && (
-                    <BISSocioeconomic
-                      data={{
-                        socio_economic_status: formData.socio_economic_status,
-                        student_support: formData.student_support,
-                      }}
-                      updateData={(newData) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          socio_economic_status: {
-                            ...prev.socio_economic_status,
-                            ...newData.socio_economic_status,
-                          },
-                          student_support: {
-                            ...prev.student_support,
-                            ...newData.student_support,
-                          },
-                        }))
-                      }
-                      readOnly={readOnly}
-                      errors={errors}
-                      setErrors={setErrors}
-                    />
-                  )}
-                  {step === 3 && (
-                    <BISPreferences
-                      data={formData.preferences}
-                      updateData={(newData) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          preferences: { ...prev.preferences, ...newData },
-                        }))
-                      }
-                      readOnly={readOnly}
-                      errors={errors}
-                      setErrors={setErrors}
-                    />
-                  )}
-                  {step === 4 && (
-                    <BISPresentScholastic
-                      data={formData.scholastic_status}
-                      updateData={(newData) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          scholastic_status: {
-                            ...prev.scholastic_status,
-                            ...newData,
-                          },
-                        }))
-                      }
-                      readOnly={readOnly}
-                      errors={errors}
-                      setErrors={setErrors}
-                    />
-                  )}
-                  {step === 5 && (
-                    <BISCertify
-                      data={formData}
-                      updateData={(isChecked) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          privacy_consent: {
-                            ...prev.privacy_consent,
-                            has_consented: isChecked,
-                          },
-                        }))
-                      }
-                      readOnly={readOnly}
-                    />
-                  )}
 
-                  <div className="main-form-buttons">
-                    {/* Step 1: Only 'Next' button */}
-                    {step === 1 && !loading && (
-                      <Button variant="primary" onClick={handleNextStep}>
-                        Next
-                      </Button>
-                    )}
-
-                    {step >= 2 && step <= 4 && !loading && (
-                      <>
-                        <Button
-                          variant="secondary"
-                          onClick={handlePreviousStep}
-                        >
-                          Back
-                        </Button>
-                        {!readOnly && (
-                          <Button
-                            variant="tertiary"
-                            onClick={handleSaveDraft}
-                            disabled={loading}
-                            style={{ marginLeft: "0.5rem" }}
-                          >
-                            {loading ? "Saving Draft..." : "Save Draft"}
-                          </Button>
-                        )}
-                        <Button
-                          variant="primary"
-                          onClick={handleNextStep}
-                          style={{ marginLeft: "0.5rem" }}
-                        >
+                {/* Buttons Section */}
+                {!showConfirmation && (
+                  <div className="flex justify-end mt-auto">
+                    <div className="main-form-buttons">
+                      {/* Step 1: Only 'Next' button */}
+                      {step === 1 && !loading && (
+                        <Button variant="primary" onClick={handleNextStep}>
                           Next
                         </Button>
-                      </>
-                    )}
+                      )}
 
-                    {/* Step 5: 'Back', 'Save Draft', 'Preview', and 'Submit' buttons */}
-                    {step === 5 && !loading && (
-                      <>
-                        <Button
-                          variant="secondary"
-                          onClick={handlePreviousStep}
-                        >
-                          Back
-                        </Button>
-                        {!readOnly && (
-                          <Button
-                            variant="tertiary"
-                            onClick={handleSaveDraft}
-                            disabled={loading}
-                            style={{ marginLeft: "0.5rem" }}
-                          >
-                            {loading ? "Saving Draft..." : "Save Draft"}
+                      {/* Steps 2-4: Back, Save Draft, Next */}
+                      {step >= 2 && step <= 4 && !loading && (
+                        <>
+                          <Button variant="secondary" onClick={handlePreviousStep}>
+                            Back
                           </Button>
-                        )}
-
-                        <Button
-                          variant="tertiary"
-                          onClick={handlePreview}
-                          style={{ marginLeft: "0.5rem" }}
-                        >
-                          Preview
-                        </Button>
-
-                        {isPreviewOpen && (
-                          <BISPreview
-                            profileData={profileData}
-                            formData={formData}
-                            onClose={() => setIsPreviewOpen(false)}
-                          />
-                        )}
-
-                        {!readOnly && (
+                          {!readOnly && (
+                            <Button
+                              variant="tertiary"
+                              onClick={handleSaveDraft}
+                              disabled={loading}
+                              style={{ marginLeft: "0.5rem" }}
+                            >
+                              {loading ? "Saving Draft..." : "Save Draft"}
+                            </Button>
+                          )}
                           <Button
                             variant="primary"
-                            onClick={handleConfirmSubmit}
+                            onClick={handleNextStep}
                             style={{ marginLeft: "0.5rem" }}
                           >
-                            Submit
+                            Next
                           </Button>
-                        )}
-                      </>
-                    )}
+                        </>
+                      )}
 
-                    {/* Loading Indicator */}
-                    {loading && <div>Loading...</div>}
+                      {/* Step 5: Back, Save Draft, Preview, Submit */}
+                      {step === 5 && !loading && (
+                        <>
+                          <Button variant="secondary" onClick={handlePreviousStep}>
+                            Back
+                          </Button>
+                          {!readOnly && (
+                            <Button
+                              variant="tertiary"
+                              onClick={handleSaveDraft}
+                              disabled={loading}
+                              style={{ marginLeft: "0.5rem" }}
+                            >
+                              {loading ? "Saving Draft..." : "Save Draft"}
+                            </Button>
+                          )}
+                          <Button
+                            variant="tertiary"
+                            onClick={handlePreview}
+                            style={{ marginLeft: "0.5rem" }}
+                          >
+                            Preview
+                          </Button>
+                          {!readOnly && (
+                            <Button
+                              variant="primary"
+                              onClick={handleConfirmSubmit}
+                              style={{ marginLeft: "0.5rem" }}
+                            >
+                              Submit
+                            </Button>
+                          )}
+                        </>
+                      )}
 
-                    {/* Error Message */}
-                    {error && <div className="error-message">{error}</div>}
+                      {/* Loading Indicator */}
+                      {loading && <div>Loading...</div>}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
         </div>
 
+        {/* Preview Modal */}
+        {isPreviewOpen && (
+          <BISPreview
+            profileData={profileData}
+            formData={formData}
+            onClose={() => setIsPreviewOpen(false)}
+          />
+        )}
+
+        {/* Confirm Dialog */}
         {showConfirmDialog && (
           <ConfirmDialog
             title="Are you sure?"
@@ -473,6 +493,7 @@ const BISForm = () => {
           />
         )}
 
+        {/* Toast Messages */}
         {showSuccessToast && (
           <ToastMessage
             message="Your form has been successfully submitted!"
@@ -488,6 +509,8 @@ const BISForm = () => {
             duration={2000}
           />
         )}
+
+        {/* Privacy Modal */}
         {showPrivacyModal && (
           <ModalMessage
             title="Privacy Consent Required"

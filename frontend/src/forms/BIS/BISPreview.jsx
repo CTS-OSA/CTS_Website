@@ -2,7 +2,6 @@ import React from "react";
 import ReactDOM from "react-dom";
 import "./../SetupProfile/css/multistep.css";
 import "./../../components/css/Modal.css";
-import DisplayField from "../../components/DisplayField";
 import BISSocioeconomic from "./BISSocioeconomic";
 import BISCertify from "./BISCertify";
 import BISPresentScholastic from "./BISPresentScholastic";
@@ -25,32 +24,94 @@ const BISPreview = ({ profileData, formData, onClose }) => {
           <p className="step-info">(Preview)</p>
 
           {/* PERSONAL DATA */}
-          <div className="form-section">
-            <h2 className="step-title">Personal Data</h2>
-            <p className="step-info">
+          <div className="p-4">
+            <h2 className="text-upmaroon text-2xl font-bold mb-2">PERSONAL DATA</h2>
+            <p className="text-sm text-gray-600 mb-5">
               If you wish to update information in this section, please go to
               your profile and update it.
             </p>
-            <div className="form-row">
-              <DisplayField label="First Name" value={profileData.first_name} />
-              <DisplayField label="Last Name" value={profileData.last_name} />
-            </div>
-            <div className="form-row">
-              <DisplayField
-                label="Middle Name"
-                value={profileData.middle_name}
-              />
-              <DisplayField label="Nickname" value={profileData.nickname} />
-            </div>
-            <div className="form-row">
-              <DisplayField
-                label="Year"
-                value={profileData.current_year_level}
-              />
-              <DisplayField
-                label="Degree Program"
-                value={profileData.degree_program}
-              />
+            
+            {/* Grid Layout matching other sections */}
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Surname */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Surname
+                  </label>
+                  <input
+                    type="text"
+                    value={profileData.last_name || ''}
+                    disabled
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-upmaroon/20 text-gray-600"
+                  />
+                </div>
+
+                {/* First Name */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    value={profileData.first_name || ''}
+                    disabled
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-upmaroon/20 text-gray-600"
+                  />
+                </div>
+
+                {/* Middle Name */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Middle Name
+                  </label>
+                  <input
+                    type="text"
+                    value={profileData.middle_name || ''}
+                    disabled
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-upmaroon/20 text-gray-600"
+                  />
+                </div>
+
+                {/* Nickname */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Nickname
+                  </label>
+                  <input
+                    type="text"
+                    value={profileData.nickname || ''}
+                    disabled
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-upmaroon/20 text-gray-600"
+                  />
+                </div>
+
+                {/* Year */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Year
+                  </label>
+                  <input
+                    type="text"
+                    value={profileData.current_year_level || ''}
+                    disabled
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-upmaroon/20 text-gray-600"
+                  />
+                </div>
+
+                {/* Program/Course */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Program/Course
+                  </label>
+                  <input
+                    type="text"
+                    value={profileData.degree_program || ''}
+                    disabled
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-upmaroon/20 text-gray-600"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
