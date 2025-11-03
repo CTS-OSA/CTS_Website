@@ -1,22 +1,27 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from forms.models import Student, Address
+from forms.models import Student, Address, StudentPhoto
 from forms.serializers import StudentSerializer
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import permission_classes
 from users.utils import log_action
+import json
 
 @api_view(['POST'])
 def create_student_profile(request):
     required_fields = ['student_number', 'college', 'current_year_level', 'degree_program', 'last_name', 
                        'first_name', 'sex', 'birth_rank', 'birthdate', 'birthplace', 'contact_number', 
-                       'permanent_address', 'address_while_in_up']
+                       'permanent_address', 'address_while_in_up', 'photo']
     
-    for field in required_fields:
+    for field in required_fields[:-1]:
         if field not in request.data:
             return Response({ 'error': f'{field} is required' }, status=status.HTTP_400_BAD_REQUEST)
-    
+
+    if 'photo' not in request.FILES:
+        return Response({'error': 'A photo file is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    photo_file = request.FILES['photo']
     student_data = request.data
     
     if Student.objects.filter(student_number=student_data['student_number']).exists():
@@ -43,9 +48,19 @@ def create_student_profile(request):
         
         return address
 
+    try:
+        permanent_address_data = json.loads(student_data.get('permanent_address'))
+        address_while_in_up_data = json.loads(student_data.get('address_while_in_up'))
+        
+    except json.JSONDecodeError:
+        return Response(
+            {'error': 'Invalid format for address data. Must be valid JSON strings.'}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+        
     permanent_address = get_or_create_address(permanent_address_data)
     address_while_in_up = get_or_create_address(address_while_in_up_data)
-
+    
     student = Student.objects.create(
         student_number=student_data['student_number'],
         college=student_data['college'],
@@ -70,6 +85,18 @@ def create_student_profile(request):
         date_initial_entry_sem = student_data.get('date_initial_entry_sem')
     )
 
+    try:
+        StudentPhoto.objects.create(
+            student=student, 
+            image=photo_file
+        )
+    except Exception as e:
+        # Optional: You might want to log this error and/or delete the student
+        # profile to maintain data integrity if the photo fails to save.
+        print(f"Error saving student photo: {e}")
+        # Consider adding cleanup: student.delete()
+        return Response({'error': 'Profile created, but failed to save photo.', 'details': str(e)}, 
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     serializer = StudentSerializer(student)
     log_action(
         request,
@@ -133,7 +160,7 @@ def update_student_profile(request, student_id=None):
     updatable_fields = [
         'college', 'current_year_level', 'degree_program',
         'last_name', 'first_name', 'middle_name', 'nickname', 'sex', 'religion',
-        'birth_rank', 'birthdate', 'birthplace', 'contact_number', 'landline_number',
+        'birth_rank', 'birthdate', 'birthplace', 'contact_number', 'landline_number'
     ]
 
     changed_fields = {}
@@ -145,6 +172,15 @@ def update_student_profile(request, student_id=None):
                 changed_fields[field] = {"old": old_value, "new": new_value}
             setattr(student, field, new_value)
 
+    if 'photo' in request.FILES:
+        photo_file = request.FILES['photo']
+        student_photo, created = StudentPhoto.objects.get_or_create(student=student)
+        student_photo.image.delete(save=False)
+
+        student_photo.image = photo_file
+        student_photo.save()
+
+        changed_fields['photo'] = "updated"
     student.save()
 
     serializer = StudentSerializer(student)
@@ -152,12 +188,11 @@ def update_student_profile(request, student_id=None):
         f"Student ID: {student.student_number}, Name: {student.first_name} {student.last_name}. "
         f"Changed fields: {changed_fields if changed_fields else 'None'}"
     )
-    log_action(
-        request,
-        "profile",
-        "Student profile updated",
-        details
-    )
+    # log_action(
+    #     request,
+    #     "profile",
+    #     details
+    # )
     serializer = StudentSerializer(student)
     return Response(serializer.data, status=status.HTTP_200_OK)
 

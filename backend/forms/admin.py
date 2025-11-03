@@ -6,7 +6,7 @@ from .models import *
 class StudentAdmin(admin.ModelAdmin):
     list_display = ('student_number', 'first_name', 'last_name', 'college', 'current_year_level', 'degree_program')
     search_fields = ('student_number', 'first_name', 'last_name')
-
+    
 @admin.register(Address)
 class AddressAdmin(admin.ModelAdmin):
     list_display = ('address_line_1', 'barangay', 'city_municipality', 'province', 'region', 'zip_code')
@@ -21,8 +21,8 @@ class PreferencesAdmin(admin.ModelAdmin):
 # Register Support model
 @admin.register(Support)
 class SupportAdmin(admin.ModelAdmin):
-    list_display = ('code',)  # Add any fields you'd like to display in the admin list view
-    search_fields = ('code',)  # Allow search by code
+    list_display = ('code',)  
+    search_fields = ('code',)  
 
 # Register StudentSupport model
 @admin.register(StudentSupport)

@@ -17,26 +17,68 @@ export const UserProfile = () => {
 
   const [submittedForms, setSubmittedForms] = useState([]);
 
+  // const handleUpdateProfile = async (updatedData) => {
+  //   try {
+  //     const res = await request(
+  //       "http://localhost:8000/api/forms/student/profile/update/",
+  //       {
+  //         method: "PATCH",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify(updatedData),
+  //       }
+  //     );
+
+  //     if (!res.ok) {
+  //       return;
+  //     }
+
+  //     const updatedProfile = await res.json();
+  //     setProfile(updatedProfile);
+  //   } catch (error) {}
+  // };
+
   const handleUpdateProfile = async (updatedData) => {
     try {
+      const formData = new FormData();
+      for (const key in updatedData) {
+        if (key === "photoFile") continue;
+
+        const value = updatedData[key];
+
+        if (typeof value === "object" && value !== null) {
+          for (const subKey in value) {
+            formData.append(`${key}.${subKey}`, value[subKey]);
+          }
+        } else {
+          formData.append(key, value);
+        }
+      }
+
+      if (updatedData.photoFile) {
+        formData.append("photo", updatedData.photoFile);
+      }
+
       const res = await request(
         "http://localhost:8000/api/forms/student/profile/update/",
         {
           method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updatedData),
+          body: formData,
+          headers: {},
         }
       );
 
       if (!res.ok) {
+        console.error("Failed to update profile");
         return;
       }
 
       const updatedProfile = await res.json();
       setProfile(updatedProfile);
-    } catch (error) {}
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    }
   };
 
   useEffect(() => {
@@ -58,6 +100,7 @@ export const UserProfile = () => {
 
         const data = await res.json();
         setProfile(data);
+
 
         const formRes = await request(
           "http://localhost:8000/api/forms/display/submissions/"
@@ -141,11 +184,11 @@ export const UserProfile = () => {
               </h1>
             </div>
             <div className="bg-white -mt-30 mb-10 mx-auto w-[80%] lg:w-[94%] rounded-3xl p-10 min-h-screen shadow-md">
-            <StudentSideInfo
-              profileData={profile}
-              submittedForms={submittedForms}
-              onUpdate={handleUpdateProfile}
-            />
+              <StudentSideInfo
+                profileData={profile}
+                submittedForms={submittedForms}
+                onUpdate={handleUpdateProfile}
+              />
             </div>
           </div>
         </DefaultLayout>

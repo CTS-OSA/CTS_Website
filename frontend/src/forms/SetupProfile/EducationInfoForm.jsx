@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import FormField from "../../components/FormField";
 import "./css/multistep.css";
 import { useEnumChoices } from "../../utils/enumChoices";
@@ -68,7 +68,7 @@ const EducationInfoForm = ({ formData, setFormData, errors, setErrors }) => {
 
   return (
     <div className="form-container">
-      <h2 className="text-[#7b1113] text-2xl font-bold pb-4">Education Information</h2>
+      <h2 className="text-upmaroon text-2xl font-bold pb-4">Education Information</h2>
 
       <div className="grid lg:grid-cols-2 gap-4 pb-4">
         <div className="form-group">
@@ -117,12 +117,13 @@ const EducationInfoForm = ({ formData, setFormData, errors, setErrors }) => {
             onFocus={() => clearError(errors, setErrors, "education.college")}
             required
             error={errors?.["education.college"]}
-            options={
-              filteredCollegeOptions?.map((opt) => ({
+            options={[
+              { value: "", label: "-- Clear Selection --" },
+              ...(filteredCollegeOptions?.map((opt) => ({
                 value: opt.value,
                 label: opt.label,
-              })) || []
-            }
+              })) || []),
+            ]}
           />
         </div>
         <div className="form-group">
@@ -137,12 +138,13 @@ const EducationInfoForm = ({ formData, setFormData, errors, setErrors }) => {
             }
             required
             error={errors?.["education.degree_program"]}
-            options={
-              filteredDegreeOptions?.map((opt) => ({
+            options={[
+              { value: "", label: "-- Clear Selection --" },
+              ...(filteredDegreeOptions?.map((opt) => ({
                 value: opt.value,
                 label: opt.label,
-              })) || []
-            }
+              })) || []),
+            ]}
           />
         </div>
       </div>

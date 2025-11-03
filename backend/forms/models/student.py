@@ -5,6 +5,9 @@ from users.models import CustomUser
 from .address import Address  
 from .enums import CollegeEnum, YearLevelEnum, DegreeProgramEnum, SemesterEnum 
 from django.core.validators import RegexValidator
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
+import os
 
 def validate_student_number(value):
     if not re.match(r'^\d{4}-\d{5}$', value):
@@ -15,6 +18,9 @@ def get_phone_validator():
         regex=r'^\+?\d{9,15}$',
         message="Enter a valid phone number (9 to 15 digits, optional leading '+')."
     )
+
+def student_photo_upload_path(instance, filename):
+    return f'student_photos/{instance.student.student_number}/{filename}'
 
 class Student(models.Model):
     # Education
@@ -74,3 +80,21 @@ class Student(models.Model):
             from django.utils.timezone import now
             self.completed_at = now()
         super().save(*args, **kwargs)
+        
+    def delete(self, *args, **kwargs):
+        if hasattr(self, 'photo') and self.photo:
+            self.photo.image.delete(save=False)
+            self.photo.delete() 
+        super().delete(*args, **kwargs)
+        
+class StudentPhoto(models.Model):
+    student = models.OneToOneField(
+        Student, 
+        on_delete=models.CASCADE, 
+        related_name='photo'
+    )
+    image = models.ImageField(upload_to=student_photo_upload_path)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Photo of {self.student.student_number}"

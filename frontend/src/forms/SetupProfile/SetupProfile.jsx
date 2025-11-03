@@ -3,9 +3,8 @@ import { useNavigate } from "react-router-dom";
 import PersonalInfoForm from "./PersonalInfoForm";
 import EducationInfoForm from "./EducationInfoForm";
 import AddressInfoForm from "./AddressInfoForm";
-
+import PhotoUpload from "./PhotoUpload";
 import { apiRequest } from "../../utils/apiUtils";
-import ProgressBar from "../../components/ProgressBar";
 import PreviewModal from "./PreviewForm";
 import Button from "../../components/UIButton";
 import ToastMessage from "../../components/ToastMessage";
@@ -83,6 +82,9 @@ const MultiStepForm = () => {
   const { profileData, setProfileData } = useContext(AuthContext);
   const [errors, setErrors] = useState({});
 
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+
   const [formData, setFormData] = useState({
     family_name: "",
     first_name: "",
@@ -150,7 +152,8 @@ const MultiStepForm = () => {
     step,
     formData,
     sameAsPermanent = false,
-    request
+    request,
+    photoFile = null
   ) => {
     switch (step) {
       case 1:
@@ -170,6 +173,11 @@ const MultiStepForm = () => {
         return validateAddress(formatAddress(formData, "up"), "up");
 
       case 5:
+        if (!photoFile) {
+          return { photo: "A student photo is required." };
+        }
+        return {};
+      case 6:
         return {};
 
       default:
@@ -182,7 +190,8 @@ const MultiStepForm = () => {
       step,
       formData,
       sameAsPermanent,
-      request
+      request,
+      photoFile
     );
     if (
       validationErrors &&
@@ -244,44 +253,57 @@ const MultiStepForm = () => {
       sanitizedFormData.birthMonth
     ).padStart(2, "0")}-${String(sanitizedFormData.birthDay).padStart(2, "0")}`;
 
-    const payload = {
-      student_number: sanitizedFormData.student_number,
-      college: sanitizedFormData.college,
-      current_year_level: sanitizedFormData.current_year_level,
-      degree_program: sanitizedFormData.degree_program,
-      date_initial_entry: sanitizedFormData.date_initial_entry,
-      date_initial_entry_sem: sanitizedFormData.date_initial_entry_sem,
-      last_name: sanitizedFormData.family_name,
-      first_name: sanitizedFormData.first_name,
-      middle_name: sanitizedFormData.middle_name,
-      nickname: sanitizedFormData.nickname,
-      sex: sanitizedFormData.sex,
-      birth_rank: sanitizedFormData.birth_rank,
-      birthdate: birthdate,
-      birthplace: sanitizedFormData.birth_place,
-      contact_number: sanitizedFormData.mobile_number,
-      landline_number: sanitizedFormData.landline_number,
-      religion: sanitizedFormData.religion,
-      permanent_address: {
-        address_line_1: sanitizedFormData.permanent_address_line_1,
-        address_line_2: sanitizedFormData.permanent_address_line_2,
-        barangay: sanitizedFormData.permanent_barangay,
-        city_municipality: sanitizedFormData.permanent_city_municipality,
-        province: sanitizedFormData.permanent_province,
-        region: sanitizedFormData.permanent_region,
-        zip_code: sanitizedFormData.permanent_zip_code,
-      },
-      address_while_in_up: {
-        address_line_1: sanitizedFormData.up_address_line_1,
-        address_line_2: sanitizedFormData.up_address_line_2,
-        barangay: sanitizedFormData.up_barangay,
-        city_municipality: sanitizedFormData.up_city_municipality,
-        province: sanitizedFormData.up_province,
-        region: sanitizedFormData.up_region,
-        zip_code: sanitizedFormData.up_zip_code,
-      },
-      is_complete: true,
+    const payload = new FormData();
+
+    if (!photoFile) {
+      setErrors({ photo: "A student photo is required." });
+      return;
+    }
+    payload.append("photo", photoFile, photoFile.name);
+    payload.append("student_number", sanitizedFormData.student_number);
+    payload.append("college", sanitizedFormData.college);
+    payload.append("current_year_level", sanitizedFormData.current_year_level);
+    payload.append("degree_program", sanitizedFormData.degree_program);
+    payload.append("date_initial_entry", sanitizedFormData.date_initial_entry);
+    payload.append(
+      "date_initial_entry_sem",
+      sanitizedFormData.date_initial_entry_sem
+    );
+
+    payload.append("last_name", sanitizedFormData.family_name);
+    payload.append("first_name", sanitizedFormData.first_name);
+    payload.append("middle_name", sanitizedFormData.middle_name || "");
+    payload.append("nickname", sanitizedFormData.nickname || "");
+    payload.append("sex", sanitizedFormData.sex);
+    payload.append("birth_rank", sanitizedFormData.birth_rank);
+    payload.append("birthdate", birthdate);
+    payload.append("birthplace", sanitizedFormData.birth_place);
+    payload.append("contact_number", sanitizedFormData.mobile_number);
+    payload.append("landline_number", sanitizedFormData.landline_number || "");
+    payload.append("religion", sanitizedFormData.religion || "");
+    payload.append("is_complete", "True");
+
+    const permanent_address = {
+      address_line_1: sanitizedFormData.permanent_address_line_1,
+      address_line_2: sanitizedFormData.permanent_address_line_2,
+      barangay: sanitizedFormData.permanent_barangay,
+      city_municipality: sanitizedFormData.permanent_city_municipality,
+      province: sanitizedFormData.permanent_province,
+      region: sanitizedFormData.permanent_region,
+      zip_code: sanitizedFormData.permanent_zip_code,
     };
+    const address_while_in_up = {
+      address_line_1: sanitizedFormData.up_address_line_1,
+      address_line_2: sanitizedFormData.up_address_line_2,
+      barangay: sanitizedFormData.up_barangay,
+      city_municipality: sanitizedFormData.up_city_municipality,
+      province: sanitizedFormData.up_province,
+      region: sanitizedFormData.up_region,
+      zip_code: sanitizedFormData.up_zip_code,
+    };
+
+    payload.append("permanent_address", JSON.stringify(permanent_address));
+    payload.append("address_while_in_up", JSON.stringify(address_while_in_up));
 
     try {
       setLoading(true);
@@ -290,11 +312,8 @@ const MultiStepForm = () => {
         "http://localhost:8000/api/forms/student/profile/create/",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
           credentials: "include",
-          body: JSON.stringify(payload),
+          body: payload,
         }
       );
 
@@ -329,8 +348,9 @@ const MultiStepForm = () => {
   const steps = [
     { label: "Basic Details" },
     { label: "Education Info" },
-    { label: "Address Info" },
-    { label: "Preview & Submit" },
+    { label: "Permanent Address Info" },
+    { label: "UP Address Info" },
+    { label: "Upload Photo, Preview & Submit" },
   ];
 
   return (
@@ -353,7 +373,7 @@ const MultiStepForm = () => {
 
           <div className="bg-white rounded-[15px] p-8 w-full mx-auto mb-[70px] shadow-md box-border">
             <div className="flex lg:flex-row flex-col w-full">
-              <div className="lg:w-1/3 lg:bg-[#7b1113] rounded-lg p-4 pt-10 lg:min-h-[450px]">
+              <div className="lg:w-1/3 lg:bg-upmaroon rounded-lg p-4 pt-10 lg:min-h-[450px]">
                 <StepIndicator steps={steps} currentStep={step} />
               </div>
               <div className="main-form p-4 w-full">
@@ -398,58 +418,77 @@ const MultiStepForm = () => {
                     prefix="up"
                   />
                 )}
-                <div className="main-form-buttons">
-                  {/* Step 1: Only 'Next' button */}
-                  {step === 1 && (
-                    <Button variant="primary" onClick={handleNextStep}>
-                      Next
-                    </Button>
-                  )}
-
-                  {/* Steps 2-4: 'Back' and 'Next' buttons */}
-                  {step >= 2 && step <= 3 && (
-                    <>
-                      <Button variant="secondary" onClick={handlePreviousStep}>
-                        Back
-                      </Button>
-                      <Button
-                        variant="primary"
-                        onClick={handleNextStep}
-                        style={{ marginLeft: "0.5rem" }}
-                      >
+                {step === 5 && (
+                  <PhotoUpload
+                    photoFile={photoFile}
+                    setPhotoFile={setPhotoFile}
+                    errors={errors}
+                    setErrors={setErrors}
+                    photoPreview={photoPreview}
+                    setPhotoPreview={setPhotoPreview}
+                  />
+                )}
+                <div className="flex justify-end mt-auto">
+                  <div className="main-form-buttons">
+                    {/* Step 1: Only 'Next' button */}
+                    {step === 1 && (
+                      <Button variant="primary" onClick={handleNextStep}>
                         Next
                       </Button>
-                    </>
-                  )}
+                    )}
 
-                  {/* Step 5: 'Back', 'Preview', and 'Submit' buttons */}
-                  {step === 4 && (
-                    <>
-                      <Button variant="secondary" onClick={handlePreviousStep}>
-                        Back
-                      </Button>
-                      <Button
-                        variant="primary"
-                        onClick={handlePreview}
-                        style={{ marginLeft: "0.5rem" }}
-                      >
-                        Preview
-                      </Button>
-                      {isPreviewOpen && (
-                        <PreviewModal
-                          data={formData}
-                          onClose={() => setIsPreviewOpen(false)}
-                        />
-                      )}
-                      <Button
-                        variant="primary"
-                        onClick={handleConfirmSubmit}
-                        style={{ marginLeft: "0.5rem" }}
-                      >
-                        Submit
-                      </Button>
-                    </>
-                  )}
+                    {/* Steps 2-4: 'Back' and 'Next' buttons */}
+                    {step >= 2 && step <= 4 && (
+                      <>
+                        <Button
+                          variant="secondary"
+                          onClick={handlePreviousStep}
+                        >
+                          Back
+                        </Button>
+                        <Button
+                          variant="primary"
+                          onClick={handleNextStep}
+                          style={{ marginLeft: "0.5rem" }}
+                        >
+                          Next
+                        </Button>
+                      </>
+                    )}
+
+                    {/* Step 6: 'Back', 'Preview', and 'Submit' buttons */}
+                    {step === 5 && (
+                      <>
+                        <Button
+                          variant="secondary"
+                          onClick={handlePreviousStep}
+                        >
+                          Back
+                        </Button>
+                        <Button
+                          variant="primary"
+                          onClick={handlePreview}
+                          style={{ marginLeft: "0.5rem" }}
+                        >
+                          Preview
+                        </Button>
+                        {isPreviewOpen && (
+                          <PreviewModal
+                            data={formData}
+                            onClose={() => setIsPreviewOpen(false)}
+                            photoPreview={photoPreview}
+                          />
+                        )}
+                        <Button
+                          variant="primary"
+                          onClick={handleConfirmSubmit}
+                          style={{ marginLeft: "0.5rem" }}
+                        >
+                          Submit
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

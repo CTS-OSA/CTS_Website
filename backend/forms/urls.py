@@ -18,6 +18,7 @@ urlpatterns = [
     path('check-student-number/', check_student_number, name='check-student-number'),
     path('student/profile/', get_student_profile),
     path('student/profile/update/', update_student_profile, name='update_student_profile'),
+    path('admin/students/<str:student_id>/update/', update_student_profile, name='admin-update-student'),
     path('admin/basic-information-sheet-submissions', AdminBISList.as_view(), name='get_bis_students'),
     path('admin/student-cumulative-information-file-submissions', AdminSCIFList.as_view(), name='get_scif_students'),
     path('<str:form_type>/', FormBundleView.as_view(), name='form-bundle'),

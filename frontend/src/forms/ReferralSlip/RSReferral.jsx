@@ -28,7 +28,7 @@ const RSRefferal = ({
   return (
     <div>
       <fieldset disabled={readOnly}>
-        <h2 className="text-upmaroon text-2xl font-bold pb-4">Referral Details</h2>
+        <h2 className="text-upmaroon text-2xl font-bold">REFERRAL DETAILS</h2>
 
         <div className="form-row full-width">
           <label className="form-label">
