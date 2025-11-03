@@ -13,7 +13,7 @@ const RSStudentDetails = ({ formData, setFormData, errors, setErrors }) => {
   return (
     <div className="form-container">
       <h2 className="text-upmaroon text-2xl font-bold pb-4">
-        Student to be referred details
+        STUDENT TO BE REFERRED DETAILS
       </h2>
 
       <div className="grid lg:grid-cols-2 gap-4 pb-4">
@@ -109,3 +109,4 @@ const RSStudentDetails = ({ formData, setFormData, errors, setErrors }) => {
 };
 
 export default RSStudentDetails;
+

@@ -1,4 +1,4 @@
-from .student import Student
+from .student import Student, StudentPhoto
 from .address import Address
 from .enums import CollegeEnum, YearLevelEnum, DegreeProgramEnum, PhilippineRegionEnum, SemesterEnum, SupportChoices, DEGREE_TO_COLLEGE
 from .BIS import Preferences, Support, StudentSupport, SocioEconomicStatus, PresentScholasticStatus

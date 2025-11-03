@@ -9,11 +9,10 @@ const RSReferrer = ({ formData, setFormData, errors, setErrors }) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-  const allDegreeOptions = enums?.degree_program || [];
   return (
     <div className="form-container">
       <h2 className="text-upmaroon text-2xl font-bold pb-4">
-        Referrer Details
+        REFERRER DETAILS
       </h2>
 
       <div className="grid lg:grid-cols-2 gap-4 pb-4">
