@@ -270,7 +270,7 @@ const MultiStepForm = () => {
       sanitizedFormData.date_initial_entry_sem
     );
 
-    payload.append("last_name", sanitizedFormData.last_name);
+    payload.append("last_name", sanitizedFormData.family_name);
     payload.append("first_name", sanitizedFormData.first_name);
     payload.append("middle_name", sanitizedFormData.middle_name || "");
     payload.append("nickname", sanitizedFormData.nickname || "");
