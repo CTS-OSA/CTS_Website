@@ -4,6 +4,7 @@ import PersonalInfoForm from "./PersonalInfoForm";
 import EducationInfoForm from "./EducationInfoForm";
 import AddressInfoForm from "./AddressInfoForm";
 import PhotoUpload from "./PhotoUpload";
+import PhotoUpload from "./PhotoUpload";
 import { apiRequest } from "../../utils/apiUtils";
 import PreviewModal from "./PreviewForm";
 import Button from "../../components/UIButton";
@@ -301,6 +302,9 @@ const MultiStepForm = () => {
       region: sanitizedFormData.up_region,
       zip_code: sanitizedFormData.up_zip_code,
     };
+
+    payload.append("permanent_address", JSON.stringify(permanent_address));
+    payload.append("address_while_in_up", JSON.stringify(address_while_in_up));
 
     payload.append("permanent_address", JSON.stringify(permanent_address));
     payload.append("address_while_in_up", JSON.stringify(address_while_in_up));

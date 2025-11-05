@@ -19,6 +19,12 @@ import {
 const ALPHA_REGEX = /^[A-Za-z\s]*$/;
 const NON_ALPHA_REGEX = /[^A-Za-z\s]/g;
 
+const MAX_FILE_SIZE_MB = 5;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png"];
+const MIN_DIMENSION = 200;
+const MAX_DIMENSION = 600;
+
 const REQUIRED_FIELDS = [
   { path: ["first_name"], label: "First Name" },
   { path: ["last_name"], label: "Last Name" },
@@ -93,7 +99,7 @@ const StudentSideInfo = ({
   profileData,
   submittedForms = [],
   onUpdate,
-  isAdmin = false,
+  isAdmin = false
 }) => {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
@@ -389,6 +395,11 @@ const StudentSideInfo = ({
               </div>
             )}
           </div>
+          {errors?.photo && (
+            <p className="text-red-500 text-sm font-medium mt-2 text-center italic">
+              {errors.photo}
+            </p>
+          )}
           {errors?.photo && (
             <p className="text-red-500 text-sm font-medium mt-2 text-center italic">
               {errors.photo}
