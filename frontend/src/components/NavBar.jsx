@@ -5,14 +5,7 @@ import logo from "../assets/upmin-logo.svg";
 import { Menu, X, ChevronDown, Home, User } from "react-feather";
 import SignUpModal from "./SignUpModal";
 import LoginModal from "./LoginModal";
-
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-} from "@mui/material";
+import LogoutModal from "./LogoutModal";
 
 export default function Navbar() {
   const { user, logout, isAuthenticated, role, profileData, loading } =
@@ -22,6 +15,7 @@ export default function Navbar() {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false);
+  const [showRecordsDropDown, setShowRecordsDropDown] = useState(false);
 
   const navigate = useNavigate();
   const loginRef = useRef(null);
@@ -31,7 +25,8 @@ export default function Navbar() {
   const fullName = `${profileData?.first_name || user?.first_name || ""} ${
     profileData?.last_name || user?.last_name || ""
   }`.trim();
-  const idNumber = profileData?.student_id || user?.student_id || "";
+  const idNumber =
+    profileData?.student_id || user?.student_id || user?.email || "";
 
   useEffect(() => {
     const handler = (e) => {
@@ -89,43 +84,88 @@ export default function Navbar() {
             <img
               src={logo}
               alt="UP Mindanao logo"
-              className="h-12 lg:h-16 w-12 lg:w-16 object-contain"
+              className="h-9 lg:h-16 w-12 lg:w-16 object-contain"
             />
             <div className="leading-tight select-none font-tnr max-w-[300px] text-center md:text-left">
-              <div className="text-xs lg:text-base md:font-bold">
+              <div className="text-[11px] lg:text-base md:font-bold">
                 University of the Philippines Mindanao
               </div>
-              <div className="text-xs lg:text-base md:font-semibold truncate -mt-1">
+              <div className="text-[11px] lg:text-base md:font-semibold truncate mt-0 lg:-mt-1">
                 Office of the Student Affairs
               </div>
-              <div className="text-xs lg:text-base truncate -mt-1">
+              <div className="text-[11px] lg:text-base truncate mt-0 lg:-mt-1">
                 Counseling and Testing Section
               </div>
             </div>
           </Link>
 
           {/* Menu */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-2 lg:gap-4 ">
             <button
-              className="text-sm px-3 transition duration-200 ease-in-out transform hover:scale-105 hover:text-upyellow"
+              className="sm:text-xs lg:text-sm px-3 transition duration-200 ease-in-out transform hover:scale-105 hover:text-upyellow"
               onClick={() => go("/")}
             >
               HOME
             </button>
 
             <button
-              className="text-sm px-3 transition duration-200 ease-in-out transform hover:scale-105 hover:text-upyellow"
+              className="md:text-xs lg:text-sm px-3 transition duration-200 ease-in-out transform hover:scale-105 hover:text-upyellow"
               onClick={() => go("/faq")}
             >
               FAQs
             </button>
 
             <button
-              className="text-sm px-3 transition duration-200 ease-in-out transform hover:scale-105 hover:text-upyellow"
+              className="md:text-xs lg:text-sm px-3 transition duration-200 ease-in-out transform hover:scale-105 hover:text-upyellow"
               onClick={() => go("/public-forms")}
             >
               FORMS
             </button>
+            {role === "admin" && (
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    setShowRecordsDropDown((prev) => !prev);
+                    setShowUserDropdown(false);
+                  }}
+                  className="md:text-xs lg:text-sm px-3 flex items-center gap-1 transition duration-200 ease-in-out transform hover:text-upyellow"
+                >
+                  RECORD MANAGEMENT
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform ${
+                      showRecordsDropDown ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {showRecordsDropDown && (
+                  <div className="absolute right-2 text-sm mt-2 bg-gray-200 text-gray-900 rounded shadow-md w-50 z-50 font-roboto">
+                    <Link
+                      to="/admin-bis-list"
+                      onClick={() => setShowRecordsDropDown(false)}
+                      className="block px-4 py-2 hover:bg-gray-50 text-left w-full rounded-t hover:font-medium"
+                    >
+                      Basic Information Sheet
+                    </Link>
+                    <Link
+                      to="/admin-scif-list"
+                      onClick={() => setShowRecordsDropDown(false)}
+                      className="block px-4 py-2 hover:bg-gray-50 text-left w-full hover:font-medium"
+                    >
+                      Student Cumulative Information
+                    </Link>
+                    <Link
+                      to="/admin-referral-list"
+                      onClick={() => setShowRecordsDropDown(false)}
+                      className="block px-4 py-2 hover:bg-gray-50 text-left w-full rounded-b hover:font-medium"
+                    >
+                      Referral Form
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
 
             {!isAuthenticated && (
               <div className="relative" ref={loginRef}>
@@ -158,7 +198,10 @@ export default function Navbar() {
             {isAuthenticated && (
               <div className="relative" ref={userRef}>
                 <button
-                  onClick={() => setShowUserDropdown((s) => !s)}
+                  onClick={() => {
+                    setShowUserDropdown((prev) => !prev);
+                    setShowRecordsDropDown(false);
+                  }}
                   className="inline-flex items-center gap-2 text-sm px-3 transition hover:text-upyellow"
                 >
                   <User size={16} />
@@ -172,8 +215,8 @@ export default function Navbar() {
                 </button>
 
                 {showUserDropdown && (
-                  <div className="absolute right-0 mt-2 bg-white text-gray-900 rounded shadow-lg w-56 z-50">
-                    <div className="px-4 py-3 border-b">
+                  <div className="absolute right-0 mt-2 bg-gray-200 text-gray-900 rounded shadow-lg w-52 z-50 font-roboto">
+                    <div className="px-4 py-3 border-b border-gray-400">
                       <div className="flex items-center gap-3">
                         <div className="bg-upmaroon text-white rounded-full w-10 h-10 flex items-center justify-center font-bold">
                           {fullName?.charAt(0) || "U"}
@@ -183,15 +226,15 @@ export default function Navbar() {
                             {fullName || nickname}
                           </div>
                           {idNumber && (
-                            <div className="text-sm text-gray-600">
-                              ID: {idNumber}
+                            <div className="text-[10px] text-gray-600">
+                              {idNumber}
                             </div>
                           )}
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex flex-col text-center">
+                    <div className="flex flex-col text-center text-sm">
                       {role === "student" && (
                         <>
                           <button
@@ -219,25 +262,37 @@ export default function Navbar() {
                       {role === "admin" && (
                         <>
                           <button
-                            className="w-full px-4 py-2 hover:bg-gray-100"
+                            className="block px-4 py-2 hover:bg-gray-50  w-full hover:font-semibold"
                             onClick={() => go("/admin")}
                           >
                             Dashboard
                           </button>
                           <button
-                            className="w-full px-4 py-2 hover:bg-gray-100"
+                            className="block px-4 py-2 hover:bg-gray-50  w-full hover:font-semibold"
                             onClick={() => go("/admin-student-list")}
                           >
                             Student List
+                          </button>
+                          <button
+                            className="block px-4 py-2 hover:bg-gray-50  w-full hover:font-semibold"
+                            onClick={() => go("/admin-reports")}
+                          >
+                            Report Analytics
+                          </button>
+                          <button
+                            className="block px-4 py-2 hover:bg-gray-50  w-full hover:font-semibold"
+                            onClick={() => go("/admin-system-settings")}
+                          >
+                            System Settings
                           </button>
                         </>
                       )}
 
                       <button
-                        className="w-full px-4 py-2 text-red-700 hover:bg-gray-100"
+                        className="w-full px-4 py-2 text-red-700 rounded-b hover:bg-gray-100 border-t hover:font-semibold border-gray-400"
                         onClick={openLogoutConfirm}
                       >
-                        Logout
+                        Log out
                       </button>
                     </div>
                   </div>
@@ -261,19 +316,9 @@ export default function Navbar() {
 
           {/* Mobile icon group (right side) */}
           <div className="md:hidden flex items-center gap-2">
-            {isAuthenticated && (
-              <button
-                className="text-white p-1"
-                onClick={() => go(role === "admin" ? "/admin" : "/student")}
-                aria-label="Go to home"
-              >
-                <Home />
-              </button>
-            )}
-
             <button
               onClick={() => setMobileOpen((v) => !v)}
-              className="text-white p-1 focus:outline-none hover:scale-115 transform transition duration-200 ease-in-out"
+              className="text-white p-1 focus:outline-none hover:scale-115 transform transition duration-200 ease-in-out w-8 h-8"
               aria-label="Toggle menu"
             >
               {mobileOpen ? <X /> : <Menu />}
@@ -283,7 +328,7 @@ export default function Navbar() {
 
         {/* Mobile expanded menu  */}
         {mobileOpen && (
-          <div className="md:hidden bg-upmaroon border-t border-white/10">
+          <div className="md:hidden bg-upmaroon border-t border-white/10 font-roboto">
             <div className="px-4 py-4 flex flex-col items-center gap-3">
               <button
                 onClick={() => go("/")}
@@ -303,6 +348,51 @@ export default function Navbar() {
               >
                 FORMS
               </button>
+              {role === "admin" && (
+                <div className="relative">
+                  <button
+                    onClick={() => {
+                      setShowRecordsDropDown((prev) => !prev);
+                      setShowUserDropdown(false);
+                    }}
+                    className="w-full text-center text-white uppercase py-2 inline-flex justify-center items-center gap-2"
+                  >
+                    RECORD MANAGEMENT
+                    <ChevronDown
+                      size={14}
+                      className={`transition-transform ${
+                        showRecordsDropDown ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {showRecordsDropDown && (
+                    <div className="mt-2 bg-gray-200 text-gray-900 rounded shadow-lg font-roboto ">
+                      <Link
+                        to="/admin-bis-list"
+                        onClick={() => setShowRecordsDropDown(false)}
+                        className="block px-4 py-2 hover:bg-gray-50 w-full text-center rounded-t hover:font-medium"
+                      >
+                        Basic Information Sheet
+                      </Link>
+                      <Link
+                        to="/admin-scif-list"
+                        onClick={() => setShowRecordsDropDown(false)}
+                        className="block px-4 py-2 hover:bg-gray-50 text-center w-full hover:font-medium"
+                      >
+                        Student Cumulative Information
+                      </Link>
+                      <Link
+                        to="/admin-referral-list"
+                        onClick={() => setShowRecordsDropDown(false)}
+                        className="block px-4 py-2 hover:bg-gray-50 text-center w-full rounded-b hover:font-medium"
+                      >
+                        Referral Form
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {!isAuthenticated && (
                 <div className="w-full" ref={loginRef}>
@@ -334,14 +424,14 @@ export default function Navbar() {
                   </button>
 
                   {showUserDropdown && (
-                    <div className="mt-2 bg-white text-gray-900 rounded w-full">
-                      <div className="px-4 py-3 border-b text-left">
+                    <div className="mt-2 bg-gray-200 text-gray-900 rounded shadow-lg font-roboto">
+                      <div className="px-4 py-3 border-b text-center border-gray-400">
                         <div className="font-semibold">
                           {fullName || nickname}
                         </div>
                         {idNumber && (
-                          <div className="text-sm text-gray-600">
-                            ID: {idNumber}
+                          <div className="text-xs text-gray-600">
+                            {idNumber}
                           </div>
                         )}
                       </div>
@@ -350,13 +440,13 @@ export default function Navbar() {
                         {role === "student" && (
                           <>
                             <button
-                              className="w-full text-center px-3 py-2 hover:bg-gray-100"
+                              className="block px-4 py-2 hover:bg-gray-50  w-full hover:font-semibold"
                               onClick={() => go("/myprofile")}
                             >
                               My Profile
                             </button>
                             <button
-                              className="w-full text-center px-3 py-2 hover:bg-gray-100"
+                              className="block px-4 py-2 hover:bg-gray-50  w-full hover:font-semibold"
                               onClick={() => go("/public-forms")}
                             >
                               Forms
@@ -365,19 +455,39 @@ export default function Navbar() {
                         )}
 
                         {role === "admin" && (
-                          <button
-                            className="w-full text-center px-3 py-2 hover:bg-gray-100"
-                            onClick={() => go("/admin")}
-                          >
-                            Dashboard
-                          </button>
+                          <>
+                            <button
+                              className="block px-4 py-2 hover:bg-gray-50  w-full hover:font-semibold"
+                              onClick={() => go("/admin")}
+                            >
+                              Dashboard
+                            </button>
+                            <button
+                              className="block px-4 py-2 hover:bg-gray-50  w-full hover:font-semibold"
+                              onClick={() => go("/admin-student-list")}
+                            >
+                              Student List
+                            </button>
+                            <button
+                              className="block px-4 py-2 hover:bg-gray-50  w-full hover:font-semibold"
+                              onClick={() => go("/admin-reports")}
+                            >
+                              Report Analytics
+                            </button>
+                            <button
+                              className="block px-4 py-2 hover:bg-gray-50  w-full hover:font-semibold"
+                              onClick={() => go("/admin-student-list")}
+                            >
+                              System Settings
+                            </button>
+                          </>
                         )}
 
                         <button
                           className="w-full text-center px-3 py-2 text-red-700 hover:bg-gray-100"
                           onClick={openLogoutConfirm}
                         >
-                          Logout
+                          Log out
                         </button>
                       </div>
                     </div>
@@ -401,22 +511,13 @@ export default function Navbar() {
         )}
       </nav>
 
-      {/* logout confirm dialog */}
-      <Dialog
+      {/* logout confirm modal */}
+      <LogoutModal
         open={confirmLogoutOpen}
         onClose={() => setConfirmLogoutOpen(false)}
-      >
-        <DialogTitle>Log out</DialogTitle>
-        <DialogContent>Are you sure you want to log out?</DialogContent>
-        <DialogActions>
-          <Button onClick={() => setConfirmLogoutOpen(false)}>Cancel</Button>
-          <Button color="error" onClick={confirmLogout}>
-            Log out
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onConfirm={confirmLogout}
+      />
 
-      {/* keep modals mounted at root so they overlay properly */}
       {activeModal === "login" && (
         <LoginModal
           onClose={() => setActiveModal(null)}
