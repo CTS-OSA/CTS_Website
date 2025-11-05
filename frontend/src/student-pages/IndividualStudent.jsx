@@ -11,15 +11,13 @@ import ToastMessage from "../components/ToastMessage";
 import ConfirmDialog from "../components/ConfirmDialog";
 import Loader from "../components/Loader";
 import { validatePhotoFile } from "../utils/photoValidation";
+import {
+  validateEditableProfile,
+  mergeProfileAndFormData,
+} from "../utils/formValidationUtils";
 
 const ALPHA_REGEX = /^[A-Za-z\s]*$/;
 const NON_ALPHA_REGEX = /[^A-Za-z\s]/g;
-
-const MAX_FILE_SIZE_MB = 5;
-const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png"];
-const MIN_DIMENSION = 200;
-const MAX_DIMENSION = 600;
 
 const REQUIRED_FIELDS = [
   { path: ["first_name"], label: "First Name" },
@@ -95,7 +93,7 @@ const StudentSideInfo = ({
   profileData,
   submittedForms = [],
   onUpdate,
-  isAdmin = false
+  isAdmin = false,
 }) => {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
@@ -250,8 +248,22 @@ const StudentSideInfo = ({
     );
   };
 
-  const handleUpdate = () => {
-    if (!validateRequiredFields()) {
+  const handleUpdate = async () => {
+    const mergedData = mergeProfileAndFormData(profileData, formData);
+    
+    if (errors.photo || !photoFile) {
+      setToast( "Please upload a valid profile photo before saving.");
+      setValidationErrors((prev) => ({
+        ...prev,
+        photo: errors.photo || "Please upload a valid photo.",
+      }));
+      return;
+    }
+    const editableErrors = validateEditableProfile(mergedData);
+
+    setValidationErrors(editableErrors);
+    if (Object.keys(editableErrors).length > 0) {
+      setToast("Please fix the highlighted errors before saving.");
       return;
     }
 
@@ -330,15 +342,15 @@ const StudentSideInfo = ({
                   <path
                     d="M21 13V20C21 20.5523 20.5523 21 20 21H4C3.44771 21 3 20.5523 3 20V4C3 3.44771 3.44771 3 4 3H11"
                     stroke="white"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
                   <path
                     d="M7 13.36V17H10.6586L21 6.65405L17.3475 3L7 13.36Z"
                     stroke="white"
-                    stroke-width="2"
-                    stroke-linejoin="round"
+                    strokeWidth="2"
+                    strokeLinejoin="round"
                   />
                 </svg>
 
@@ -393,6 +405,7 @@ const StudentSideInfo = ({
               }
               options={enums?.year_level || []}
               readOnly={!isEditing}
+              error={validationErrors["current_year_level"]}
             />
             <EditableField
               label="Degree Program"
@@ -409,6 +422,7 @@ const StudentSideInfo = ({
                   ? [{ value: "", label: "Error loading degree programs" }]
                   : enums?.degree_program || []
               }
+              error={validationErrors["degree_program"]}
             />
             <EditableField
               label="College / Department"
@@ -442,6 +456,7 @@ const StudentSideInfo = ({
                   required
                   pattern="^[A-Za-z ]+$"
                   title="First name should only contain letters and spaces."
+                  error={validationErrors["first_name"]}
                 />
                 <FormField
                   label="Last Name"
@@ -452,6 +467,7 @@ const StudentSideInfo = ({
                   required
                   pattern="^[A-Za-z ]+$"
                   title="Last name should only contain letters and spaces."
+                  error={validationErrors["last_name"]}
                 />
                 <FormField
                   label="Middle Name"
@@ -461,6 +477,7 @@ const StudentSideInfo = ({
                   readOnly={!isEditing}
                   pattern="^[A-Za-z ]*$"
                   title="Middle name should only contain letters and spaces."
+                  error={validationErrors["middle_name"]}
                 />
               </div>
 
@@ -473,6 +490,7 @@ const StudentSideInfo = ({
                   readOnly={!isEditing}
                   pattern="^[A-Za-z ]*$"
                   title="Nickname should only contain letters and spaces."
+                  error={validationErrors["nickname"]}
                 />
                 <FormField
                   label="Sex"
@@ -483,6 +501,7 @@ const StudentSideInfo = ({
                   required
                   pattern="^[A-Za-z ]+$"
                   title="Sex should only contain letters."
+                  error={validationErrors["sex"]}
                 />
                 <FormField
                   label="Religion"
@@ -493,6 +512,7 @@ const StudentSideInfo = ({
                   required
                   pattern="^[A-Za-z ]+$"
                   title="Religion should only contain letters and spaces."
+                  error={validationErrors["religion"]}
                 />
               </div>
 
@@ -505,6 +525,8 @@ const StudentSideInfo = ({
                     updateProfileData({ birthdate: e.target.value })
                   }
                   readOnly={!isEditing}
+                  required
+                  error={validationErrors["birthdate"]}
                 />
                 <FormField
                   label="Birth Place"
@@ -515,6 +537,7 @@ const StudentSideInfo = ({
                   required
                   pattern="^[A-Za-z ]+$"
                   title="Birth place should only contain letters and spaces."
+                  error={validationErrors["birth_place"]}
                 />
                 <FormField
                   label="Birth Rank"
@@ -523,6 +546,7 @@ const StudentSideInfo = ({
                     updateProfileData({ birth_rank: e.target.value })
                   }
                   readOnly={!isEditing}
+                  error={validationErrors["birth_rank"]}
                 />
               </div>
 
@@ -534,6 +558,7 @@ const StudentSideInfo = ({
                     updateProfileData({ contact_number: e.target.value })
                   }
                   readOnly={!isEditing}
+                  error={validationErrors["contact_number"]}
                 />
                 <FormField
                   label="Landline Number"
@@ -542,6 +567,7 @@ const StudentSideInfo = ({
                     updateProfileData({ landline_number: e.target.value })
                   }
                   readOnly={!isEditing}
+                  error={validationErrors["landline_number"]}
                 />
               </div>
 
@@ -558,6 +584,7 @@ const StudentSideInfo = ({
                     })
                   }
                   readOnly={!isEditing}
+                  error={validationErrors["permanent_address.address_line_1"]}
                 />
                 <FormField
                   label="Address Line 2"
@@ -568,6 +595,7 @@ const StudentSideInfo = ({
                     })
                   }
                   readOnly={!isEditing}
+                  error={validationErrors["permanent_address.address_line_2"]}
                 />
               </div>
               <div className="grid lg:grid-cols-2 gap-4 pb-4">
@@ -580,6 +608,7 @@ const StudentSideInfo = ({
                     })
                   }
                   readOnly={!isEditing}
+                  error={validationErrors["permanent_address.barangay"]}
                 />
                 <FormField
                   label="City/Municipality"
@@ -590,6 +619,9 @@ const StudentSideInfo = ({
                     })
                   }
                   readOnly={!isEditing}
+                  error={
+                    validationErrors["permanent_address.city_municipality"]
+                  }
                 />
               </div>
 
@@ -603,6 +635,7 @@ const StudentSideInfo = ({
                     })
                   }
                   readOnly={!isEditing}
+                  error={validationErrors["permanent_address.province"]}
                 />
                 <FormField
                   label="Region"
@@ -621,6 +654,7 @@ const StudentSideInfo = ({
                       label: opt.label,
                     })) || []
                   }
+                  error={validationErrors["permanent_address.region"]}
                 />
                 <FormField
                   label="ZIP code"
@@ -631,6 +665,7 @@ const StudentSideInfo = ({
                     })
                   }
                   readOnly={!isEditing}
+                  error={validationErrors["permanent_address.zip_code"]}
                 />
               </div>
 
@@ -647,6 +682,7 @@ const StudentSideInfo = ({
                     })
                   }
                   readOnly={!isEditing}
+                  error={validationErrors["address_while_in_up.address_line_1"]}
                 />
                 <FormField
                   label="Address Line 2"
@@ -657,6 +693,7 @@ const StudentSideInfo = ({
                     })
                   }
                   readOnly={!isEditing}
+                  error={validationErrors["address_while_in_up.address_line_2"]}
                 />
               </div>
               <div className="grid lg:grid-cols-2 gap-4 pb-4">
@@ -669,6 +706,7 @@ const StudentSideInfo = ({
                     })
                   }
                   readOnly={!isEditing}
+                  error={validationErrors["address_while_in_up.barangay"]}
                 />
                 <FormField
                   label="City/Municipality"
@@ -679,6 +717,9 @@ const StudentSideInfo = ({
                     })
                   }
                   readOnly={!isEditing}
+                  error={
+                    validationErrors["address_while_in_up.city_municipality"]
+                  }
                 />
               </div>
 
@@ -692,6 +733,7 @@ const StudentSideInfo = ({
                     })
                   }
                   readOnly={!isEditing}
+                  error={validationErrors["address_while_in_up.province"]}
                 />
                 <FormField
                   label="Region"
@@ -710,6 +752,7 @@ const StudentSideInfo = ({
                       label: opt.label,
                     })) || []
                   }
+                  error={validationErrors["address_while_in_up.region"]}
                 />
                 <FormField
                   label="ZIP code"
@@ -720,6 +763,7 @@ const StudentSideInfo = ({
                     })
                   }
                   readOnly={!isEditing}
+                  error={validationErrors["address_while_in_up.zip_code"]}
                 />
               </div>
             </div>

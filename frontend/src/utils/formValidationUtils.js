@@ -4,7 +4,7 @@ export function validatePersonalInfo(data) {
   const errors = {};
 
   const requiredFields = [
-    'family_name',
+    'last_name',
     'first_name',
     'nickname',
     'birth_rank',
@@ -111,4 +111,71 @@ export function formatAddress(data, type) {
     region: data[`${type}_region`],
     zip: data[`${type}_zip_code`],
   };
+}
+
+export function mergeProfileAndFormData(profileData, formData) {
+  const mergeDeep = (target, source) => {
+    const output = { ...target };
+    if (source) {
+      Object.keys(source).forEach((key) => {
+        if (
+          source[key] &&
+          typeof source[key] === "object" &&
+          !Array.isArray(source[key])
+        ) {
+          output[key] = mergeDeep(target[key] || {}, source[key]);
+        } else {
+          output[key] = source[key];
+        }
+      });
+    }
+    return output;
+  };
+
+  return mergeDeep(profileData, formData);
+}
+
+
+export function validateEditableProfile(data) {
+  const errors = {};
+
+  // --- Helper for required fields ---
+  const checkRequired = (fields, prefix = "") => {
+    fields.forEach((f) => {
+      const value = prefix ? data[prefix]?.[f] : data[f];
+      if (!value || value.toString().trim() === "")
+        errors[prefix ? `${prefix}.${f}` : f] = "This field is required.";
+    });
+  };
+
+  checkRequired([
+    "first_name",
+    "last_name",
+    "nickname",
+    "sex",
+    "birthdate",
+    "birthplace",
+    "birth_rank",
+    "contact_number",
+  ]);
+
+  if (data.birth_rank && parseInt(data.birth_rank) <= 0)
+    errors.birth_rank = "Birth rank must be greater than 0.";
+  if (data.contact_number && !phonePattern.test(data.contact_number))
+    errors.contact_number = "Contact number is invalid.";
+
+  checkRequired(["college", "degree_program", "current_year_level"]);
+
+  const addressFields = [
+    "address_line_1",
+    "barangay",
+    "city_municipality",
+    "province",
+    "region",
+    "zip_code",
+  ];
+  checkRequired(addressFields, "permanent_address");
+  checkRequired(addressFields, "address_while_in_up");
+
+  return errors;
 }

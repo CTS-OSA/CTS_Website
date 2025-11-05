@@ -31,13 +31,13 @@ const PersonalInfoForm = ({ formData, setFormData, errors, setErrors }) => {
       <div className="grid lg:grid-cols-2 gap-4 pb-4">
         <FormField
           label="Last Name"
-          name="family_name"
-          value={formData.family_name}
+          name="last_name"
+          value={formData.last_name}
           onChange={handleChange}
           onFocus={() =>
-            clearError(errors, setErrors, "personal_info.family_name")
+            clearError(errors, setErrors, "personal_info.last_name")
           }
-          error={errors?.["personal_info.family_name"]}
+          error={errors?.["personal_info.last_name"]}
           required
         />
         <FormField

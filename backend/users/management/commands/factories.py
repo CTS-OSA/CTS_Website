@@ -6,7 +6,7 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 from forms.models import Parent, Sibling, Guardian, FamilyData, FamilyRelationship, CounselingInformation, Scholarship, PreviousSchoolRecord, School, SchoolAddress
 from forms.models import (
-    Student, Address, Submission, Preferences, HealthData,
+    Student, StudentPhoto, Address, Submission, Preferences, HealthData,
     PersonalityTraits, SocioEconomicStatus, FamilyData, Support, StudentSupport, PresentScholasticStatus, PrivacyConsent
 )
 from users.models import CustomUser, Role
@@ -82,7 +82,14 @@ class StudentFactory(factory.django.DjangoModelFactory):
             year = int(year_str)
             return f"{year}-{year + 1}"
         except ValueError:
-            return "2023-2024"  # fallback default
+            return "2023-2024" 
+        
+class StudentPhotoFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = StudentPhoto
+
+    student = factory.SubFactory(StudentFactory)
+    image = factory.django.ImageField(filename="student_photo.jpg")
 
 class SubmissionFactory(factory.django.DjangoModelFactory):
     class Meta:

@@ -23,7 +23,7 @@ import StepIndicator from "../../components/StepIndicator";
 const ALPHA_REGEX = /^[A-Za-z\s]*$/;
 const NON_ALPHA_REGEX = /[^A-Za-z\s]/g;
 const PERSONAL_INFO_ALPHA_FIELDS = new Set([
-  "family_name",
+  "last_name",
   "first_name",
   "middle_name",
   "nickname",
@@ -86,7 +86,7 @@ const MultiStepForm = () => {
   const [photoPreview, setPhotoPreview] = useState(null);
 
   const [formData, setFormData] = useState({
-    family_name: "",
+    last_name: "",
     first_name: "",
     middle_name: "",
     nickname: "",
@@ -270,7 +270,7 @@ const MultiStepForm = () => {
       sanitizedFormData.date_initial_entry_sem
     );
 
-    payload.append("last_name", sanitizedFormData.family_name);
+    payload.append("last_name", sanitizedFormData.last_name);
     payload.append("first_name", sanitizedFormData.first_name);
     payload.append("middle_name", sanitizedFormData.middle_name || "");
     payload.append("nickname", sanitizedFormData.nickname || "");
