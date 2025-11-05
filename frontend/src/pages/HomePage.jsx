@@ -16,12 +16,11 @@ export const HomePage = () => {
     const el = document.getElementById("services");
     if (!el) return;
 
-    // Find nav height. Adjust selector if your NavBar element uses a different tag/class.
     const nav = document.querySelector("nav");
     const navHeight = nav ? nav.getBoundingClientRect().height : 0;
 
     const top =
-      el.getBoundingClientRect().top + window.pageYOffset - navHeight - 8; // -8px small gap
+      el.getBoundingClientRect().top + window.pageYOffset - navHeight - 8;
     window.scrollTo({ top, behavior: "smooth" });
   };
 
@@ -76,7 +75,7 @@ export const HomePage = () => {
 
               <div className="mt-4 md:mt-6 flex flex-col sm:flex-row gap-3 sm:gap-4 items-center sm:items-start justify-center sm:justify-start font-roboto">
                 <a
-                  href="/referral"
+                  href="/public-forms"
                   className="
                     w-auto px-4 py-2 text-sm sm:px-5 sm:py-3 sm:text-base
                     rounded-md bg-upmaroon text-white font-semibold
@@ -84,7 +83,7 @@ export const HomePage = () => {
                     transition 
                   "
                 >
-                  Referral Form
+                  Fill Out Forms
                 </a>
 
                 <a

@@ -48,12 +48,12 @@ export default function Footer() {
             <div className="mt-4 flex flex-col sm:flex-row justify-center md:justify-start items-center sm:items-center gap-4 text-sm text-white/90">
               <div className="flex items-center gap-2 whitespace-nowrap">
                 <Phone className="w-4 h-4 shrink-0" />
-                <span>09xx xxx xxxx</span>
+                <span>0918-918-4934</span>
               </div>
 
               <div className="flex items-center gap-2 whitespace-nowrap">
                 <Mail className="w-4 h-4 shrink-0" />
-                <span>osa.cts@upmin.edu.ph</span>
+                <span>cts_osa.upmindanao@up.edu.ph</span>
               </div>
             </div>
           </div>
