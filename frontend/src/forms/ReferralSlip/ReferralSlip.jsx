@@ -284,153 +284,159 @@ const ReferralSlip = () => {
                 <div className="lg:w-1/3 lg:bg-upmaroon rounded-lg p-4 pt-10">
                   <StepIndicator steps={steps} currentStep={step} />
                 </div>
-                <div className="main-form p-4 w-full">
-                  {step === 1 && <RSStudentDetails />}
-                  {step === 2 && (
-                    <RSRefferal
-                    //   data={{
-                    //     socio_economic_status: formData.socio_economic_status,
-                    //     student_support: formData.student_support,
-                    //   }}
-                    //   updateData={(newData) =>
-                    //     setFormData((prev) => ({
-                    //       ...prev,
-                    //       socio_economic_status: {
-                    //         ...prev.socio_economic_status,
-                    //         ...newData.socio_economic_status,
-                    //       },
-                    //       student_support: {
-                    //         ...prev.student_support,
-                    //         ...newData.student_support,
-                    //       },
-                    //     }))
-                    //   }
-                    //   readOnly={readOnly}
-                    //   errors={errors}
-                    //   setErrors={setErrors}
-                    />
-                  )}
-                  {step === 3 && (
-                    <RSReferrer
-                    //   data={formData.preferences}
-                    //   updateData={(newData) =>
-                    //     setFormData((prev) => ({
-                    //       ...prev,
-                    //       preferences: { ...prev.preferences, ...newData },
-                    //     }))
-                    //   }
-                    //   readOnly={readOnly}
-                    //   errors={errors}
-                    //   setErrors={setErrors}
-                    />
-                  )}
-                  {step === 4 && <RSSubmit />}
-                  <div className="main-form-buttons">
-                    {/* Step 1: 'Save Draft' and 'Next' button */}
-                    {step === 1 && !loading && (
-                      <>
-                        {!readOnly && (
-                          <Button
-                            variant="tertiary"
-                            onClick={handleSaveDraft}
-                            disabled={loading}
-                            style={{ marginLeft: "0.5rem" }}
-                          >
-                            {loading ? "Saving Draft..." : "Save Draft"}
-                          </Button>
-                        )}
-                        <Button variant="primary" onClick={handleNextStep}>
-                          Next
-                        </Button>
-                      </>
+                <div className="main-form p-4 w-full flex flex-col">
+                  <div className="flex-1">
+                    {step === 1 && <RSStudentDetails />}
+                    {step === 2 && (
+                      <RSRefferal
+                      //   data={{
+                      //     socio_economic_status: formData.socio_economic_status,
+                      //     student_support: formData.student_support,
+                      //   }}
+                      //   updateData={(newData) =>
+                      //     setFormData((prev) => ({
+                      //       ...prev,
+                      //       socio_economic_status: {
+                      //         ...prev.socio_economic_status,
+                      //         ...newData.socio_economic_status,
+                      //       },
+                      //       student_support: {
+                      //         ...prev.student_support,
+                      //         ...newData.student_support,
+                      //       },
+                      //     }))
+                      //   }
+                      //   readOnly={readOnly}
+                      //   errors={errors}
+                      //   setErrors={setErrors}
+                      />
                     )}
-
-                    {step >= 2 && step <= 3 && !loading && (
-                      <>
-                        <Button
-                          variant="secondary"
-                          onClick={handlePreviousStep}
-                        >
-                          Back
-                        </Button>
-                        {!readOnly && (
-                          <Button
-                            variant="tertiary"
-                            onClick={handleSaveDraft}
-                            disabled={loading}
-                            style={{ marginLeft: "0.5rem" }}
-                          >
-                            {loading ? "Saving Draft..." : "Save Draft"}
-                          </Button>
-                        )}
-                        <Button
-                          variant="primary"
-                          onClick={handleNextStep}
-                          style={{ marginLeft: "0.5rem" }}
-                        >
-                          Next
-                        </Button>
-                      </>
+                    {step === 3 && (
+                      <RSReferrer
+                      //   data={formData.preferences}
+                      //   updateData={(newData) =>
+                      //     setFormData((prev) => ({
+                      //       ...prev,
+                      //       preferences: { ...prev.preferences, ...newData },
+                      //     }))
+                      //   }
+                      //   readOnly={readOnly}
+                      //   errors={errors}
+                      //   setErrors={setErrors}
+                      />
                     )}
-
-                    {/* Step 4: 'Back', 'Save Draft', 'Preview', and 'Submit' buttons */}
-                    {step === 4 && !loading && (
-                      <>
-                        <Button
-                          variant="secondary"
-                          onClick={handlePreviousStep}
-                        >
-                          Back
-                        </Button>
-                        {!readOnly && (
-                          <Button
-                            variant="tertiary"
-                            onClick={handleSaveDraft}
-                            disabled={loading}
-                            style={{ marginLeft: "0.5rem" }}
-                          >
-                            {loading ? "Saving Draft..." : "Save Draft"}
-                          </Button>
-                        )}
-
-                        <Button
-                          variant="tertiary"
-                          onClick={handlePreview}
-                          style={{ marginLeft: "0.5rem" }}
-                        >
-                          Preview
-                        </Button>
-
-                        {isPreviewOpen && (
-                          <RSPreview
-                            formData={formData}
-                            onClose={() => setIsPreviewOpen(false)}
-                          />
-                        )}
-
-                        {!readOnly && (
-                          <Button
-                            variant="primary"
-                            onClick={handleConfirmSubmit}
-                            style={{ marginLeft: "0.5rem" }}
-                          >
-                            Submit
-                          </Button>
-                        )}
-                      </>
-                    )}
-
-                    {/* Loading Indicator */}
-                    {loading && <div>Loading...</div>}
+                    {step === 4 && <RSSubmit />}
 
                     {/* Error Message */}
-                    {error && <div className="error-message">{error}</div>}
+                    {error && <div className="text-[#D32F2F] text-xs ml-4 mt-4 italic">{error}</div>}
+                  </div>
+
+                  {/* Buttons Section */}
+                  <div className="flex justify-end mt-auto">
+                    <div className="main-form-buttons">
+                      {/* Step 1: 'Save Draft' and 'Next' button */}
+                      {step === 1 && !loading && (
+                        <>
+                          {!readOnly && (
+                            <Button
+                              variant="tertiary"
+                              onClick={handleSaveDraft}
+                              disabled={loading}
+                              style={{ marginLeft: "0.5rem" }}
+                            >
+                              {loading ? "Saving Draft..." : "Save Draft"}
+                            </Button>
+                          )}
+                          <Button variant="primary" onClick={handleNextStep}>
+                            Next
+                          </Button>
+                        </>
+                      )}
+
+                      {step >= 2 && step <= 3 && !loading && (
+                        <>
+                          <Button
+                            variant="secondary"
+                            onClick={handlePreviousStep}
+                          >
+                            Back
+                          </Button>
+                          {!readOnly && (
+                            <Button
+                              variant="tertiary"
+                              onClick={handleSaveDraft}
+                              disabled={loading}
+                              style={{ marginLeft: "0.5rem" }}
+                            >
+                              {loading ? "Saving Draft..." : "Save Draft"}
+                            </Button>
+                          )}
+                          <Button
+                            variant="primary"
+                            onClick={handleNextStep}
+                            style={{ marginLeft: "0.5rem" }}
+                          >
+                            Next
+                          </Button>
+                        </>
+                      )}
+
+                      {/* Step 4: 'Back', 'Save Draft', 'Preview', and 'Submit' buttons */}
+                      {step === 4 && !loading && (
+                        <>
+                          <Button
+                            variant="secondary"
+                            onClick={handlePreviousStep}
+                          >
+                            Back
+                          </Button>
+                          {!readOnly && (
+                            <Button
+                              variant="tertiary"
+                              onClick={handleSaveDraft}
+                              disabled={loading}
+                              style={{ marginLeft: "0.5rem" }}
+                            >
+                              {loading ? "Saving Draft..." : "Save Draft"}
+                            </Button>
+                          )}
+
+                          <Button
+                            variant="tertiary"
+                            onClick={handlePreview}
+                            style={{ marginLeft: "0.5rem" }}
+                          >
+                            Preview
+                          </Button>
+
+                          {!readOnly && (
+                            <Button
+                              variant="primary"
+                              onClick={handleConfirmSubmit}
+                              style={{ marginLeft: "0.5rem" }}
+                            >
+                              Submit
+                            </Button>
+                          )}
+                        </>
+                      )}
+
+                      {/* Loading Indicator */}
+                      {loading && <div>Loading...</div>}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+
+        {isPreviewOpen && (
+          <RSPreview
+            formData={formData}
+            onClose={() => setIsPreviewOpen(false)}
+          />
+        )}
 
         {showConfirmDialog && (
           <ConfirmDialog
