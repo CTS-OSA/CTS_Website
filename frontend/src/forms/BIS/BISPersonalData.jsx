@@ -12,7 +12,6 @@ const BISPersonalData = ({ profileData }) => {
     <div className="space-y-6">
       <h2 className="text-upmaroon text-2xl font-bold mb-2">PERSONAL DATA</h2>
       
-      {/* Grid Layout for Form Fields */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Surname */}
         <div className="space-y-2">
