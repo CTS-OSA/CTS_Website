@@ -23,150 +23,185 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
   const [showDownloadConfirm, setShowDownloadConfirm] = useState(false);
   const [downloadToast, setDownloadToast] = useState(null);
   const [formState, setFormState] = useState({
-    name: '',
-    last_name: '',
-    first_name: '',
-    middle_name: '',
-    nickname: '',
-    sex: '',
-    age: '',
-    religion: '',
-    birth_rank: '',
-    birthdate: '',
-    birthplace: '',
-    permanent_address: '',
-    landline_number: '',
-    email: '',
-    contact_number: '',
-    student_number: '',
-    degree_program: '',
-    date_initial_entry: '',
-    father_name: '',
-    father_age: '',
-    father_job_occupation: '',
-    father_company_agency: '',
-    father_company_address: '',
-    father_highest_educational_attainment: '',
-    father_contact_number: '',
-    mother_name: '',
-    mother_age: '',
-    mother_job_occupation: '',
-    mother_company_agency: '',
-    mother_company_address: '',
-    mother_highest_educational_attainment: '',
-    mother_contact_number: '',
-    guardian_name: '',
-    guardian_contact_number: '',
-    guardian_address: '',
-    guardian_relationship_to_guardian: '',
-    guardian_language_dialect: '',
-    scholarships_and_assistance: '',    
-    health_condition: '',
-    height: '',
-    weight: '',
-    eyesight: '',
-    hearing: '',
-    physical_disabilities: '',
-    common_ailments: '',
-    last_hospitalization: '',
-    reason_of_hospitalization: '',
-    senior_high_gpa: '',
-    enrollment_reason: '',
-    program_match_goal: '',
-    aspiration_explanation: '',
-    special_talents: '',
-    musical_instruments: '',
-    hobbies: '',
-    likes_in_people: '',
-    dislikes_in_people: '',
-    closest_to: '',
-    personal_characteristics: '',
-    problem_confidant: '',
-    confidant_reason: '',
-    potential_problems: '',
-    previous_counseling: '',
-    counseling_location: '',
-    counseling_counselor: '',
-    counseling_reason: '',
-    guidance_notes: ''
+    name: "",
+    last_name: "",
+    first_name: "",
+    middle_name: "",
+    nickname: "",
+    sex: "",
+    age: "",
+    religion: "",
+    birth_rank: "",
+    birthdate: "",
+    birthplace: "",
+    permanent_address: "",
+    landline_number: "",
+    email: "",
+    contact_number: "",
+    student_number: "",
+    degree_program: "",
+    date_initial_entry: "",
+    father_name: "",
+    father_age: "",
+    father_job_occupation: "",
+    father_company_agency: "",
+    father_company_address: "",
+    father_highest_educational_attainment: "",
+    father_contact_number: "",
+    mother_name: "",
+    mother_age: "",
+    mother_job_occupation: "",
+    mother_company_agency: "",
+    mother_company_address: "",
+    mother_highest_educational_attainment: "",
+    mother_contact_number: "",
+    guardian_name: "",
+    guardian_contact_number: "",
+    guardian_address: "",
+    guardian_relationship_to_guardian: "",
+    guardian_language_dialect: "",
+    scholarships_and_assistance: "",
+    health_condition: "",
+    height: "",
+    weight: "",
+    eyesight: "",
+    hearing: "",
+    physical_disabilities: "",
+    common_ailments: "",
+    last_hospitalization: "",
+    reason_of_hospitalization: "",
+    senior_high_gpa: "",
+    enrollment_reason: "",
+    program_match_goal: "",
+    aspiration_explanation: "",
+    special_talents: "",
+    musical_instruments: "",
+    hobbies: "",
+    likes_in_people: "",
+    dislikes_in_people: "",
+    closest_to: "",
+    personal_characteristics: "",
+    problem_confidant: "",
+    confidant_reason: "",
+    potential_problems: "",
+    previous_counseling: "",
+    counseling_location: "",
+    counseling_counselor: "",
+    counseling_reason: "",
+    guidance_notes: "",
   });
 
   useEffect(() => {
     if (formData && profileData) {
-      const { family_data, personality_traits, health_data, previous_school_record, family_relationship, counseling_info, guidance_notes} = formData;
+      const {
+        family_data,
+        personality_traits,
+        health_data,
+        previous_school_record,
+        family_relationship,
+        counseling_info,
+        guidance_notes,
+      } = formData;
       const father = family_data?.father;
       const mother = family_data?.mother;
       const guardian = family_data?.guardian;
-      const seniorHighRecord = Array.isArray(previous_school_record) ? previous_school_record.find(r => r.education_level === 'Senior High') : null;
-      
+      const seniorHighRecord = Array.isArray(previous_school_record)
+        ? previous_school_record.find(
+            (r) => r.education_level === "Senior High"
+          )
+        : null;
+
       setFormState({
         name: `${profileData.last_name}, ${profileData.first_name} ${profileData.middle_name}`,
-        last_name: profileData.last_name || '',
-        first_name: profileData.first_name || '',
-        middle_name: profileData.middle_name || '',
-        nickname: profileData.nickname || '',
-        sex: profileData.sex || '',
-        age: calculateAge(profileData.birthdate) || '',
-        religion: profileData.religion || '',
-        birth_rank: profileData.birth_rank || '',
-        birthdate: profileData.birthdate || '',
-        birthplace: profileData.birthplace || '',
-        permanent_address: [profileData.permanent_address?.address_line_1, profileData.permanent_address?.barangay, profileData.permanent_address?.city_municipality, profileData.permanent_address?.province].filter(Boolean).join(', ') || '',
-        landline_number: profileData.landline_number || '',
-        email: profileData.email || '',
-        contact_number: profileData.contact_number || '',
-        student_number: profileData.student_number || '',
-        degree_program: profileData.degree_program || '',
-        date_initial_entry: `${profileData.date_initial_entry_sem} - AY ${profileData.date_initial_entry}` || '',
-        father_name: `${father?.first_name || ''} ${father?.last_name || ''}`,
-        father_age: father?.age || '',
-        father_job_occupation: father?.job_occupation || '',
-        father_company_agency: father?.company_agency || '',
-        father_company_address: father?.company_address || '',
-        father_highest_educational_attainment: father?.highest_educational_attainment || '',
-        father_contact_number: father?.contact_number || '',
-        mother_name: `${mother?.first_name || ''} ${mother?.last_name || ''}`,
-        mother_age: mother?.age || '',
-        mother_job_occupation: mother?.job_occupation || '',
-        mother_company_agency: mother?.company_agency || '',
-        mother_company_address: mother?.company_address || '',
-        mother_highest_educational_attainment: mother?.highest_educational_attainment || '',
-        mother_contact_number: mother?.contact_number || '',
-        guardian_name: `${guardian?.first_name || ''} ${guardian?.last_name || ''}`,
-        guardian_contact_number: guardian?.contact_number || '',
-        guardian_address: guardian?.address || '',
-        guardian_relationship_to_guardian: guardian?.relationship_to_guardian || '',
-        guardian_language_dialect: guardian?.language_dialect || '',
-        scholarships_and_assistance: scholarship?.scholarships_and_assistance || [],
-        health_condition: health_data?.health_condition || '',
-        height: health_data?.height || '',
-        weight: health_data?.weight || '',
-        eyesight: health_data?.eye_sight || '',
-        hearing: health_data?.hearing || '',
-        physical_disabilities: health_data?.physical_disabilities?.join(', ') || '',
-        common_ailments: health_data?.common_ailments?.join(', ') || '',
-        last_hospitalization: health_data?.last_hospitalization || '',
-        reason_of_hospitalization: health_data?.reason_of_hospitalization || '',
-        senior_high_gpa: seniorHighRecord?.senior_high_gpa || '',
-        enrollment_reason: personality_traits?.enrollment_reason || '',
-        program_match_goal: personality_traits?.degree_program_aspiration ? 'Yes' : 'No',
-        aspiration_explanation: personality_traits?.aspiration_explanation || '',
-        special_talents: personality_traits?.special_talents || '',
-        musical_instruments: personality_traits?.musical_instruments || '',
-        hobbies: personality_traits?.hobbies || '',
-        likes_in_people: personality_traits?.likes_in_people || '',
-        dislikes_in_people: personality_traits?.dislikes_in_people || '',
-        closest_to: family_relationship?.closest_to || '',
-        
-        personal_characteristics: counseling_info?.personal_characteristics || '',
-        problem_confidant: counseling_info?.problem_confidant || '',
-        confidant_reason: counseling_info?.confidant_reason || '',
-        potential_problems: counseling_info?.anticipated_problems || '',
-        previous_counseling: counseling_info?.previous_counseling ? 'Yes' : 'No',
-        counseling_location: counseling_info?.counseling_location || '',
-        counseling_counselor: counseling_info?.counseling_counselor || '',
-        counseling_reason: counseling_info?.counseling_reason || '',
-        guidance_notes: guidance_notes.notes || ''
+        last_name: profileData.last_name || "",
+        first_name: profileData.first_name || "",
+        middle_name: profileData.middle_name || "",
+        nickname: profileData.nickname || "",
+        sex: profileData.sex || "",
+        age: calculateAge(profileData.birthdate) || "",
+        religion: profileData.religion || "",
+        birth_rank: profileData.birth_rank || "",
+        birthdate: profileData.birthdate || "",
+        birthplace: profileData.birthplace || "",
+        permanent_address:
+          [
+            profileData.permanent_address?.address_line_1,
+            profileData.permanent_address?.barangay,
+            profileData.permanent_address?.city_municipality,
+            profileData.permanent_address?.province,
+          ]
+            .filter(Boolean)
+            .join(", ") || "",
+        landline_number: profileData.landline_number || "",
+        email: profileData.email || "",
+        contact_number: profileData.contact_number || "",
+        student_number: profileData.student_number || "",
+        degree_program: profileData.degree_program || "",
+        date_initial_entry:
+          `${profileData.date_initial_entry_sem} - AY ${profileData.date_initial_entry}` ||
+          "",
+        father_name: `${father?.first_name || ""} ${father?.last_name || ""}`,
+        father_age: father?.age || "",
+        father_job_occupation: father?.job_occupation || "",
+        father_company_agency: father?.company_agency || "",
+        father_company_address: father?.company_address || "",
+        father_highest_educational_attainment:
+          father?.highest_educational_attainment || "",
+        father_contact_number: father?.contact_number || "",
+        mother_name: `${mother?.first_name || ""} ${mother?.last_name || ""}`,
+        mother_age: mother?.age || "",
+        mother_job_occupation: mother?.job_occupation || "",
+        mother_company_agency: mother?.company_agency || "",
+        mother_company_address: mother?.company_address || "",
+        mother_highest_educational_attainment:
+          mother?.highest_educational_attainment || "",
+        mother_contact_number: mother?.contact_number || "",
+        guardian_name: `${guardian?.first_name || ""} ${
+          guardian?.last_name || ""
+        }`,
+        guardian_contact_number: guardian?.contact_number || "",
+        guardian_address: guardian?.address || "",
+        guardian_relationship_to_guardian:
+          guardian?.relationship_to_guardian || "",
+        guardian_language_dialect: guardian?.language_dialect || "",
+        scholarships_and_assistance:
+          scholarship?.scholarships_and_assistance || [],
+        health_condition: health_data?.health_condition || "",
+        height: health_data?.height || "",
+        weight: health_data?.weight || "",
+        eyesight: health_data?.eye_sight || "",
+        hearing: health_data?.hearing || "",
+        physical_disabilities:
+          health_data?.physical_disabilities?.join(", ") || "",
+        common_ailments: health_data?.common_ailments?.join(", ") || "",
+        last_hospitalization: health_data?.last_hospitalization || "",
+        reason_of_hospitalization: health_data?.reason_of_hospitalization || "",
+        senior_high_gpa: seniorHighRecord?.senior_high_gpa || "",
+        enrollment_reason: personality_traits?.enrollment_reason || "",
+        program_match_goal: personality_traits?.degree_program_aspiration
+          ? "Yes"
+          : "No",
+        aspiration_explanation:
+          personality_traits?.aspiration_explanation || "",
+        special_talents: personality_traits?.special_talents || "",
+        musical_instruments: personality_traits?.musical_instruments || "",
+        hobbies: personality_traits?.hobbies || "",
+        likes_in_people: personality_traits?.likes_in_people || "",
+        dislikes_in_people: personality_traits?.dislikes_in_people || "",
+        closest_to: family_relationship?.closest_to || "",
+
+        personal_characteristics:
+          counseling_info?.personal_characteristics || "",
+        problem_confidant: counseling_info?.problem_confidant || "",
+        confidant_reason: counseling_info?.confidant_reason || "",
+        potential_problems: counseling_info?.anticipated_problems || "",
+        previous_counseling: counseling_info?.previous_counseling
+          ? "Yes"
+          : "No",
+        counseling_location: counseling_info?.counseling_location || "",
+        counseling_counselor: counseling_info?.counseling_counselor || "",
+        counseling_reason: counseling_info?.counseling_reason || "",
+        guidance_notes: guidance_notes?.notes || "",
       });
     }
   }, [formData, profileData]);
@@ -196,13 +231,13 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
 
   const handleFieldChange = (field, value) => {
     if (role === "admin") {
-      setFormState(prev => ({ ...prev, [field]: value }));
+      setFormState((prev) => ({ ...prev, [field]: value }));
     }
   };
 
   const handleConditionChange = (key) => {
-    console.log('Role:', role, 'Key:', key);
-    setFormState(prev => ({
+    console.log("Role:", role, "Key:", key);
+    setFormState((prev) => ({
       ...prev,
       health_condition: key,
     }));
@@ -210,7 +245,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
 
   const handleClosestOptionChange = (key) => {
     if (role === "admin") {
-      setFormState(prev => ({
+      setFormState((prev) => ({
         ...prev,
         closest_to: key,
       }));
@@ -218,9 +253,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
   };
 
   const handleScholarshipChange = (idx, e) => {
-    const updated = [...(formState.scholarships_and_assistance)];
+    const updated = [...formState.scholarships_and_assistance];
     updated[idx] = e.target.value;
-    setFormState(prev => ({
+    setFormState((prev) => ({
       ...prev,
       scholarships_and_assistance: updated,
     }));
@@ -228,46 +263,58 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
 
   const handleSubmit = async () => {
     const newErrors = {};
-    
+
     // Validate required fields
-    if (!formState.first_name || formState.first_name.trim() === '' || !formState.last_name || formState.last_name.trim() === '' || !formState.middle_name || formState.middle_name.trim() === '') {
-      newErrors.first_name = 'Name cannot be empty.';
+    if (
+      !formState.first_name ||
+      formState.first_name.trim() === "" ||
+      !formState.last_name ||
+      formState.last_name.trim() === "" ||
+      !formState.middle_name ||
+      formState.middle_name.trim() === ""
+    ) {
+      newErrors.first_name = "Name cannot be empty.";
     }
 
-    if (!formState.sex || formState.sex.trim() === ''){
-      newErrors.sex = 'Sex cannot be empty.';
-    }
-    
-    if (!formState.religion || formState.religion.trim() === '') {
-      newErrors.religion = 'Religion cannot be empty.';
+    if (!formState.sex || formState.sex.trim() === "") {
+      newErrors.sex = "Sex cannot be empty.";
     }
 
-    if (!formState.health_condition || formState.health_condition.trim() === '') {
-      newErrors.health_condition = 'Health condition must be selected.';
+    if (!formState.religion || formState.religion.trim() === "") {
+      newErrors.religion = "Religion cannot be empty.";
     }
 
-    
+    if (
+      !formState.health_condition ||
+      formState.health_condition.trim() === ""
+    ) {
+      newErrors.health_condition = "Health condition must be selected.";
+    }
+
     setErrors(newErrors);
-    
+
     if (Object.keys(newErrors).length > 0) {
       return;
     }
-    
+
     try {
-      const response = await request(`/api/forms/edit/scif/${profileData.student_number}/`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formState),
-      });
+      const response = await request(
+        `/api/forms/edit/scif/${profileData.student_number}/`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formState),
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
         setDownloadToast(data.message);
       }
     } catch (error) {
-      setDownloadToast('Failed to update form.');
+      setDownloadToast("Failed to update form.");
     }
   };
 
@@ -317,28 +364,27 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
   ];
 
   const HealthConditionRadio = ({ selectedValue, onChange, role }) => {
-  return (
-    <div className="SCIF-inline health-condition-inline">
-      <label>Health Condition:</label>
-      <div className="radio-group-inline">
-        {ConditionOptions.map((option) => (
-          <label key={option.key} className="radio-option">
-            <input
-              type="radio"
-              name="health_condition"
-              value={option.key}
-              checked={selectedValue === option.key}
-              onChange={() => onChange(option.key)}
-              disabled={role !== "admin"}
-            />
-            {option.label}
-          </label>
-        ))}
+    return (
+      <div className="SCIF-inline health-condition-inline">
+        <label>Health Condition:</label>
+        <div className="radio-group-inline">
+          {ConditionOptions.map((option) => (
+            <label key={option.key} className="radio-option">
+              <input
+                type="radio"
+                name="health_condition"
+                value={option.key}
+                checked={selectedValue === option.key}
+                onChange={() => onChange(option.key)}
+                disabled={role !== "admin"}
+              />
+              {option.label}
+            </label>
+          ))}
+        </div>
       </div>
-    </div>
-  );
-};
-
+    );
+  };
 
   const PreviousSchoolRecordsTable = ({ records }) => {
     if (!Array.isArray(records) || records.length === 0) {
@@ -467,18 +513,26 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           Return to Profile
         </Button>
         {role === "admin" && (
-          <Button variant="secondary" onClick={handleSubmit} className="pdf-button">
+          <Button
+            variant="secondary"
+            onClick={handleSubmit}
+            className="pdf-button"
+          >
             Save Changes
           </Button>
         )}
-        <Button variant="primary" onClick={handleDownloadClick} className="pdf-button"> 
+        <Button
+          variant="primary"
+          onClick={handleDownloadClick}
+          className="pdf-button"
+        >
           Download as PDF
         </Button>
       </div>
 
       <div className="pdf" ref={pdfRef}>
         <FormHeader />
-        
+
         <div className="sub-info">
           <div className="right">
             <p>
@@ -504,50 +558,67 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 <input
                   type="text"
                   value={formState.last_name}
-                  onChange={(e) => handleFieldChange('last_name', e.target.value)}
+                  onChange={(e) =>
+                    handleFieldChange("last_name", e.target.value)
+                  }
                   readOnly={role !== "admin"}
                 />
                 <input
                   type="text"
                   value={formState.first_name}
-                  onChange={(e) => handleFieldChange('first_name', e.target.value)}
+                  onChange={(e) =>
+                    handleFieldChange("first_name", e.target.value)
+                  }
                   readOnly={role !== "admin"}
-                  />
+                />
                 <input
                   type="text"
                   value={formState.middle_name}
-                  onChange={(e) => handleFieldChange('middle_name', e.target.value)}
+                  onChange={(e) =>
+                    handleFieldChange("middle_name", e.target.value)
+                  }
                   readOnly={role !== "admin"}
-                  />
+                />
               </div>
               <div className="SCIF-name-label">
                 <label>FAMILY NAME</label>
                 <label>FIRST NAME</label>
                 <label>MIDDLE NAME</label>
               </div>
-              {errors.first_name && <div className="error-state-message text-center">{errors.first_name}</div>}
+              {errors.first_name && (
+                <div className="error-state-message text-center">
+                  {errors.first_name}
+                </div>
+              )}
             </div>
             <div className="SCIF-inline flex-row">
               <label>
                 NICKNAME:{" "}
-                <input type="text" 
+                <input
+                  type="text"
                   value={formState.nickname}
-                  onChange={(e) => handleFieldChange('nickname', e.target.value)}
-                  readOnly={role !== "admin"} />
+                  onChange={(e) =>
+                    handleFieldChange("nickname", e.target.value)
+                  }
+                  readOnly={role !== "admin"}
+                />
               </label>
               <div>
                 <label>
-                  SEX: 
-                  <select 
-                    value={formState.sex} 
-                    onChange={(e) => handleFieldChange('sex', e.target.value)}
-                    disabled={role !== "admin"}>
+                  SEX:
+                  <select
+                    value={formState.sex}
+                    onChange={(e) => handleFieldChange("sex", e.target.value)}
+                    disabled={role !== "admin"}
+                  >
                     <option value="">Select</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                   </select>
                 </label>
-                {errors.sex && <div className="error-state-message">{errors.sex}</div>}
+                {errors.sex && (
+                  <div className="error-state-message">{errors.sex}</div>
+                )}
               </div>
               <label>
                 AGE:{" "}
@@ -558,7 +629,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                       ? ""
                       : calculateAge(formState.birthdate).toString()
                   }
-                  onChange={(e) => handleFieldChange('age', e.target.value)}
+                  onChange={(e) => handleFieldChange("age", e.target.value)}
                   readOnly={role !== "admin"}
                 />
               </label>
@@ -567,31 +638,53 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               <div>
                 <label>
                   RELIGION:{" "}
-                  <input type="text" value={formState.religion}  
-                    onChange={(e) => handleFieldChange('religion', e.target.value)}
-                    readOnly={role !== "admin"} />
+                  <input
+                    type="text"
+                    value={formState.religion}
+                    onChange={(e) =>
+                      handleFieldChange("religion", e.target.value)
+                    }
+                    readOnly={role !== "admin"}
+                  />
                 </label>
-                {errors.religion && <div className="error-state-message">{errors.religion}</div>}
+                {errors.religion && (
+                  <div className="error-state-message">{errors.religion}</div>
+                )}
               </div>
               <label>
                 BIRTH RANK:{" "}
-                <input type="text" value={formState.birth_rank}
-                  onChange={(e) => handleFieldChange('birth_rank', e.target.value)}
-                  readOnly={role !== "admin"} />
+                <input
+                  type="text"
+                  value={formState.birth_rank}
+                  onChange={(e) =>
+                    handleFieldChange("birth_rank", e.target.value)
+                  }
+                  readOnly={role !== "admin"}
+                />
               </label>
             </div>
             <div className="SCIF-inline flex-row">
               <label>
                 BIRTH DATE
-                <input type="text" value={formState.birthdate} 
-                  onChange={(e) => handleFieldChange('birthdate', e.target.value)}
-                  readOnly={role !== "admin"} />
+                <input
+                  type="text"
+                  value={formState.birthdate}
+                  onChange={(e) =>
+                    handleFieldChange("birthdate", e.target.value)
+                  }
+                  readOnly={role !== "admin"}
+                />
               </label>
               <label>
                 BIRTH PLACE
-                <input type="text" value={formState.birthplace}
-                  onChange={(e) => handleFieldChange('birthplace', e.target.value)}
-                  readOnly={role !== "admin"} />
+                <input
+                  type="text"
+                  value={formState.birthplace}
+                  onChange={(e) =>
+                    handleFieldChange("birthplace", e.target.value)
+                  }
+                  readOnly={role !== "admin"}
+                />
               </label>
             </div>
             <div className="SCIF-inline">
@@ -600,10 +693,10 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 <input
                   type="text"
                   readOnly={role !== "admin"}
-                  value={
-                    formState.permanent_address}
-                  
-                  onChange={(e) => handleFieldChange('permanent_address', e.target.value)}
+                  value={formState.permanent_address}
+                  onChange={(e) =>
+                    handleFieldChange("permanent_address", e.target.value)
+                  }
                 />
               </label>
             </div>
@@ -613,27 +706,35 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 <input
                   type="text"
                   value={formState.landline_number || "None"}
-                  onChange={(e) => handleFieldChange('landline_number', e.target.value)}
+                  onChange={(e) =>
+                    handleFieldChange("landline_number", e.target.value)
+                  }
                   readOnly={role !== "admin"}
                 />
               </label>
             </div>
             <div className="SCIF-inline">
               <label>
-                EMAIL: 
-                <input type="text" 
-                  value={formState.email} 
-                  onChange={(e) => handleFieldChange('email', e.target.value)}
-                  readOnly={role !== "admin"}/>
+                EMAIL:
+                <input
+                  type="text"
+                  value={formState.email}
+                  onChange={(e) => handleFieldChange("email", e.target.value)}
+                  readOnly={role !== "admin"}
+                />
               </label>
             </div>
             <div className="SCIF-inline">
               <label>
                 CELLPHONE/MOBILE NO.:{" "}
-                <input type="text" 
-                  value={formState.contact_number} 
-                  onChange={(e) => handleFieldChange('contact_number', e.target.value)}
-                  readOnly={role !== "admin"}/>
+                <input
+                  type="text"
+                  value={formState.contact_number}
+                  onChange={(e) =>
+                    handleFieldChange("contact_number", e.target.value)
+                  }
+                  readOnly={role !== "admin"}
+                />
               </label>
             </div>
           </div>
@@ -646,21 +747,31 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 formState.last_name?.[0] || ""
               }`}
             </div>
-            <input type="text" 
-              value={formState.student_number} 
-              onChange={(e) => handleFieldChange('student_number', e.target.value)}
-              readOnly={role !== "admin"} />
+            <input
+              type="text"
+              value={formState.student_number}
+              onChange={(e) =>
+                handleFieldChange("student_number", e.target.value)
+              }
+              readOnly={role !== "admin"}
+            />
             <label>STUDENT NUMBER</label>
-            <input type="text" 
-              value={formState.degree_program} 
-              onChange={(e) => handleFieldChange('degree_program', e.target.value)}
-              readOnly={role !== "admin"} />
+            <input
+              type="text"
+              value={formState.degree_program}
+              onChange={(e) =>
+                handleFieldChange("degree_program", e.target.value)
+              }
+              readOnly={role !== "admin"}
+            />
             <label>DEGREE PROGRAM</label>
             <input
               type="text"
               readOnly={role !== "admin"}
               value={formState.date_initial_entry}
-              onChange={(e) => handleFieldChange('date_initial_entry', e.target.value)}
+              onChange={(e) =>
+                handleFieldChange("date_initial_entry", e.target.value)
+              }
             />
             <label>DATE OF INITIAL ENTRY</label>
           </div>
@@ -677,39 +788,57 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                     type="text"
                     value={formState.father_name}
                     readOnly={role !== "admin"}
-                    onChange={(e) => handleFieldChange('father_name', e.target.value)}
+                    onChange={(e) =>
+                      handleFieldChange("father_name", e.target.value)
+                    }
                   />
                 </label>
                 <label>
-                  Age: 
-                  <input type="text" 
-                    value={formState.father_age} 
-                    onChange={(e) => handleFieldChange('father_age', e.target.value)}
-                    readOnly={role !== "admin"} />
+                  Age:
+                  <input
+                    type="text"
+                    value={formState.father_age}
+                    onChange={(e) =>
+                      handleFieldChange("father_age", e.target.value)
+                    }
+                    readOnly={role !== "admin"}
+                  />
                 </label>
               </div>
               <label>
                 Occupation:{" "}
-                <input type="text" 
-                  value={formState.father_job_occupation} 
-                  onChange={(e) => handleFieldChange('father_job_occupation', e.target.value)}
-                  readOnly={role !== "admin"} />
+                <input
+                  type="text"
+                  value={formState.father_job_occupation}
+                  onChange={(e) =>
+                    handleFieldChange("father_job_occupation", e.target.value)
+                  }
+                  readOnly={role !== "admin"}
+                />
               </label>
               <label>
                 Company:{" "}
-                <input type="text" 
-                  value={formState.father_company_agency} 
-                  onChange={(e) => handleFieldChange('father_company_agency', e.target.value)}
-                  readOnly={role !== "admin"} />
+                <input
+                  type="text"
+                  value={formState.father_company_agency}
+                  onChange={(e) =>
+                    handleFieldChange("father_company_agency", e.target.value)
+                  }
+                  readOnly={role !== "admin"}
+                />
               </label>
               <label>
                 <span className="label" style={{ width: "30%" }}>
                   Company Address:{" "}
                 </span>
-                <input type="text" 
-                  value={formState.father_company_address} 
-                  onChange={(e) => handleFieldChange('father_company_address', e.target.value)}
-                  readOnly={role !== "admin"} />
+                <input
+                  type="text"
+                  value={formState.father_company_address}
+                  onChange={(e) =>
+                    handleFieldChange("father_company_address", e.target.value)
+                  }
+                  readOnly={role !== "admin"}
+                />
               </label>
               <label>
                 <span className="label" style={{ width: "35%" }}>
@@ -718,7 +847,12 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 <input
                   type="text"
                   value={formState.father_highest_educational_attainment}
-                  onChange={(e) => handleFieldChange('father_highest_educational_attainment', e.target.value)}
+                  onChange={(e) =>
+                    handleFieldChange(
+                      "father_highest_educational_attainment",
+                      e.target.value
+                    )
+                  }
                   readOnly={role !== "admin"}
                 />
               </label>
@@ -726,9 +860,14 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 <span className="label" style={{ width: "15%" }}>
                   Contact No.:{" "}
                 </span>
-                <input type="text" value={formState.father_contact_number} 
-                  onChange={(e) => handleFieldChange('father_contact_number', e.target.value)}
-                  readOnly={role !== "admin"} />
+                <input
+                  type="text"
+                  value={formState.father_contact_number}
+                  onChange={(e) =>
+                    handleFieldChange("father_contact_number", e.target.value)
+                  }
+                  readOnly={role !== "admin"}
+                />
               </label>
             </div>
           </div>
@@ -755,32 +894,46 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   type="text"
                   value={formState.mother_name}
                   readOnly={role !== "admin"}
-                  onChange={(e) => handleFieldChange('mother_name', e.target.value)}
+                  onChange={(e) =>
+                    handleFieldChange("mother_name", e.target.value)
+                  }
                 />
               </label>
 
               <label>
-                Age: 
-                <input type="text" 
-                  value={formState.mother_age} 
-                  onChange={(e) => handleFieldChange('mother_age', e.target.value)}
-                  readOnly={role !== "admin"} />
+                Age:
+                <input
+                  type="text"
+                  value={formState.mother_age}
+                  onChange={(e) =>
+                    handleFieldChange("mother_age", e.target.value)
+                  }
+                  readOnly={role !== "admin"}
+                />
               </label>
             </div>
             <div className="SCIF-inline flex-row">
               <label>
                 Occupation:{" "}
-                <input type="text" 
-                  value={formState.mother_job_occupation} 
-                  onChange={(e) => handleFieldChange('mother_job_occupation', e.target.value)}
-                  readOnly={role !== "admin"} />
+                <input
+                  type="text"
+                  value={formState.mother_job_occupation}
+                  onChange={(e) =>
+                    handleFieldChange("mother_job_occupation", e.target.value)
+                  }
+                  readOnly={role !== "admin"}
+                />
               </label>
               <label>
                 Company:{" "}
-                <input type="text" 
-                  value={formState.mother_company_agency} 
-                  onChange={(e) => handleFieldChange('mother_company_agency', e.target.value)}
-                  readOnly={role !== "admin"} />
+                <input
+                  type="text"
+                  value={formState.mother_company_agency}
+                  onChange={(e) =>
+                    handleFieldChange("mother_company_agency", e.target.value)
+                  }
+                  readOnly={role !== "admin"}
+                />
               </label>
             </div>
             <div className="SCIF-inline">
@@ -788,10 +941,14 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 <span className="label" style={{ width: "19%" }}>
                   Company Address:{" "}
                 </span>
-                <input type="text" 
-                  value={formState.mother_company_address} 
-                  onChange={(e) => handleFieldChange('mother_company_address', e.target.value)}
-                  readOnly={role !== "admin"} />
+                <input
+                  type="text"
+                  value={formState.mother_company_address}
+                  onChange={(e) =>
+                    handleFieldChange("mother_company_address", e.target.value)
+                  }
+                  readOnly={role !== "admin"}
+                />
               </label>
             </div>
             <div className="SCIF-inline flex-row">
@@ -802,7 +959,12 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 <input
                   type="text"
                   value={formState.mother_highest_educational_attainment}
-                  onChange={(e) => handleFieldChange('mother_educational_attainment', e.target.value)}
+                  onChange={(e) =>
+                    handleFieldChange(
+                      "mother_educational_attainment",
+                      e.target.value
+                    )
+                  }
                   readOnly={role !== "admin"}
                 />
               </label>
@@ -810,10 +972,14 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 <span className="label" style={{ width: "20%" }}>
                   Contact No.:{" "}
                 </span>
-                <input type="text" 
-                  value={formState.mother_contact_number} 
-                  onChange={(e) => handleFieldChange('mother_contact_number', e.target.value)}
-                  readOnly={role !== "admin"} />
+                <input
+                  type="text"
+                  value={formState.mother_contact_number}
+                  onChange={(e) =>
+                    handleFieldChange("mother_contact_number", e.target.value)
+                  }
+                  readOnly={role !== "admin"}
+                />
               </label>
             </div>
           </div>
@@ -829,8 +995,10 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               Guardian while in UP:{" "}
               <input
                 type="text"
-                value = {formState.guardian_name || "N/A"}
-                onChange={(e) => handleFieldChange('guardian_name', e.target.value)}
+                value={formState.guardian_name || "N/A"}
+                onChange={(e) =>
+                  handleFieldChange("guardian_name", e.target.value)
+                }
                 readOnly={role !== "admin"}
               />
             </label>
@@ -839,7 +1007,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               <input
                 type="text"
                 value={formState.guardian_contact_number || "N/A"}
-                onChange={(e) => handleFieldChange('guardian_contact_number', e.target.value)}
+                onChange={(e) =>
+                  handleFieldChange("guardian_contact_number", e.target.value)
+                }
                 readOnly={role !== "admin"}
               />
             </label>
@@ -847,17 +1017,26 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           <div className="SCIF-inline flex-row">
             <label>
               Address:{" "}
-              <input type="text" 
-                value={formState.guardian_address || "N/A"} 
-                onChange={(e) => handleFieldChange('guardian_address', e.target.value)}
-                readOnly={role !== "admin"} />
+              <input
+                type="text"
+                value={formState.guardian_address || "N/A"}
+                onChange={(e) =>
+                  handleFieldChange("guardian_address", e.target.value)
+                }
+                readOnly={role !== "admin"}
+              />
             </label>
             <label>
               Relationship: to guardian{" "}
               <input
                 type="text"
                 value={formState.guardian_relationship_to_guardian || "N/A"}
-                onChange={(e) => handleFieldChange('guardian_relationship_to_guardian', e.target.value)}
+                onChange={(e) =>
+                  handleFieldChange(
+                    "guardian_relationship_to_guardian",
+                    e.target.value
+                  )
+                }
                 readOnly={role !== "admin"}
               />
             </label>
@@ -871,7 +1050,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               <input
                 type="text"
                 value={formState.guardian_language_dialect || "N/A"}
-                onChange={(e) => handleFieldChange('guardian_language_dialect', e.target.value)}
+                onChange={(e) =>
+                  handleFieldChange("guardian_language_dialect", e.target.value)
+                }
                 readOnly={role !== "admin"}
               />
             </label>
@@ -889,35 +1070,42 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           <div className="SCIF-inline flex-row">
             <label>
               Height (m):{" "}
-              <input type="text" 
-                value={formState.height} 
-                onChange={(e) => handleFieldChange('height', e.target.value)}
-                readOnly={role !== "admin"} />
+              <input
+                type="text"
+                value={formState.height}
+                onChange={(e) => handleFieldChange("height", e.target.value)}
+                readOnly={role !== "admin"}
+              />
             </label>
             <label>
               Weight (kg):{" "}
-              <input type="text" 
-                value={formState.weight} 
-                onChange={(e) => handleFieldChange('weight', e.target.value)}
-                readOnly={role !== "admin"} />
+              <input
+                type="text"
+                value={formState.weight}
+                onChange={(e) => handleFieldChange("weight", e.target.value)}
+                readOnly={role !== "admin"}
+              />
             </label>
             <label>
               Eyesight [Good, Medium, Poor]:{" "}
-              <input type="text" 
-                value={formState.eyesight} 
-                readOnly={role !== "admin"} 
-                onChange={(e) => handleFieldChange('eyesight', e.target.value)}
-                />
+              <input
+                type="text"
+                value={formState.eyesight}
+                readOnly={role !== "admin"}
+                onChange={(e) => handleFieldChange("eyesight", e.target.value)}
+              />
             </label>
           </div>
 
           <div className="SCIF-inline flex-row">
             <label>
               Hearing [Good, Medium, Poor]:{" "}
-              <input type="text" 
-                value={formState.hearing} 
-                onChange={(e) => handleFieldChange('hearing', e.target.value)}
-                readOnly={role !== "admin"} />
+              <input
+                type="text"
+                value={formState.hearing}
+                onChange={(e) => handleFieldChange("hearing", e.target.value)}
+                readOnly={role !== "admin"}
+              />
             </label>
             <label>
               Any Physical Disabilities:{" "}
@@ -928,7 +1116,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                     ? formState.physical_disabilities.join(", ")
                     : formState.physical_disabilities || "None"
                 }
-                onChange={(e) => handleFieldChange('physical_disabilities', e.target.value)}
+                onChange={(e) =>
+                  handleFieldChange("physical_disabilities", e.target.value)
+                }
                 readOnly={role !== "admin"}
               />
             </label>
@@ -941,21 +1131,19 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 type="text"
                 value={formState.common_ailments || "None"}
                 onChange={(e) =>
-                  handleFieldChange(
-                    'common_ailments',
-                    e.target.value
-                  )
+                  handleFieldChange("common_ailments", e.target.value)
                 }
                 readOnly={role !== "admin"}
               />
-
             </label>
             <label>
               Last Hospitalization:{" "}
               <input
                 type="text"
                 value={formState.last_hospitalization || "Not Applicable"}
-                onChange={(e) => handleFieldChange('last_hospitalization', e.target.value)}
+                onChange={(e) =>
+                  handleFieldChange("last_hospitalization", e.target.value)
+                }
                 readOnly={role !== "admin"}
               />
             </label>
@@ -966,7 +1154,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               Reason:{" "}
               <AutoResizeTextarea
                 value={formState.reason_of_hospitalization || "Not Applicable"}
-                onChange={(e) => handleFieldChange('reason_of_hospitalization', e.target.value)}
+                onChange={(e) =>
+                  handleFieldChange("reason_of_hospitalization", e.target.value)
+                }
                 readOnly={role !== "admin"}
               />
             </label>
@@ -986,10 +1176,14 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </span>{" "}
               <span style={{ width: "20%" }}>
                 {" "}
-                <input type="text" 
-                  value={formState.senior_high_gpa} 
-                  onChange={(e) => handleFieldChange('senior_high_gpa', e.target.value)}
-                  readOnly={role !== "admin"} />{" "}
+                <input
+                  type="text"
+                  value={formState.senior_high_gpa}
+                  onChange={(e) =>
+                    handleFieldChange("senior_high_gpa", e.target.value)
+                  }
+                  readOnly={role !== "admin"}
+                />{" "}
               </span>
             </label>
           </div>
@@ -1000,22 +1194,21 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             LIST OF SCHOLARSHIPS & FINANCIAL ASSISTANCE WHILE IN COLLEGE :
           </div>
           {Array.isArray(formState.scholarships_and_assistance) &&
-            (formState.scholarships_and_assistance).length > 0 ? (
-              (formState.scholarships_and_assistance).map((item,idx) => (
-                <div key={idx} className="SCIF-inline">
-                  <input 
-                    type="text" 
-                    value={formState.scholarships_and_assistance[idx]} 
-                    onChange={(e) => handleScholarshipChange(idx, e)}
-                    style={{ width: '90%' }}
-                    readOnly={role !== "admin"}
-                  />
-                </div>
-              ))
-            ) : (
-              <label>No scholarships listed.</label>
-            )}
-
+          formState.scholarships_and_assistance.length > 0 ? (
+            formState.scholarships_and_assistance.map((item, idx) => (
+              <div key={idx} className="SCIF-inline">
+                <input
+                  type="text"
+                  value={formState.scholarships_and_assistance[idx]}
+                  onChange={(e) => handleScholarshipChange(idx, e)}
+                  style={{ width: "90%" }}
+                  readOnly={role !== "admin"}
+                />
+              </div>
+            ))
+          ) : (
+            <label>No scholarships listed.</label>
+          )}
         </div>
 
         <div className="SCIF-section">
@@ -1085,7 +1278,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </span>
               <AutoResizeTextarea
                 value={formState.enrollment_reason || ""}
-                onChange={(e) => handleFieldChange('enrollment_reason', e.target.value)}
+                onChange={(e) =>
+                  handleFieldChange("enrollment_reason", e.target.value)
+                }
                 readOnly={role !== "admin"}
               />
             </label>
@@ -1097,10 +1292,10 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </span>{" "}
               <input
                 type="text"
-                value={
-                  formState.degree_program_aspiration ? "Yes" : "No"
+                value={formState.degree_program_aspiration ? "Yes" : "No"}
+                onChange={(e) =>
+                  handleFieldChange("degree_program_aspiration", e.target.value)
                 }
-                onChange={(e) => handleFieldChange('degree_program_aspiration', e.target.value)}
                 readOnly={role !== "admin"}
               />
             </label>
@@ -1110,7 +1305,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </span>{" "}
               <AutoResizeTextarea
                 value={formState.aspiration_explanation || ""}
-                onChange={(e) => handleFieldChange('aspiration_explanation', e.target.value)}
+                onChange={(e) =>
+                  handleFieldChange("aspiration_explanation", e.target.value)
+                }
                 readOnly={role !== "admin"}
               />
             </label>
@@ -1122,7 +1319,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </span>{" "}
               <AutoResizeTextarea
                 value={formState.special_talents || ""}
-                onChange={(e) => handleFieldChange('special_talents', e.target.value)}
+                onChange={(e) =>
+                  handleFieldChange("special_talents", e.target.value)
+                }
                 readOnly={role !== "admin"}
               />
             </label>
@@ -1134,7 +1333,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </span>
               <AutoResizeTextarea
                 value={formState.musical_instruments || ""}
-                onChange={(e) => handleFieldChange('musical_instruments', e.target.value)}
+                onChange={(e) =>
+                  handleFieldChange("musical_instruments", e.target.value)
+                }
                 readOnly={role !== "admin"}
               />
             </label>
@@ -1144,7 +1345,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               Hobbies:{" "}
               <AutoResizeTextarea
                 value={formState.hobbies || ""}
-                onChange={(e) => handleFieldChange('hobbies', e.target.value)}
+                onChange={(e) => handleFieldChange("hobbies", e.target.value)}
                 readOnly={role !== "admin"}
               />
             </label>
@@ -1156,7 +1357,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </span>
               <AutoResizeTextarea
                 value={formState.likes_in_people || ""}
-                onChange={(e) => handleFieldChange('likes_in_people', e.target.value)}
+                onChange={(e) =>
+                  handleFieldChange("likes_in_people", e.target.value)
+                }
                 readOnly={role !== "admin"}
               />
             </label>
@@ -1169,7 +1372,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </span>
               <AutoResizeTextarea
                 value={formState.dislikes_in_people || ""}
-                onChange={(e) => handleFieldChange('dislikes_in_people', e.target.value)}
+                onChange={(e) =>
+                  handleFieldChange("dislikes_in_people", e.target.value)
+                }
                 readOnly={role !== "admin"}
               />
             </label>
@@ -1188,7 +1393,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </span>{" "}
               <AutoResizeTextarea
                 value={formState.personal_characteristics || ""}
-                onChange={(e) => handleFieldChange('personal_characteristics', e.target.value)}
+                onChange={(e) =>
+                  handleFieldChange("personal_characteristics", e.target.value)
+                }
                 readOnly={role !== "admin"}
               />
             </label>
@@ -1201,7 +1408,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               <input
                 type="text"
                 value={formState.problem_confidant}
-                onChange={(e) => handleFieldChange('problem_confidant', e.target.value)}
+                onChange={(e) =>
+                  handleFieldChange("problem_confidant", e.target.value)
+                }
                 readOnly={role !== "admin"}
               />
             </label>
@@ -1209,7 +1418,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               Why?{" "}
               <AutoResizeTextarea
                 value={formState.confidant_reason || ""}
-                onChange={(e) => handleFieldChange('confidant_reason', e.target.value)}
+                onChange={(e) =>
+                  handleFieldChange("confidant_reason", e.target.value)
+                }
                 readOnly={role !== "admin"}
               />
             </label>
@@ -1221,7 +1432,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </span>{" "}
               <AutoResizeTextarea
                 value={formState.anticipated_problems || ""}
-                onChange={(e) => handleFieldChange('anticipated_problems', e.target.value)}
+                onChange={(e) =>
+                  handleFieldChange("anticipated_problems", e.target.value)
+                }
                 readOnly={role !== "admin"}
               />
             </label>
@@ -1234,7 +1447,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               <input
                 type="text"
                 value={formState.previous_counseling ? "Yes" : "None"}
-                onChange={(e) => handleFieldChange('previous_counseling', e.target.value)}
+                onChange={(e) =>
+                  handleFieldChange("previous_counseling", e.target.value)
+                }
                 readOnly={role !== "admin"}
               />
             </label>
@@ -1243,7 +1458,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               <input
                 type="text"
                 value={formState.counseling_location || "N/A"}
-                onChange={(e) => handleFieldChange('counseling_location', e.target.value)}
+                onChange={(e) =>
+                  handleFieldChange("counseling_location", e.target.value)
+                }
                 readOnly={role !== "admin"}
               />
             </label>
@@ -1254,7 +1471,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               <input
                 type="text"
                 value={formState.counseling_counselor || "N/A"}
-                onChange={(e) => handleFieldChange('counseling_counselor', e.target.value)}
+                onChange={(e) =>
+                  handleFieldChange("counseling_counselor", e.target.value)
+                }
                 readOnly={role !== "admin"}
               />
             </label>
@@ -1262,7 +1481,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               Why?{" "}
               <AutoResizeTextarea
                 value={formState.counseling_reason || "N/A"}
-                onChange={(e) => handleFieldChange('counseling_reason', e.target.value)}
+                onChange={(e) =>
+                  handleFieldChange("counseling_reason", e.target.value)
+                }
                 readOnly={role !== "admin"}
               />
             </label>
@@ -1332,7 +1553,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             readOnly={role !== "admin"}
             placeholder="____________________________________________________________________________________________&#10;____________________________________________________________________________________________&#10;____________________________________________________________________________________________"
             value={formState.guidance_notes || ""}
-            onChange={(e) => handleFieldChange('guidance_notes', e.target.value)}
+            onChange={(e) =>
+              handleFieldChange("guidance_notes", e.target.value)
+            }
           />
         </div>
 
@@ -1375,15 +1598,11 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
         <div className="flex-row">
           <label>
             Name of Student:{" "}
-            <input
-              type="text"
-              value={formState.name}
-              readOnly
-              />
-
+            <input type="text" value={formState.name} readOnly />
           </label>
           <label>
-            Signature of Student: <input type="text" readOnly={role !== "admin"} />
+            Signature of Student:{" "}
+            <input type="text" readOnly={role !== "admin"} />
           </label>
           <label>
             Date Signed:{" "}
