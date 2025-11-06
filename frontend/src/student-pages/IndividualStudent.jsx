@@ -10,10 +10,20 @@ import { useEnumChoices } from "../utils/enumChoices";
 import ToastMessage from "../components/ToastMessage";
 import ConfirmDialog from "../components/ConfirmDialog";
 import Loader from "../components/Loader";
-
+import { validatePhotoFile } from "../utils/photoValidation";
+import {
+  validateEditableProfile,
+  mergeProfileAndFormData,
+} from "../utils/formValidationUtils";
 
 const ALPHA_REGEX = /^[A-Za-z\s]*$/;
 const NON_ALPHA_REGEX = /[^A-Za-z\s]/g;
+
+const MAX_FILE_SIZE_MB = 5;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png"];
+const MIN_DIMENSION = 200;
+const MAX_DIMENSION = 600;
 
 const REQUIRED_FIELDS = [
   { path: ["first_name"], label: "First Name" },
@@ -24,18 +34,42 @@ const REQUIRED_FIELDS = [
   { path: ["birthplace"], label: "Birth Place" },
   { path: ["birth_rank"], label: "Birth Rank" },
   { path: ["contact_number"], label: "Contact Number" },
-  { path: ["permanent_address", "address_line_1"], label: "Permanent Address Line 1" },
+  {
+    path: ["permanent_address", "address_line_1"],
+    label: "Permanent Address Line 1",
+  },
   { path: ["permanent_address", "barangay"], label: "Permanent Barangay" },
-  { path: ["permanent_address", "city_municipality"], label: "Permanent City/Municipality" },
+  {
+    path: ["permanent_address", "city_municipality"],
+    label: "Permanent City/Municipality",
+  },
   { path: ["permanent_address", "province"], label: "Permanent Province" },
   { path: ["permanent_address", "region"], label: "Permanent Region" },
   { path: ["permanent_address", "zip_code"], label: "Permanent ZIP Code" },
-  { path: ["address_while_in_up", "address_line_1"], label: "Address While in UP Line 1" },
-  { path: ["address_while_in_up", "barangay"], label: "Address While in UP Barangay" },
-  { path: ["address_while_in_up", "city_municipality"], label: "Address While in UP City/Municipality" },
-  { path: ["address_while_in_up", "province"], label: "Address While in UP Province" },
-  { path: ["address_while_in_up", "region"], label: "Address While in UP Region" },
-  { path: ["address_while_in_up", "zip_code"], label: "Address While in UP ZIP Code" }
+  {
+    path: ["address_while_in_up", "address_line_1"],
+    label: "Address While in UP Line 1",
+  },
+  {
+    path: ["address_while_in_up", "barangay"],
+    label: "Address While in UP Barangay",
+  },
+  {
+    path: ["address_while_in_up", "city_municipality"],
+    label: "Address While in UP City/Municipality",
+  },
+  {
+    path: ["address_while_in_up", "province"],
+    label: "Address While in UP Province",
+  },
+  {
+    path: ["address_while_in_up", "region"],
+    label: "Address While in UP Region",
+  },
+  {
+    path: ["address_while_in_up", "zip_code"],
+    label: "Address While in UP ZIP Code",
+  },
 ];
 
 const FIELD_LABEL_MAP = REQUIRED_FIELDS.reduce((acc, field) => {
@@ -65,7 +99,7 @@ const StudentSideInfo = ({
   profileData,
   submittedForms = [],
   onUpdate,
-  isAdmin = false,
+  isAdmin = false
 }) => {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
@@ -76,6 +110,8 @@ const StudentSideInfo = ({
   const [toast, setToast] = useState(null);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
+  const [photoFile, setPhotoFile] = useState(null);
+  const [errors, setErrors] = useState({});
   const location = useLocation();
 
   const getFieldKey = (path) => (Array.isArray(path) ? path : [path]).join(".");
@@ -107,7 +143,8 @@ const StudentSideInfo = ({
       for (let i = 0; i < normalizedPath.length - 1; i += 1) {
         const key = normalizedPath[i];
         const current = cursor[key];
-        cursor[key] = current && typeof current === "object" ? { ...current } : {};
+        cursor[key] =
+          current && typeof current === "object" ? { ...current } : {};
         cursor = cursor[key];
       }
       cursor[normalizedPath[normalizedPath.length - 1]] = value;
@@ -160,61 +197,79 @@ const StudentSideInfo = ({
 
     return true;
   };
-    if (!profileData) {
-      return <Loader />;
-    }
+  if (!profileData) {
+    return <Loader />;
+  }
 
-    const {
-      first_name,
-      last_name,
-      student_number,
-      date_initial_entry,
-      date_initial_entry_sem,
-      email,
-    } = formData;
+  const {
+    first_name,
+    last_name,
+    student_number,
+    date_initial_entry,
+    date_initial_entry_sem,
+    email,
+  } = formData;
 
-    const handleView = (form, isAdmin = false, studentId = null) => {
-      const slugify = (text) =>
-        text
-          .toLowerCase()
-          .replace(/\s+/g, "-")
-          .replace(/[^\w-]+/g, "");
-      const slug = slugify(form.form_type);
+  const [photoPreview, setPhotoPreview] = useState(null);
 
-      if (isAdmin && studentId) {
-        if (form.status === "submitted") {
-          navigate(`/admin/student-forms/${studentId}/${slug}/`);
-        }
-      } else {
-        if (form.status === "draft") {
-          navigate(`/forms/${slug}`);
-        } else if (form.status === "submitted") {
-          navigate(`/submitted-forms/${slug}`);
-        }
+  const handleView = (form, isAdmin = false, studentId = null) => {
+    const slugify = (text) =>
+      text
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^\w-]+/g, "");
+    const slug = slugify(form.form_type);
+
+    if (isAdmin && studentId) {
+      if (form.status === "submitted") {
+        navigate(`/admin/student-forms/${studentId}/${slug}/`);
       }
-    };
+    } else {
+      if (form.status === "draft") {
+        navigate(`/forms/${slug}`);
+      } else if (form.status === "submitted") {
+        navigate(`/submitted-forms/${slug}`);
+      }
+    }
+  };
 
-    const updateProfileData = (updatedFields) => {
-      setFormData((prev) => ({
-        ...prev,
+  const updateProfileData = (updatedFields) => {
+    setFormData((prev) => ({
+      ...prev,
+      ...updatedFields,
+    }));
+    Object.keys(updatedFields).forEach((field) => clearFieldError([field]));
+  };
+
+  const updateNestedField = (parentField, updatedFields) => {
+    setFormData((prev) => ({
+      ...prev,
+      [parentField]: {
+        ...(prev[parentField] || {}),
         ...updatedFields,
-      }));
-      Object.keys(updatedFields).forEach((field) => clearFieldError([field]));
-    };
+      },
+    }));
+    Object.keys(updatedFields).forEach((field) =>
+      clearFieldError([parentField, field])
+    );
+  };
 
-    const updateNestedField = (parentField, updatedFields) => {
-      setFormData((prev) => ({
+  const handleUpdate = async () => {
+    const mergedData = mergeProfileAndFormData(profileData, formData);
+    
+    if (errors.photo || !photoFile) {
+      setToast( "Please upload a valid profile photo before saving.");
+      setValidationErrors((prev) => ({
         ...prev,
-        [parentField]: {
-          ...(prev[parentField] || {}),
-          ...updatedFields,
-        },
+        photo: errors.photo || "Please upload a valid photo.",
       }));
-      Object.keys(updatedFields).forEach((field) => clearFieldError([parentField, field]));
-    };
+      return;
+    }
+    const editableErrors = validateEditableProfile(mergedData);
 
-  const handleUpdate = () => {
-    if (!validateRequiredFields()) {
+    setValidationErrors(editableErrors);
+    if (Object.keys(editableErrors).length > 0) {
+      setToast("Please fix the highlighted errors before saving.");
       return;
     }
 
@@ -229,7 +284,7 @@ const StudentSideInfo = ({
 
   const handleConfirmDialog = async () => {
     if (confirmAction === "save") {
-      await onUpdate(formData);
+      await onUpdate({ ...formData, photoFile });
       setToast("Profile updated successfully!");
       setValidationErrors({});
     } else if (confirmAction === "cancel") {
@@ -245,6 +300,14 @@ const StudentSideInfo = ({
 
   useEffect(() => {
     setFormData(profileData);
+
+    let photoUrl = null;
+    const imagePath = profileData?.photo?.image;
+
+    if (imagePath && typeof imagePath === "string" && imagePath.trim() !== "") {
+      photoUrl = `${"http://localhost:8000/"}${imagePath}`;
+    }
+    setPhotoPreview(photoUrl);
     setValidationErrors({});
   }, [profileData]);
 
@@ -258,11 +321,90 @@ const StudentSideInfo = ({
     <div>
       <div className="lg:flex gap-8 mb-8 border-b-gray">
         <div className="lg:w-[30%] w-2/3 xs:w-full justify-center mx-auto p-6 text-center overflow-y-auto">
-          <div className="bg-upmaroon text-white text-[2.5rem] font-bold w-50 h-50 mx-auto flex items-center justify-center rounded-2xl">
-            {first_name?.charAt(0)}
-            {last_name?.charAt(0)}
-          </div>
+          <div className="relative w-50 h-50 mx-auto flex items-center justify-center rounded-2xl overflow-hidden shadow-lg border-2 border-upmaroon group">
+            {photoPreview ? (
+              <img
+                src={photoPreview}
+                alt={`${first_name} ${last_name} profile`}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="bg-upmaroon text-white text-[2.5rem] font-bold w-full h-full flex items-center justify-center">
+                {first_name?.charAt(0)}
+                {last_name?.charAt(0)}
+              </div>
+            )}
 
+            {/* Overlay shown only in edit mode */}
+            {isEditing && (
+              <div className="absolute inset-0 bg-upmaroon bg-opacity-20 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M21 13V20C21 20.5523 20.5523 21 20 21H4C3.44771 21 3 20.5523 3 20V4C3 3.44771 3.44771 3 4 3H11"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M7 13.36V17H10.6586L21 6.65405L17.3475 3L7 13.36Z"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+
+                <span className="text-white font-semibold text-sm">
+                  Change Photo
+                </span>
+
+                {/* Hidden file input */}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    validatePhotoFile(
+                      file,
+                      (renamedFile, previewURL) => {
+                        setPhotoFile(renamedFile);
+                        setPhotoPreview(previewURL);
+                        setErrors((prev) => {
+                          const newErrors = { ...prev };
+                          delete newErrors.photo;
+                          return newErrors;
+                        });
+                      },
+                      (errorObj) => {
+                        setErrors((prev) => ({ ...prev, ...errorObj }));
+                        setPhotoFile(null);
+                        setPhotoPreview(null);
+                      }
+                    );
+                  }}
+                />
+              </div>
+            )}
+          </div>
+          {errors?.photo && (
+            <p className="text-red-500 text-sm font-medium mt-2 text-center italic">
+              {errors.photo}
+            </p>
+          )}
+          {errors?.photo && (
+            <p className="text-red-500 text-sm font-medium mt-2 text-center italic">
+              {errors.photo}
+            </p>
+          )}
           <div>
             <ReadonlyField label="Student Number" value={student_number} />
             <EditableField
@@ -274,6 +416,7 @@ const StudentSideInfo = ({
               }
               options={enums?.year_level || []}
               readOnly={!isEditing}
+              error={validationErrors["current_year_level"]}
             />
             <EditableField
               label="Degree Program"
@@ -290,6 +433,7 @@ const StudentSideInfo = ({
                   ? [{ value: "", label: "Error loading degree programs" }]
                   : enums?.degree_program || []
               }
+              error={validationErrors["degree_program"]}
             />
             <EditableField
               label="College / Department"
@@ -307,10 +451,12 @@ const StudentSideInfo = ({
           </div>
         </div>
 
-        <div className="w-[70%] bg-white rounded-[0.75rem] p-8 overflow-y-auto mx-auto">
+        <div className="w-[70%] bg-white rounded-xl p-8 overflow-y-auto mx-auto">
           <div className="flex flex-col gap-6">
             <div>
-              <h2 className="text-[1.2rem] font-semibold mb-3 text-upmaroon lg:text-left text-center">PERSONAL INFORMATION</h2>
+              <h2 className="text-[1.2rem] font-semibold mb-3 text-upmaroon lg:text-left text-center">
+                PERSONAL INFORMATION
+              </h2>
               <div className="grid lg:grid-cols-3 gap-4 pb-4">
                 <FormField
                   label="First Name"
@@ -321,6 +467,7 @@ const StudentSideInfo = ({
                   required
                   pattern="^[A-Za-z ]+$"
                   title="First name should only contain letters and spaces."
+                  error={validationErrors["first_name"]}
                 />
                 <FormField
                   label="Last Name"
@@ -331,6 +478,7 @@ const StudentSideInfo = ({
                   required
                   pattern="^[A-Za-z ]+$"
                   title="Last name should only contain letters and spaces."
+                  error={validationErrors["last_name"]}
                 />
                 <FormField
                   label="Middle Name"
@@ -340,6 +488,7 @@ const StudentSideInfo = ({
                   readOnly={!isEditing}
                   pattern="^[A-Za-z ]*$"
                   title="Middle name should only contain letters and spaces."
+                  error={validationErrors["middle_name"]}
                 />
               </div>
 
@@ -352,6 +501,7 @@ const StudentSideInfo = ({
                   readOnly={!isEditing}
                   pattern="^[A-Za-z ]*$"
                   title="Nickname should only contain letters and spaces."
+                  error={validationErrors["nickname"]}
                 />
                 <FormField
                   label="Sex"
@@ -362,6 +512,7 @@ const StudentSideInfo = ({
                   required
                   pattern="^[A-Za-z ]+$"
                   title="Sex should only contain letters."
+                  error={validationErrors["sex"]}
                 />
                 <FormField
                   label="Religion"
@@ -372,6 +523,7 @@ const StudentSideInfo = ({
                   required
                   pattern="^[A-Za-z ]+$"
                   title="Religion should only contain letters and spaces."
+                  error={validationErrors["religion"]}
                 />
               </div>
 
@@ -384,6 +536,8 @@ const StudentSideInfo = ({
                     updateProfileData({ birthdate: e.target.value })
                   }
                   readOnly={!isEditing}
+                  required
+                  error={validationErrors["birthdate"]}
                 />
                 <FormField
                   label="Birth Place"
@@ -394,6 +548,7 @@ const StudentSideInfo = ({
                   required
                   pattern="^[A-Za-z ]+$"
                   title="Birth place should only contain letters and spaces."
+                  error={validationErrors["birth_place"]}
                 />
                 <FormField
                   label="Birth Rank"
@@ -402,6 +557,7 @@ const StudentSideInfo = ({
                     updateProfileData({ birth_rank: e.target.value })
                   }
                   readOnly={!isEditing}
+                  error={validationErrors["birth_rank"]}
                 />
               </div>
 
@@ -413,6 +569,7 @@ const StudentSideInfo = ({
                     updateProfileData({ contact_number: e.target.value })
                   }
                   readOnly={!isEditing}
+                  error={validationErrors["contact_number"]}
                 />
                 <FormField
                   label="Landline Number"
@@ -421,31 +578,36 @@ const StudentSideInfo = ({
                     updateProfileData({ landline_number: e.target.value })
                   }
                   readOnly={!isEditing}
+                  error={validationErrors["landline_number"]}
                 />
               </div>
 
-              <h2 className="text-[1.2rem] font-semibold mb-3 text-upmaroon lg:text-left text-center">PERMANENT ADDRESS</h2>
+              <h2 className="text-[1.2rem] font-semibold mb-3 text-upmaroon lg:text-left text-center">
+                PERMANENT ADDRESS
+              </h2>
               <div className="grid lg:grid-cols-2 gap-4 pb-4">
-              <FormField
-                label="Address Line 1"
-                value={formData.permanent_address?.address_line_1 || ""}
-                onChange={(e) =>
-                  updateNestedField("permanent_address", {
-                    address_line_1: e.target.value,
-                  })
-                }
-                readOnly={!isEditing}
-              />
-              <FormField
-                label="Address Line 2"
-                value={formData.permanent_address?.address_line_2 || "N/A"}
-                onChange={(e) =>
-                  updateNestedField("permanent_address", {
-                    address_line_2: e.target.value,
-                  })
-                }
-                readOnly={!isEditing}
-              />
+                <FormField
+                  label="Address Line 1"
+                  value={formData.permanent_address?.address_line_1 || ""}
+                  onChange={(e) =>
+                    updateNestedField("permanent_address", {
+                      address_line_1: e.target.value,
+                    })
+                  }
+                  readOnly={!isEditing}
+                  error={validationErrors["permanent_address.address_line_1"]}
+                />
+                <FormField
+                  label="Address Line 2"
+                  value={formData.permanent_address?.address_line_2 || "N/A"}
+                  onChange={(e) =>
+                    updateNestedField("permanent_address", {
+                      address_line_2: e.target.value,
+                    })
+                  }
+                  readOnly={!isEditing}
+                  error={validationErrors["permanent_address.address_line_2"]}
+                />
               </div>
               <div className="grid lg:grid-cols-2 gap-4 pb-4">
                 <FormField
@@ -457,6 +619,7 @@ const StudentSideInfo = ({
                     })
                   }
                   readOnly={!isEditing}
+                  error={validationErrors["permanent_address.barangay"]}
                 />
                 <FormField
                   label="City/Municipality"
@@ -467,6 +630,9 @@ const StudentSideInfo = ({
                     })
                   }
                   readOnly={!isEditing}
+                  error={
+                    validationErrors["permanent_address.city_municipality"]
+                  }
                 />
               </div>
 
@@ -480,6 +646,7 @@ const StudentSideInfo = ({
                     })
                   }
                   readOnly={!isEditing}
+                  error={validationErrors["permanent_address.province"]}
                 />
                 <FormField
                   label="Region"
@@ -498,6 +665,7 @@ const StudentSideInfo = ({
                       label: opt.label,
                     })) || []
                   }
+                  error={validationErrors["permanent_address.region"]}
                 />
                 <FormField
                   label="ZIP code"
@@ -508,31 +676,36 @@ const StudentSideInfo = ({
                     })
                   }
                   readOnly={!isEditing}
+                  error={validationErrors["permanent_address.zip_code"]}
                 />
               </div>
 
-              <h2 className="text-[1.2rem] font-semibold mb-3 text-upmaroon lg:text-left text-center">ADDRESS WHILE IN UP</h2>
+              <h2 className="text-[1.2rem] font-semibold mb-3 text-upmaroon lg:text-left text-center">
+                ADDRESS WHILE IN UP
+              </h2>
               <div className="grid lg:grid-cols-2 gap-4 pb-4">
-              <FormField
-                label="Address Line 1"
-                value={formData.address_while_in_up?.address_line_1 || ""}
-                onChange={(e) =>
-                  updateNestedField("address_while_in_up", {
-                    address_line_1: e.target.value,
-                  })
-                }
-                readOnly={!isEditing}
-              />
-              <FormField
-                label="Address Line 2"
-                value={formData.address_while_in_up?.address_line_2 || "N/A"}
-                onChange={(e) =>
-                  updateNestedField("address_while_in_up", {
-                    address_line_2: e.target.value,
-                  })
-                }
-                readOnly={!isEditing}
-              />
+                <FormField
+                  label="Address Line 1"
+                  value={formData.address_while_in_up?.address_line_1 || ""}
+                  onChange={(e) =>
+                    updateNestedField("address_while_in_up", {
+                      address_line_1: e.target.value,
+                    })
+                  }
+                  readOnly={!isEditing}
+                  error={validationErrors["address_while_in_up.address_line_1"]}
+                />
+                <FormField
+                  label="Address Line 2"
+                  value={formData.address_while_in_up?.address_line_2 || "N/A"}
+                  onChange={(e) =>
+                    updateNestedField("address_while_in_up", {
+                      address_line_2: e.target.value,
+                    })
+                  }
+                  readOnly={!isEditing}
+                  error={validationErrors["address_while_in_up.address_line_2"]}
+                />
               </div>
               <div className="grid lg:grid-cols-2 gap-4 pb-4">
                 <FormField
@@ -544,6 +717,7 @@ const StudentSideInfo = ({
                     })
                   }
                   readOnly={!isEditing}
+                  error={validationErrors["address_while_in_up.barangay"]}
                 />
                 <FormField
                   label="City/Municipality"
@@ -554,6 +728,9 @@ const StudentSideInfo = ({
                     })
                   }
                   readOnly={!isEditing}
+                  error={
+                    validationErrors["address_while_in_up.city_municipality"]
+                  }
                 />
               </div>
 
@@ -567,6 +744,7 @@ const StudentSideInfo = ({
                     })
                   }
                   readOnly={!isEditing}
+                  error={validationErrors["address_while_in_up.province"]}
                 />
                 <FormField
                   label="Region"
@@ -585,6 +763,7 @@ const StudentSideInfo = ({
                       label: opt.label,
                     })) || []
                   }
+                  error={validationErrors["address_while_in_up.region"]}
                 />
                 <FormField
                   label="ZIP code"
@@ -595,6 +774,7 @@ const StudentSideInfo = ({
                     })
                   }
                   readOnly={!isEditing}
+                  error={validationErrors["address_while_in_up.zip_code"]}
                 />
               </div>
             </div>
@@ -610,12 +790,15 @@ const StudentSideInfo = ({
                   </Button>
                 </>
               ) : (
-                  <Button variant="primary" onClick={() => {
+                <Button
+                  variant="primary"
+                  onClick={() => {
                     setValidationErrors({});
                     setIsEditing(true);
-                  }}>
-                    Edit
-                  </Button>
+                  }}
+                >
+                  Edit
+                </Button>
               )}
             </div>
           </div>
@@ -624,7 +807,9 @@ const StudentSideInfo = ({
 
       {/* Submitted Forms Section */}
       <div className="p-2 w-full border-t-black">
-        <h2 className="text-[1.2rem] font-semibold mb-3 text-upmaroon flex flex-col items-start">SUBMITTED FORMS</h2>
+        <h2 className="text-[1.2rem] font-semibold mb-3 text-upmaroon flex flex-col items-start">
+          SUBMITTED FORMS
+        </h2>
         {submittedForms.length === 0 ? (
           <p>No submitted forms yet.</p>
         ) : (

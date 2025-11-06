@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from .factories import (
     StudentFactory,
+    StudentPhotoFactory,
     SubmissionFactory,
     PreferencesFactory,
     StudentSupportFactory,
@@ -25,6 +26,9 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         for _ in range(NUM_STUDENTS):
             student = StudentFactory()
+            
+            # Add a photo to profile
+            StudentPhotoFactory(student=student)
             
             # Create two separate submissions per student
             submission_bis = SubmissionFactory(student=student)

@@ -11,7 +11,7 @@ const EditableField = ({
   const selectedOptionLabel = options.find(opt => opt.value === value)?.label || "";
 
   return (
-    <div className="font-normal p-0 bg-transparent text-center mt-[1.5rem]" style={{ textAlign: "center" }}>
+    <div className="font-normal p-0 bg-transparent text-center mt-6" style={{ textAlign: "center" }}>
       {type === "select" ? (
         readOnly ? (
           <div
@@ -81,14 +81,14 @@ const EditableField = ({
         />
       )}
 
-        <p className="text-sm">{label}:</p>
+        <p className="text-sm text-upmaroon">{label}:</p>
 
     </div>
   );
 };
 const ReadonlyField = ({ label, value }) => {
   return (
-    <div className="mt-[1.5rem]">
+    <div className="mt-6">
       <input
         type="text"
         value={value}
@@ -108,7 +108,7 @@ const ReadonlyField = ({ label, value }) => {
           color: "inherit",
         }}
       />
-      <p className="text-sm">{label}:</p>
+      <p className="text-sm text-upmaroon">{label}:</p>
     </div>
   );
 };
