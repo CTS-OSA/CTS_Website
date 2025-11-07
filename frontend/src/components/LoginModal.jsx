@@ -13,14 +13,11 @@ export default function LoginModal ({ onClose, onSwitchToSignup}) {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
-  const location = useLocation();
-
   const [isError, setIsError] = useState(false);
   const [message, setMessage] = useState("");
   const [showMessageModal, setShowMessageModal] = useState(false);
-  const role = new URLSearchParams(location.search).get("role");
-  const roleLabel = role === "admin" ? "Admin" : "Student";
+
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,14 +28,14 @@ export default function LoginModal ({ onClose, onSwitchToSignup}) {
     setError(null);
 
     try {
-      const success = await login(email, password, role);
+      const success = await login(email, password, "student");
       if (success) {
         setShowMessageModal(true);
         setMessage(`Welcome back! ${email}`);
         setIsError(false);
         setLoading(false);
         setTimeout(() => {
-          navigate(role === "admin" ? "/admin" : "/student");
+          navigate("/student");
         }, 500);
       } else {
         setShowMessageModal(true);
@@ -106,12 +103,9 @@ export default function LoginModal ({ onClose, onSwitchToSignup}) {
               />
               <div className="text-center text-sm text-gray-600 mt-2 leading-[1.6]">
                 <br />
-                {/* Conditionally render Sign Up link based on role */}
-                {role !== "admin" && (
                   <span className="text-sm text-gray-600">
                     Don’t have an account? <button type="button" onClick={onSwitchToSignup} className="text-red-900 underline bg-transparent border-none cursor-pointer">Sign up</button>
                   </span>
-                )}
               </div>
             </form>
           </section>
