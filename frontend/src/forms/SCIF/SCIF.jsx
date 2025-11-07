@@ -31,6 +31,7 @@ import SCIFScholarships from "./SCIFScholarships";
 import SCIFOtherPersonalData from "./SCIFOtherPersonalData";
 import SCIFCertify from "./SCIFCertify";
 import SCIFPreview from "./SCIFPreview";
+import SCIFSubmissionConfirmation from "./SCIFSubmissionConfirmation";
 
 const SCIF = () => {
   const { profileData } = useContext(AuthContext);
@@ -58,6 +59,7 @@ const SCIF = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const studentNumber = profileData?.student_number;
 
@@ -223,6 +225,11 @@ const SCIF = () => {
         return true;
     }
   };
+
+  // const handleConfirmAction = () => {
+  //   setShowConfirmDialog(false);
+  //   handleSubmit();
+  // };
 
   // ---------- initial fetch ----------
   useEffect(() => {
@@ -436,9 +443,11 @@ const SCIF = () => {
 
       if (result.success) {
         setShowSuccessToast(true);
+        setShowConfirmation(true); // ✅ show the confirmation component instead
+
         setTimeout(() => {
           navigate("/submitted-forms/student-cumulative-information-file");
-        }, 2000);
+        }, 3000);
       } else {
         let errorMessage = "Failed to submit form.";
 
@@ -499,153 +508,168 @@ const SCIF = () => {
                   {/* Right form area - white card */}
 
                   <div className="main-form p-4 w-full">
-                    {/* Render each step component here */}
-                    {step === 1 && <SCIFCredentials data={profileData} />}
-                    {step === 2 && <SCIFPersonalData data={profileData} />}
-                    {step === 3 && (
-                      <SCIFFamilyData
-                        data={{
-                          family_data: formData.family_data,
-                          siblings: formData.siblings,
-                        }}
-                        updateData={(sectionKey, newData) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            [sectionKey]: newData,
-                          }))
-                        }
-                        readOnly={readOnly}
-                        errors={errors}
-                        setErrors={setErrors}
-                      />
-                    )}
-                    {step === 4 && (
-                      <SCIFHealthData
-                        data={{ ...formData.health_data }}
-                        updateData={(newData) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            health_data: {
-                              ...prev.health_data,
-                              ...newData,
-                              student_number: studentNumber,
-                              submission: submissionId,
-                            },
-                          }))
-                        }
-                        readOnly={readOnly}
-                        errors={errors}
-                        setErrors={setErrors}
-                      />
-                    )}
-                    {step === 5 && (
-                      <SCIFPreviousSchoolRecord
-                        data={formData.previous_school_record}
-                        updateData={(newData) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            previous_school_record: newData,
-                          }))
-                        }
-                        readOnly={readOnly}
-                        errors={errors}
-                        setErrors={setErrors}
-                      />
-                    )}
-                    {step === 6 && (
-                      <SCIFScholarships
-                        data={formData.scholarship}
-                        updateData={(newData) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            scholarship: newData,
-                          }))
-                        }
-                        readOnly={readOnly}
-                        errors={errors}
-                        setErrors={setErrors}
-                      />
-                    )}
-                    {step === 7 && (
-                      <SCIFOtherPersonalData
-                        data={{
-                          personality_traits: formData.personality_traits,
-                          family_relationship: formData.family_relationship,
-                          counseling_info: formData.counseling_info,
-                        }}
-                        updateData={(sectionKey, newData) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            [sectionKey]: { ...prev[sectionKey], ...newData },
-                          }))
-                        }
-                        readOnly={readOnly}
-                        errors={errors}
-                        setErrors={setErrors}
-                      />
-                    )}
-                    {step === 8 && (
-                      <SCIFCertify
-                        data={formData}
-                        updateData={(newFormData) => setFormData(newFormData)}
-                        readOnly={readOnly}
-                        showError={
-                          !!error && !formData.privacy_consent?.has_consented
-                        }
-                      />
-                    )}
+                    {!showConfirmation ? (
+                      <>
+                        {/* Render each step component here */}
+                        {step === 1 && <SCIFCredentials data={profileData} />}
+                        {step === 2 && <SCIFPersonalData data={profileData} />}
+                        {step === 3 && (
+                          <SCIFFamilyData
+                            data={{
+                              family_data: formData.family_data,
+                              siblings: formData.siblings,
+                            }}
+                            updateData={(sectionKey, newData) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                [sectionKey]: newData,
+                              }))
+                            }
+                            readOnly={readOnly}
+                            errors={errors}
+                            setErrors={setErrors}
+                          />
+                        )}
+                        {step === 4 && (
+                          <SCIFHealthData
+                            data={{ ...formData.health_data }}
+                            updateData={(newData) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                health_data: {
+                                  ...prev.health_data,
+                                  ...newData,
+                                  student_number: studentNumber,
+                                  submission: submissionId,
+                                },
+                              }))
+                            }
+                            readOnly={readOnly}
+                            errors={errors}
+                            setErrors={setErrors}
+                          />
+                        )}
+                        {step === 5 && (
+                          <SCIFPreviousSchoolRecord
+                            data={formData.previous_school_record}
+                            updateData={(newData) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                previous_school_record: newData,
+                              }))
+                            }
+                            readOnly={readOnly}
+                            errors={errors}
+                            setErrors={setErrors}
+                          />
+                        )}
+                        {step === 6 && (
+                          <SCIFScholarships
+                            data={formData.scholarship}
+                            updateData={(newData) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                scholarship: newData,
+                              }))
+                            }
+                            readOnly={readOnly}
+                            errors={errors}
+                            setErrors={setErrors}
+                          />
+                        )}
+                        {step === 7 && (
+                          <SCIFOtherPersonalData
+                            data={{
+                              personality_traits: formData.personality_traits,
+                              family_relationship: formData.family_relationship,
+                              counseling_info: formData.counseling_info,
+                            }}
+                            updateData={(sectionKey, newData) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                [sectionKey]: {
+                                  ...prev[sectionKey],
+                                  ...newData,
+                                },
+                              }))
+                            }
+                            readOnly={readOnly}
+                            errors={errors}
+                            setErrors={setErrors}
+                          />
+                        )}
+                        {step === 8 && (
+                          <SCIFCertify
+                            data={formData}
+                            updateData={(newFormData) =>
+                              setFormData(newFormData)
+                            }
+                            readOnly={readOnly}
+                            showError={
+                              !!error &&
+                              !formData.privacy_consent?.has_consented
+                            }
+                          />
+                        )}
 
-                    {/* Error banner */}
-                    {error && (
-                      <div className="bg-red-50 border border-red-100 text-red-700 px-4 py-3 rounded">
-                        {error}
-                      </div>
-                    )}
+                        {/* Error banner */}
+                        {error && (
+                          <div className="bg-red-50 border border-red-100 text-red-700 px-4 py-3 rounded">
+                            {error}
+                          </div>
+                        )}
 
-                    {/* Buttons - bottom right aligned */}
-                    <div className="flex justify-end items-center gap-3 mt-2">
-                      {/* Back (disabled on first step) */}
-                      {step > 1 && (
-                        <Button
-                          variant="secondary"
-                          onClick={handlePreviousStep}
-                        >
-                          Back
-                        </Button>
-                      )}
-
-                      {/* Save Draft (hidden in readOnly) */}
-                      {!readOnly && (
-                        <Button
-                          variant="tertiary"
-                          onClick={handleSaveDraft}
-                          disabled={loading}
-                        >
-                          {loading ? "Saving Draft..." : "Save Draft"}
-                        </Button>
-                      )}
-
-                      {/* On last step show Preview + Submit; otherwise show Next */}
-                      {step < steps.length ? (
-                        <Button variant="primary" onClick={handleNextStep}>
-                          Next
-                        </Button>
-                      ) : (
-                        <>
-                          <Button variant="tertiary" onClick={handlePreview}>
-                            Preview
-                          </Button>
-                          {!readOnly && (
+                        {/* Buttons - bottom right aligned */}
+                        <div className="flex justify-end items-center gap-3 mt-2">
+                          {/* Back (disabled on first step) */}
+                          {step > 1 && (
                             <Button
-                              variant="primary"
-                              onClick={handleConfirmSubmit}
+                              variant="secondary"
+                              onClick={handlePreviousStep}
                             >
-                              Submit
+                              Back
                             </Button>
                           )}
-                        </>
-                      )}
-                    </div>
+
+                          {/* Save Draft (hidden in readOnly) */}
+                          {!readOnly && (
+                            <Button
+                              variant="tertiary"
+                              onClick={handleSaveDraft}
+                              disabled={loading}
+                            >
+                              {loading ? "Saving Draft..." : "Save Draft"}
+                            </Button>
+                          )}
+
+                          {/* On last step show Preview + Submit; otherwise show Next */}
+                          {step < steps.length ? (
+                            <Button variant="primary" onClick={handleNextStep}>
+                              Next
+                            </Button>
+                          ) : (
+                            <>
+                              <Button
+                                variant="tertiary"
+                                onClick={handlePreview}
+                              >
+                                Preview
+                              </Button>
+                              {!readOnly && (
+                                <Button
+                                  variant="primary"
+                                  onClick={handleConfirmSubmit}
+                                >
+                                  Submit
+                                </Button>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <SCIFSubmissionConfirmation />
+                    )}
                   </div>
                 </div>
               </div>
@@ -673,14 +697,8 @@ const SCIF = () => {
         />
       )}
 
-      {/* Success & Draft Toasts */}
-      {showSuccessToast && (
-        <ToastMessage
-          message="Your form has been successfully submitted!"
-          onClose={() => setShowSuccessToast(false)}
-          duration={5000}
-        />
-      )}
+      {/* Draft Toasts */}
+
       {showDraftSuccessToast && (
         <ToastMessage
           message="Your draft has been saved successfully!"
