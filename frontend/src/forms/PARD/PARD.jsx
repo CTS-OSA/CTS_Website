@@ -15,17 +15,25 @@ import PARDAuthorization from "./PARDAuthorization";
 import PARDSubmissionConfirmation from "./PARDSubmissionConfirmation";
 
 import Button from "../../components/UIButton";
-import ToastMessage from "../../components/ToastMessage";
 import ConfirmDialog from "../../components/ConfirmDialog";
-import ModalMessage from "../../components/ModalMessage";
+
+import { useFormApi } from "./PARDApi";
 import { useNavigate } from "react-router-dom";
+import ToastMessage from "../../components/ToastMessage";
 
 const PARD = () => {
-    const { request } = useApiRequest();
     const { profileData } = useContext(AuthContext);
-    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const navigate = useNavigate();
+    const {
+        createDraftSubmission,
+        getFormBundle,
+        saveDraft,
+        finalizeSubmission,
+    } = useFormApi();
     const [step, setStep] = useState(1);
     const [submissionId, setSubmissionId] = useState(null);
+    const [studentNumber, setStudentNumber] = useState(profileData?.student_number);
+    const [showDraftSuccessToast, setShowDraftSuccessToast] = useState(false);
     
     const [loading, setLoading] = useState(false);
     const [readOnly, setReadOnly] = useState(false);
@@ -51,6 +59,7 @@ const PARD = () => {
         },
         pard_psych_assessment: {
             date_started: "",
+            is_currently_on_medication: "",
             is_diagnosed: "",
             symptoms_observed: "",
             communication_platform: "",
@@ -122,6 +131,10 @@ const PARD = () => {
             date_started: {
                 required: true,
                 message: "This field is required.",
+            },
+            is_currently_on_medication: {
+                required: true,
+                message: "This field is required"
             },
             is_diagnosed: {
                 required: true,
@@ -250,10 +263,36 @@ const PARD = () => {
     const handleSubmit = async () => {
         setLoading(true);
 
-        // VALIDATION & HANDLE SUBMISSION TO BACKEND HERE
+        console.log(formData);
+        try {
+            const result = await finalizeSubmission(
+                submissionId,
+                studentNumber,
+                formData
+            );
 
-        setShowConfirmation(true);
-  };
+            if (result.success) {
+                setShowConfirmation(true);
+                setTimeout(() => {
+                    navigate("/student");
+                }, 3000);
+            } else {
+                if (result.status === 400 && result.data.errors) {
+                    setError("Validation errors: " + JSON.stringify(result.data.errors, null, 2));
+                } else if (result.data.error) {
+                    setError(`Error: ${result.data.error}`);
+                } else if (result.data.message) {
+                    setError(`Error: ${result.data.message}`);
+                } else {
+                    setError("Unknown error occurred.");
+                }
+            }
+        } catch (err) {
+            setError("Failed to submit form.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const steps = [
         { label: "Introduction" },
@@ -267,7 +306,7 @@ const PARD = () => {
         <>
             <DefaultLayout variant="student">
                 <div className="absolute w-full left-0 -z-1"></div>
-                {/* Mainfrom */}
+                {/* Main form */}
                 <div className="relative flex flex-col min-h-screen">
                     <div className="mx-auto w-3/4 flex flex-col items-center">
                     </div>
@@ -393,6 +432,14 @@ const PARD = () => {
                         </div>
                     </div>
                 </div>
+                {/* Toast Messages */}
+                {showDraftSuccessToast && (
+                    <ToastMessage
+                        message="Your draft has been saved successfully!"
+                        onClose={() => setShowDraftSuccessToast(false)}
+                        duration={2000}
+                    />
+                )}
             </DefaultLayout>
         </>
     )
