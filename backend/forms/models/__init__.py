@@ -14,3 +14,4 @@ from .psychometric import PsychometricData
 from .scholarship import Scholarship
 from .schoolRecord import SchoolAddress, School, PreviousSchoolRecord
 from .submission import Submission
+from .PARD import PARD

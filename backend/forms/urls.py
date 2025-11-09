@@ -7,6 +7,7 @@ from .views.display import SubmissionViewSet
 from .views.getEnums import EnumChoicesView
 from .views.BISEditView import BISEditView
 from .views.SCIFEditView import SCIFEditView
+from .views.PARDView import PARDSubmitView
 
 app_name= 'forms'
 
@@ -30,6 +31,7 @@ urlpatterns = [
     path('admin/student-forms/<str:student_id>/<str:form_type>/', AdminStudentFormView.as_view(), name='admin-student-form-view'),
     path('edit/bis/<str:student_id>/', BISEditView.as_view(), name='bis-edit'),
     path('edit/scif/<str:student_id>/', SCIFEditView.as_view(), name='scif-edit'),
+    path('pard/submit/<int:submission_id>/', PARDSubmitView.as_view(), name='pard-submit'),
     
     path('display/', include(router.urls)), 
 ]

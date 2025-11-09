@@ -78,22 +78,29 @@ const LoginPage = () => {
               <section className="login__right fade-in-up">
                 <h2 className="login__header">Login as {roleLabel}</h2>
                 <form className="login__form" onSubmit={handleSubmit}>
-                  <FormField
-                    label="Email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    name="email"
-                    required
-                  />
-                  <FormField
-                    label="Password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    name="password"
-                    required
-                  />
+                  <div className="mt-3">
+                    <FormField
+                      label="Email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      name="email"
+                      required
+                    />
+                  </div>
+                  <div className="mt-3">
+                    <FormField
+                      label="Password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      name="password"
+                      required
+                    />
+                  </div>
+                  <div className="mt-3">
+
+                  </div>
                   <SubmitButton
                     text={loading ? "Logging in..." : "Log In"}
                     disabled={loading}

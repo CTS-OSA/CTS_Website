@@ -4,7 +4,6 @@ import PersonalInfoForm from "./PersonalInfoForm";
 import EducationInfoForm from "./EducationInfoForm";
 import AddressInfoForm from "./AddressInfoForm";
 import PhotoUpload from "./PhotoUpload";
-import PhotoUpload from "./PhotoUpload";
 import { apiRequest } from "../../utils/apiUtils";
 import PreviewModal from "./PreviewForm";
 import Button from "../../components/UIButton";

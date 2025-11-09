@@ -45,10 +45,12 @@ OPTIONAL_SECTIONS = {
 
 FORM_TYPE_SLUG_MAP = {
     'basic-information-sheet': 'Basic Information Sheet',
-    'student-cumulative-information-file': 'Student Cumulative Information File'
+    'student-cumulative-information-file': 'Student Cumulative Information File',
+    'pard': 'psychosocial-assistance-and-referral-desk'
 }
 
 FORM_TYPE_UNSLUG_MAP = {
     'Basic Information Sheet': 'basic-information-sheet',
-    'Student Cumulative Information File': 'student-cumulative-information-file'
+    'Student Cumulative Information File': 'student-cumulative-information-file',
+    'Psychosocial Assistand and Referral Desk': 'psychosocial-assistance-and-referral-desk'
 }
