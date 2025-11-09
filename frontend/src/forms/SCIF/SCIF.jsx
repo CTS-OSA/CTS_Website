@@ -481,7 +481,7 @@ const SCIF = () => {
   return (
     <DefaultLayout variant="student">
       {/* Top maroon banner (title + subtitle) */}
-      <div className="absolute w-full h-[22rem] left-0 top-0 bg-upmaroon -z-10" />
+      <div className="absolute w-full h-88 left-0 top-0 bg-upmaroon -z-10" />
       <div className="relative flex flex-col min-h-screen">
         <div className="mt-10 mx-auto w-11/12 lg:w-3/4 flex flex-col items-center">
           {/* Header inside maroon banner area (centered title & subtitle) */}

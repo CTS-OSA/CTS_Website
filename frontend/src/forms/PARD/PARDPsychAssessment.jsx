@@ -78,7 +78,7 @@ const PARDPsychAssessment = ({ formData, setFormData, errors = {}, setErrors }) 
                 </div>
                 <div>
                     <label className="text-sm sm:text-base">
-                        If you have been diagnosed, when?   
+                        Currently on medication?
                     </label>
                     <div className="flex gap-4 mt-2">
                         <div className="flex items-center gap-2">
@@ -87,7 +87,7 @@ const PARDPsychAssessment = ({ formData, setFormData, errors = {}, setErrors }) 
                                 id="yes"
                                 name="is_diagnosed"
                                 value="yes"
-                                checked={formData.pard_psych_assessment?.is_diagnosed === "yes"}
+                                checked={formData.pard_psych_assessment?.is_currently_on_medication === "yes"}
                                 onChange={handleChange}
                             />
                             <label htmlFor="yes">Yes</label>
