@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useApiRequest } from "../../context/ApiRequestContext";
 import { AuthContext } from "../../context/AuthContext";
 import DefaultLayout from "../../components/DefaultLayout";
@@ -26,8 +26,8 @@ const PARD = () => {
     const navigate = useNavigate();
     const {
         createDraftSubmission,
-        getFormBundle,
         saveDraft,
+        getStudentData,
         finalizeSubmission,
     } = useFormApi();
     const [step, setStep] = useState(1);
@@ -40,6 +40,44 @@ const PARD = () => {
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     
+    // Fetch student data on component mount
+    useEffect(() => {
+        const fetchStudentData = async () => {
+            if (studentNumber) {
+                try {
+                    const data = await getStudentData(studentNumber);
+                    if (data && data.student_profile) {
+                        const student = data.student_profile;
+                        const permanentAddr = data.permanent_address;
+                        const upAddr = data.address_while_in_up;
+                        
+                        setFormData(prev => ({
+                            ...prev,
+                            pard_demographic_profile: {
+                                student_last_name: student?.last_name || "",
+                                student_first_name: student?.first_name || "",
+                                student_middle_name: student?.middle_name || "",
+                                student_nickname: student?.nickname || "",
+                                student_year: student?.current_year_level || "",
+                                student_degree_program: student?.degree_program || "",
+                            },
+                            pard_contact_info: {
+                                ...prev.pard_contact_info,
+                                student_contact_number: student?.contact_number || "",
+                                hometown_address: permanentAddr ? `${permanentAddr.address_line_1}, ${permanentAddr.city_municipality}` : "",
+                                current_address: upAddr ? `${upAddr.address_line_1}, ${upAddr.city_municipality}` : "",
+                            }
+                        }));
+                    }
+                } catch (error) {
+                    console.error('Error fetching student data:', error);
+                }
+            }
+        };
+        
+        fetchStudentData();
+    }, [studentNumber, getStudentData]);
+
     const [formData, setFormData] = useState({
         pard_demographic_profile: {
             student_last_name: "",

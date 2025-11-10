@@ -1,4 +1,5 @@
 import { useApiRequest } from "../../context/ApiRequestContext";
+const BASE_URL = "http://localhost:8000/api/forms/pard";
 
 export const useFormApi = () => {
   const { request } = useApiRequest();
@@ -38,6 +39,21 @@ export const useFormApi = () => {
     }
   };
 
+  const getStudentData = async (studentNumber) => {
+    try {
+      const response = await request(`${BASE_URL}/student-data/${studentNumber}/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching student data:", error);
+      return null;
+    }
+  };
+
   const finalizeSubmission = async (submissionId, studentNumber, formData) => {
     try {
       const response = await request("POST", `/pard/submit/${submissionId}/`, formData);
@@ -56,6 +72,7 @@ export const useFormApi = () => {
     createDraftSubmission,
     getFormBundle,
     saveDraft,
+    getStudentData,
     finalizeSubmission,
   };
 };
