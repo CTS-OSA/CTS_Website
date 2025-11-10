@@ -16,7 +16,7 @@ class PARDSubmitView(APIView):
             if student_number:
                 # Get student data by student number
                 student = get_object_or_404(Student, student_number=student_number)
-                
+
                 if student.user != request.user:
                     return Response(
                         {"error": "You don't have permission to view this data."}, 
@@ -45,7 +45,9 @@ class PARDSubmitView(APIView):
                     "degree_program": student.degree_program,
                     "current_year_level": student.current_year_level,
                     "contact_number": student.contact_number,
-                    # "email": student.email,
+                },
+                "user": {
+                    "email": request.user.email,
                 }
             }
             
@@ -58,7 +60,6 @@ class PARDSubmitView(APIView):
                     "city_municipality": student.permanent_address.city_municipality,
                     "province": student.permanent_address.province,
                     "region": student.permanent_address.region,
-                    "zip_code": student.permanent_address.zip_code,
                 }
             
             # Add UP address
@@ -70,8 +71,9 @@ class PARDSubmitView(APIView):
                     "city_municipality": student.address_while_in_up.city_municipality,
                     "province": student.address_while_in_up.province,
                     "region": student.address_while_in_up.region,
-                    "zip_code": student.address_while_in_up.zip_code,
                 }
+
+            
 
             return Response(response_data, status=status.HTTP_200_OK)
             
@@ -85,7 +87,6 @@ class PARDSubmitView(APIView):
         try:
             # Get the submission
             submission = get_object_or_404(Submission, id=submission_id)
-            
             # Verify the submission belongs to the authenticated user
             if submission.student_number.user != request.user:
                 return Response(

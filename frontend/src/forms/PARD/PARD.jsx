@@ -50,6 +50,7 @@ const PARD = () => {
                         const student = data.student_profile;
                         const permanentAddr = data.permanent_address;
                         const upAddr = data.address_while_in_up;
+                        const student_email = data.user;
                         
                         setFormData(prev => ({
                             ...prev,
@@ -64,8 +65,9 @@ const PARD = () => {
                             pard_contact_info: {
                                 ...prev.pard_contact_info,
                                 student_contact_number: student?.contact_number || "",
-                                hometown_address: permanentAddr ? `${permanentAddr.address_line_1}, ${permanentAddr.city_municipality}` : "",
-                                current_address: upAddr ? `${upAddr.address_line_1}, ${upAddr.city_municipality}` : "",
+                                hometown_address: permanentAddr ? `${permanentAddr.address_line_1}, ${permanentAddr.address_line_2}, ${permanentAddr.barangay}, ${permanentAddr.city_municipality}, ${permanentAddr.province}, ${permanentAddr.region}` : "",
+                                current_address: upAddr ? `${upAddr.address_line_1}, ${upAddr.address_line_2}, ${upAddr.barangay}, ${upAddr.city_municipality}, ${upAddr.province}, ${upAddr.region}` : "",
+                                student_email: student_email?.email || ""
                             }
                         }));
                     }
@@ -159,9 +161,14 @@ const PARD = () => {
             preferred_date: {
                 required: true,
                 message: "This field is required.",
+                greaterThan: new Date(),
+                greaterThanMessage: "Please enter a valid date."
             },
             preferred_time: {
                 required: true,
+                minTime: "8:00",
+                maxTime: "16:00",
+                timeRangeMessage: "Please enter a time within the office hours.",
                 message: "This field is required.",
             },
         },
@@ -203,7 +210,7 @@ const PARD = () => {
         const stepMap = {
             // 3: 'pard_demographic_profile',
             // 4: 'pard_contact_info',
-            // 5: 'pard_psych_assessment'
+            5: 'pard_psych_assessment'
         };
         
         const sectionKey = stepMap[stepNumber];
@@ -220,7 +227,26 @@ const PARD = () => {
             if (rule.required && (!value || value.trim() === '')) {
                 newErrors[fieldKey] = rule.message;
             } else if (rule.pattern && value && !rule.pattern.test(value)) {
-                newErrors[fieldKey] = rule.patternMessage || 'Invalid format.';
+                newErrors[fieldKey] = rule.patternMessage;
+            } else if (rule.greaterThan && value) {
+                const inputDate = new Date(value);
+                const currentDate = new Date(rule.greaterThan);
+                if (inputDate <= currentDate) {
+                    newErrors[fieldKey] = rule.greaterThanMessage;
+                }
+            } else if (rule.minTime && rule.maxTime && value) {
+                const [h, m] = value.split(":").map(Number);
+                const totalMinutes = h * 60 + m;
+
+                const [minH, minM] = rule.minTime.split(":").map(Number);
+                const [maxH, maxM] = rule.maxTime.split(":").map(Number);
+
+                const minMinutes = minH * 60 + minM;
+                const maxMinutes = maxH * 60 + maxM;
+
+                if (totalMinutes < minMinutes || totalMinutes > maxMinutes) {
+                newErrors[fieldKey] = rule.timeRangeMessage || "Time is outside allowed range.";
+                }
             }
         });
         

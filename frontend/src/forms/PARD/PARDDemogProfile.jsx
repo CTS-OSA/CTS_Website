@@ -42,9 +42,10 @@ const PARDDemogProfile = ({ formData, setFormData, errors = {}, setErrors }) => 
                         type="text"
                         name="last_name"
                         value={formData.pard_demographic_profile?.student_last_name || ""}
-                        onChange={handleChange}
+                        // onChange={handleChange}
+                        readOnly
                     />
-                    {errors.student_last_name && <div className="text-[#D32F2F] text-xs  italic">{errors.student_last_name}</div>}
+                    {/* {errors.student_last_name && <div className="text-[#D32F2F] text-xs  italic">{errors.student_last_name}</div>} */}
                 </div>
                 <div>
                     <FormField
@@ -52,9 +53,10 @@ const PARDDemogProfile = ({ formData, setFormData, errors = {}, setErrors }) => 
                         type="text"
                         name="first_name"
                         value={formData.pard_demographic_profile?.student_first_name || ""}
-                        onChange={handleChange}
+                        // onChange={handleChange}
+                        readOnly
                     />
-                    {errors.student_first_name && <div className="text-[#D32F2F] text-xs  italic">{errors.student_first_name}</div>}
+                    {/* {errors.student_first_name && <div className="text-[#D32F2F] text-xs  italic">{errors.student_first_name}</div>} */}
                 </div>
                 <div>
                     <FormField
@@ -62,9 +64,10 @@ const PARDDemogProfile = ({ formData, setFormData, errors = {}, setErrors }) => 
                         type="text"
                         name="middle_name"
                         value={formData.pard_demographic_profile?.student_middle_name || ""}
-                        onChange={handleChange}
+                        // onChange={handleChange}
+                        readOnly
                     />
-                    {errors.student_middle_name && <div className="text-[#D32F2F] text-xs  italic">{errors.student_middle_name}</div>}
+                    {/* {errors.student_middle_name && <div className="text-[#D32F2F] text-xs  italic">{errors.student_middle_name}</div>} */}
                 </div>
                 <div>
                     <FormField
@@ -72,9 +75,10 @@ const PARDDemogProfile = ({ formData, setFormData, errors = {}, setErrors }) => 
                         type="text"
                         name="nickname"
                         value={formData.pard_demographic_profile?.student_nickname || ""}
-                        onChange={handleChange}
+                        // onChange={handleChange}
+                        readOnly
                     />
-                    {errors.student_nickname && <div className="text-[#D32F2F] text-xs  italic">{errors.student_nickname}</div>}
+                    {/* {errors.student_nickname && <div className="text-[#D32F2F] text-xs  italic">{errors.student_nickname}</div>} */}
                 </div>
                 <div>
                     <FormField
@@ -82,13 +86,14 @@ const PARDDemogProfile = ({ formData, setFormData, errors = {}, setErrors }) => 
                         type="select"
                         name="year"
                         value={formData.pard_demographic_profile?.student_year || ""}
-                        onChange={handleChange}
+                        // onChange={handleChange}
+                        readOnly
                         options={yearLevel.map((opt) => ({
                             value: opt.value,
                             label: opt.label,
                         }))}
                     />
-                    {errors.student_year && <div className="text-[#D32F2F] text-xs  italic">{errors.student_year}</div>}
+                    {/* {errors.student_year && <div className="text-[#D32F2F] text-xs  italic">{errors.student_year}</div>} */}
                 </div>
                 <div>
                     <FormField
@@ -96,13 +101,14 @@ const PARDDemogProfile = ({ formData, setFormData, errors = {}, setErrors }) => 
                         type="select"
                         name="degree_program"
                         value={formData.pard_demographic_profile?.student_degree_program || ""}
-                        onChange={handleChange}
+                        // onChange={handleChange}
+                        readOnly
                         options={allDegreeOptions.map((opt) => ({
                             value: opt.value,
                             label: opt.label,
                         }))}
                     />
-                    {errors.student_degree_program && <div className="text-[#D32F2F] text-xs  italic">{errors.student_degree_program}</div>}
+                    {/* {errors.student_degree_program && <div className="text-[#D32F2F] text-xs  italic">{errors.student_degree_program}</div>} */}
                 </div>
             </div>
         </div>

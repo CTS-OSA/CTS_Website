@@ -38,9 +38,10 @@ const PARDContactInfo = ({ formData, setFormData, errors = {}, setErrors }) => {
                         type="text"
                         name="student_contact_number"
                         value={formData.pard_contact_info?.student_contact_number || ""}
-                        onChange={handleChange}
+                        // onChange={handleChange}
+                        readOnly
                     />
-                    {errors.student_contact_number && <div className="text-[#D32F2F] text-xs  italic">{errors.student_contact_number}</div>}
+                    {/* {errors.student_contact_number && <div className="text-[#D32F2F] text-xs  italic">{errors.student_contact_number}</div>} */}
                 </div>
                 <div>
                     <FormField
@@ -48,9 +49,10 @@ const PARDContactInfo = ({ formData, setFormData, errors = {}, setErrors }) => {
                         type="text"
                         name="student_email"
                         value={formData.pard_contact_info?.student_email || ""}
-                        onChange={handleChange}
+                        // onChange={handleChange}
+                        readOnly
                     />
-                    {errors.student_email && <div className="text-[#D32F2F] text-xs  italic">{errors.student_email}</div>}
+                    {/* {errors.student_email && <div className="text-[#D32F2F] text-xs  italic">{errors.student_email}</div>} */}
                 </div>
                 <div className="col-span-2">
                     <FormField
@@ -58,9 +60,10 @@ const PARDContactInfo = ({ formData, setFormData, errors = {}, setErrors }) => {
                         type="text"
                         name="hometown_address"
                         value={formData.pard_contact_info?.hometown_address || ""}
-                        onChange={handleChange}
+                        // onChange={handleChange}
+                        readOnly
                         />
-                    {errors.hometown_address && <div className="text-[#D32F2F] text-xs  italic">{errors.hometown_address}</div>}
+                    {/* {errors.hometown_address && <div className="text-[#D32F2F] text-xs  italic">{errors.hometown_address}</div>} */}
                 </div>
                 <div className="col-span-2">
                     <FormField
@@ -68,9 +71,10 @@ const PARDContactInfo = ({ formData, setFormData, errors = {}, setErrors }) => {
                         type="text"
                         name="current_address"
                         value={formData.pard_contact_info?.current_address || ""}
-                        onChange={handleChange}
+                        // onChange={handleChange}
+                        readOnly
                         />
-                    {errors.current_address && <div className="text-[#D32F2F] text-xs  italic">{errors.current_address}</div>}
+                    {/* {errors.current_address && <div className="text-[#D32F2F] text-xs  italic">{errors.current_address}</div>} */}
                 </div>
                 <div>
                     <label className="text-xs sm:text-sm md:text-base">
