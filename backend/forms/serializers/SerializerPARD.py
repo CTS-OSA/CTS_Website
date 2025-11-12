@@ -35,7 +35,6 @@ class PARDSubmissionSerializer(serializers.Serializer):
             'preferred_date': contact_data.get('preferred_date'),
             'preferred_time': contact_data.get('preferred_time'),
             'date_started': psych_data.get('date_started'),
-            'is_diagnosed': psych_data.get('is_diagnosed') == 'yes',
             'is_currently_on_medication': psych_data.get('is_currently_on_medication') == 'yes',
             'symptoms_observed': psych_data.get('symptoms_observed'),
             'date_diagnosed': psych_data.get('date_diagnosed'),

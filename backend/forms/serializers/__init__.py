@@ -37,3 +37,7 @@ from .SerializerSCIF import (
 from .AdminSerializers import (
     AdminSubmissionDetailSerializer,
 )
+
+from .SerializerPARD import (
+    PARDSerializer
+)

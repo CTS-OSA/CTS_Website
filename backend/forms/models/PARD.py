@@ -3,23 +3,24 @@ from .submission import Submission
 from forms.utils.helperFunctions import check_required_fields
 import datetime
 from django.core.exceptions import ValidationError
+from .enums import PARDStatus
 
 class PARD(models.Model):
     student_number = models.ForeignKey('Student', to_field='student_number', on_delete=models.CASCADE)
     submission_id = models.ForeignKey(Submission, on_delete=models.CASCADE)
     
     # CONTACT INFO PAGE
-    preferred_date = models.CharField(max_length=10, blank=True, null=True)
-    preferred_time = models.TimeField(blank=True, null=True)
+    preferred_date = models.CharField(max_length=10, null=True)
+    preferred_time = models.TimeField(null=True)
     
     # PSYCH ASSESSMENT PAGE
-    date_started = models.DateField(blank=True, null=True)
+    date_started = models.DateField(null=True)
     is_currently_on_medication = models.BooleanField(default=False)
-    is_diagnosed = models.BooleanField(default=False)
-    symptoms_observed = models.CharField(blank=True, null=True)
-    date_diagnosed = models.DateField(blank=True, null=True)
-    communication_platform = models.CharField(max_length=100, blank=True, null=True)
-    diagnosed_by = models.CharField(max_length=100, blank=True, null=True)
+    symptoms_observed = models.CharField(null=True)
+    date_diagnosed = models.DateField(null=True)
+    communication_platform = models.CharField(max_length=100, null=True)
+    diagnosed_by = models.CharField(max_length=100, null=True)
+    status = models.CharField(max_length=15, choices=PARDStatus.choices, null=True, default=PARDStatus.UNREAD)
 
     class Meta:
         db_table = 'pard_details'
@@ -35,7 +36,7 @@ class PARD(models.Model):
         elif self.submission.status == 'submitted':
             required_fields = [
                 'preferred_date', 'preferred_time', 'date_started',
-                'is_currently_on_medication', 'is_diagnosed', 'symptoms_observed',
+                'is_currently_on_medication', 'symptoms_observed',
                 'date_diagnosed', 'communication_platform', 'diagnosed_by'
             ]
 
@@ -51,4 +52,12 @@ class PARD(models.Model):
                 raise ValidationError({
                     'preferred_time': "Preferred time must be in the future."
                 })
-            
+
+class PARDSchedule(models.Model):
+    student_number = models.ForeignKey('Student', to_field='student_number', on_delete=models.CASCADE)
+
+    scheduled_date = models.DateField()
+    scheduled_time = models.TimeField()
+
+    class Meta:
+        db_table = 'pard_schedule'

@@ -11,31 +11,24 @@ from ..models.student import Student
 class PARDSubmitView(APIView):
     permission_classes = [IsAuthenticated]
     
-    def get(self, request, submission_id=None, student_number=None):
+    def get(self, request, student_number):
         try:
-            if student_number:
-                # Get student data by student number
-                student = get_object_or_404(Student, student_number=student_number)
+            # Get student data by student number
+            student = get_object_or_404(Student, student_number=student_number)
 
-                if student.user != request.user:
-                    return Response(
-                        {"error": "You don't have permission to view this data."}, 
-                        status=status.HTTP_403_FORBIDDEN
-                    )
-            else:
-                # Get student data by submission ID
-                submission = get_object_or_404(Submission, id=submission_id)
-                
-                if submission.student_number.user != request.user:
-                    return Response(
-                        {"error": "You don't have permission to view this form."}, 
-                        status=status.HTTP_403_FORBIDDEN
-                    )
-                
-                student = submission.student_number
-            
+            # Get or create submission for PARD
+            submission = Submission.objects.get(
+                student=student,
+                form_type="Psychosocial Assistance and Referral Desk"
+            )
+
             # Pre-populate with student data
             response_data = {
+                "submission": {
+                    "id": submission.id,
+                    # "status": submission.status,
+                    # "form_type": submission.form_type,
+                },
                 "student_profile": {
                     "student_number": student.student_number,
                     "first_name": student.first_name,
@@ -86,33 +79,38 @@ class PARDSubmitView(APIView):
     def post(self, request, submission_id):
         try:
             # Get the submission
-            submission = get_object_or_404(Submission, id=submission_id)
+            submission = get_object_or_404(Submission, id=request.user.id)
+
+            # student_id = request.data.get('student_number')
+            # submission = Submission.objects.select_related('student').get(
+            #                 student__student_number=student_id,
+            #                 form_type="Basic Information Sheet"
+            #             )
+
             # Verify the submission belongs to the authenticated user
-            if submission.student_number.user != request.user:
+            if submission.student.user != request.user:
                 return Response(
-                    {"error": "You don't have permission to submit this form."}, 
+                    {
+                        "error": (
+                            f"You don't have permission to submit this form. "
+                            f"Current user: {request.user}, "
+                            f"Allowed user: {submission.student.user}."
+                        )
+                    },
                     status=status.HTTP_403_FORBIDDEN
                 )
-            
-            # Check if already submitted
-            if submission.status == 'submitted':
-                return Response(
-                    {"error": "This form has already been submitted."}, 
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            
+
             # Serialize and validate the data
             serializer = PARDSubmissionSerializer(
                 data=request.data,
                 context={
                     'submission_id': submission_id,
-                    'student_number': submission.student_number.student_number
+                    'student_number': submission.student.student_number
                 }
             )
             
             if serializer.is_valid():
                 # Save the PARD data
-                pard_instance = serializer.full_clean()
                 pard_instance = serializer.save()
                 
                 # Update submission status
