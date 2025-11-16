@@ -84,27 +84,27 @@ const PARDPsychAssessment = ({ formData, setFormData, errors = {}, setErrors }) 
                         <div className="flex items-center gap-2">
                             <input 
                                 type="radio" 
-                                id="yes"
-                                name="is_diagnosed"
+                                id="medication_yes"
+                                name="is_currently_on_medication"
                                 value="yes"
                                 checked={formData.pard_psych_assessment?.is_currently_on_medication === "yes"}
                                 onChange={handleChange}
                             />
-                            <label htmlFor="yes">Yes</label>
+                            <label htmlFor="medication_yes">Yes</label>
                         </div>
                         <div className="flex items-center gap-2">
                             <input 
                                 type="radio" 
-                                id="no"
-                                name="is_diagnosed"
+                                id="medication_no"
+                                name="is_currently_on_medication"
                                 value="no"
-                                checked={formData.pard_psych_assessment?.is_diagnosed === "no"}
+                                checked={formData.pard_psych_assessment?.is_currently_on_medication === "no"}
                                 onChange={handleChange}
                             />
-                            <label htmlFor="no">No</label>
+                            <label htmlFor="medication_no">No</label>
                         </div>
                     </div>
-                    {errors.is_diagnosed && <div className="text-[#D32F2F] text-xs  italic">{errors.is_diagnosed}</div>}
+                    {errors.is_currently_on_medication && <div className="text-[#D32F2F] text-xs  italic">{errors.is_currently_on_medication}</div>}
                 </div>
             </div>
             <div className="grid grid-cols-2 gap-3 mt-3">

@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
-import { useApiRequest } from "../../context/ApiRequestContext";
+
 import { AuthContext } from "../../context/AuthContext";
 import DefaultLayout from "../../components/DefaultLayout";
 import StepIndicator from "../../components/StepIndicator";
@@ -19,21 +19,18 @@ import ConfirmDialog from "../../components/ConfirmDialog";
 
 import { useFormApi } from "./PARDApi";
 import { useNavigate } from "react-router-dom";
-import ToastMessage from "../../components/ToastMessage";
+import { DataArray } from "@mui/icons-material";
 
 const PARD = () => {
     const { profileData } = useContext(AuthContext);
     const navigate = useNavigate();
     const {
-        createDraftSubmission,
-        saveDraft,
         getStudentData,
-        finalizeSubmission,
+        submitForm,
     } = useFormApi();
     const [step, setStep] = useState(1);
     const [submissionId, setSubmissionId] = useState(null);
     const [studentNumber, setStudentNumber] = useState(profileData?.student_number);
-    const [showDraftSuccessToast, setShowDraftSuccessToast] = useState(false);
     
     const [loading, setLoading] = useState(false);
     const [readOnly, setReadOnly] = useState(false);
@@ -45,8 +42,20 @@ const PARD = () => {
         const fetchStudentData = async () => {
             if (studentNumber) {
                 try {
+
+                    // PROBLEM: CANNOT RETURN SUBMISSION ID
                     const data = await getStudentData(studentNumber);
+
                     if (data && data.student_profile) {
+                        // Set submission ID from the response
+                        
+                        if (data.submission && data.submission.id) {
+                            setSubmissionId(data.submission.id);
+                            if (data.submission.status === "submitted") {
+                                setReadOnly(true);
+                            }
+                        }
+                        
                         const student = data.student_profile;
                         const permanentAddr = data.permanent_address;
                         const upAddr = data.address_while_in_up;
@@ -70,15 +79,19 @@ const PARD = () => {
                                 student_email: student_email?.email || ""
                             }
                         }));
+                    } else {
+                        setError("Failed to create or fetch the form.");
                     }
                 } catch (error) {
                     console.error('Error fetching student data:', error);
+                } finally {
+                    setLoading(false);
                 }
             }
         };
         
-        fetchStudentData();
-    }, [studentNumber, getStudentData]);
+        if (studentNumber) fetchStudentData();
+    }, [studentNumber]);
 
     const [formData, setFormData] = useState({
         pard_demographic_profile: {
@@ -100,7 +113,6 @@ const PARD = () => {
         pard_psych_assessment: {
             date_started: "",
             is_currently_on_medication: "",
-            is_diagnosed: "",
             symptoms_observed: "",
             communication_platform: "",
             date_diagnosed: "",
@@ -179,11 +191,7 @@ const PARD = () => {
             },
             is_currently_on_medication: {
                 required: true,
-                message: "This field is required"
-            },
-            is_diagnosed: {
-                required: true,
-                message: "This field is required.",
+                message: "This field is required."
             },
             symptoms_observed: {
                 required: true,
@@ -208,8 +216,8 @@ const PARD = () => {
 
         // NOTE: UNCOMMENT THIS TO VIEW VALIDATION
         const stepMap = {
-            // 3: 'pard_demographic_profile',
-            // 4: 'pard_contact_info',
+            3: 'pard_demographic_profile',
+            4: 'pard_contact_info',
             5: 'pard_psych_assessment'
         };
         
@@ -224,7 +232,7 @@ const PARD = () => {
             const rule = sectionRules[fieldKey];
             const value = sectionData[fieldKey];
             
-            if (rule.required && (!value || value.trim() === '')) {
+            if (rule.required && (!value)) {
                 newErrors[fieldKey] = rule.message;
             } else if (rule.pattern && value && !rule.pattern.test(value)) {
                 newErrors[fieldKey] = rule.patternMessage;
@@ -255,28 +263,7 @@ const PARD = () => {
 
     const [error, setError] = useState(null);
     const [errors, setErrors] = useState({});
-    
-    const handleSaveDraft = async () => {
-        if (!submissionId) {
-            alert("Submission ID is missing. Try reloading the page.");
-        return;
-        }
 
-        setLoading(true);
-        try {
-        const response = await saveDraft(submissionId, studentNumber, formData);
-
-        if (response?.ok) {
-            setShowDraftSuccessToast(true);
-        } else {
-            alert("Error saving draft.");
-        }
-        } catch (err) {
-        alert("Failed to save draft.");
-        } finally {
-        setLoading(false);
-        }
-    };
 
     const handleNextStep = () => {
 
@@ -326,10 +313,10 @@ const PARD = () => {
 
     const handleSubmit = async () => {
         setLoading(true);
+        console.log("HandleSubmit - submissionId:", submissionId);
 
-        console.log(formData);
         try {
-            const result = await finalizeSubmission(
+            const result = await submitForm(
                 submissionId,
                 studentNumber,
                 formData
@@ -406,7 +393,7 @@ const PARD = () => {
                                 {!showConfirmation && (
                                     <div className="flex justify-end mt-auto">
                                         <div className="main-form-buttons">
-                                        {/* Step 1: 'Save Draft' and 'Next' button */}
+                                        {/* Step 1: 'Next' button */}
                                         {step === 1 && !loading && (
                                         <>
                                             <Button variant="primary" onClick={handleNextStep}>
@@ -425,16 +412,6 @@ const PARD = () => {
                                                     >
                                                     Back
                                                     </Button>
-                                                    {!readOnly && (
-                                                    <Button
-                                                        variant="tertiary"
-                                                        onClick={handleSaveDraft}
-                                                        disabled={loading}
-                                                        style={{ marginLeft: "0.5rem" }}
-                                                    >
-                                                        {loading ? "Saving Draft..." : "Save Draft"}
-                                                    </Button>
-                                                    )}
                                                     <Button
                                                     variant="primary"
                                                     onClick={handleNextStep}
@@ -446,7 +423,7 @@ const PARD = () => {
                                             </>
                                         )}
 
-                                            {/* Step 6: 'Back', 'Save Draft', 'Preview', and 'Submit' buttons */}
+                                            {/* Step 6: 'Back', 'Preview', and 'Submit' buttons */}
                                             {step === 6 && !loading && (
                                             <>
                                                 <Button
@@ -455,16 +432,6 @@ const PARD = () => {
                                                 >
                                                 Back
                                                 </Button>
-                                                {!readOnly && (
-                                                <Button
-                                                    variant="tertiary"
-                                                    onClick={handleSaveDraft}
-                                                    disabled={loading}
-                                                    style={{ marginLeft: "0.5rem" }}
-                                                >
-                                                    {loading ? "Saving Draft..." : "Save Draft"}
-                                                </Button>
-                                                )}
 
                                                 {!readOnly && (
                                                 <Button
@@ -496,14 +463,6 @@ const PARD = () => {
                         </div>
                     </div>
                 </div>
-                {/* Toast Messages */}
-                {showDraftSuccessToast && (
-                    <ToastMessage
-                        message="Your draft has been saved successfully!"
-                        onClose={() => setShowDraftSuccessToast(false)}
-                        duration={2000}
-                    />
-                )}
             </DefaultLayout>
         </>
     )

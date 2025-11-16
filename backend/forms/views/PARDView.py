@@ -79,7 +79,7 @@ class PARDSubmitView(APIView):
     def post(self, request, submission_id):
         try:
             # Get the submission
-            submission = get_object_or_404(Submission, id=request.user.id)
+            submission = get_object_or_404(Submission, id=submission_id)
 
             # student_id = request.data.get('student_number')
             # submission = Submission.objects.select_related('student').get(

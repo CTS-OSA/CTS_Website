@@ -4,39 +4,17 @@ const BASE_URL = "http://localhost:8000/api/forms/pard";
 export const useFormApi = () => {
   const { request } = useApiRequest();
 
-  const createDraftSubmission = async (studentNumber) => {
-    try {
-      const response = await request("POST", "/pard/create-draft/", {
-        student_number: studentNumber,
-      });
-      return response;
-    } catch (error) {
-      console.error("Error creating draft submission:", error);
-      return null;
-    }
-  };
-
   const getFormBundle = async (studentNumber) => {
-    try {
-      const response = await request("GET", `/pard/bundle/${studentNumber}/`);
-      return response;
-    } catch (error) {
-      console.error("Error fetching form bundle:", error);
-      return null;
-    }
-  };
+    const response = await request(
+      `${BASE_URL}/?student_number=${studentNumber}`,
+      {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      }
+    );
 
-  const saveDraft = async (submissionId, studentNumber, formData) => {
-    try {
-      const response = await request("PUT", `/pard/draft/${submissionId}/`, {
-        student_number: studentNumber,
-        ...formData,
-      });
-      return response;
-    } catch (error) {
-      console.error("Error saving draft:", error);
-      return null;
-    }
+    if (response?.status === 404) return null;
+    return response?.ok ? await response.json() : null;
   };
 
   const getStudentData = async (studentNumber) => {
@@ -54,14 +32,21 @@ export const useFormApi = () => {
     }
   };
 
-  const finalizeSubmission = async (submissionId, studentNumber, formData) => {
+  const submitForm = async (submissionId, studentNumber, formData) => {
     try {
-      const response = await request("POST", `/pard/submit/${submissionId}/`, formData);
+      const response = await request(
+        `${BASE_URL}/submit/${submissionId}/`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      console.log("Response", response);
       return { success: true, data: response };
     } catch (error) {
       console.error("Error finalizing submission:", error);
-      return { 
-        success: false, 
+      return {
+        success: false,
         status: error.status || 500,
         data: error.data || { error: "Submission failed" }
       };
@@ -69,10 +54,8 @@ export const useFormApi = () => {
   };
 
   return {
-    createDraftSubmission,
     getFormBundle,
-    saveDraft,
     getStudentData,
-    finalizeSubmission,
+    submitForm,
   };
 };
