@@ -256,16 +256,20 @@
     
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from forms.models import Submission
-from forms.serializers import SubmissionSerializer
+from forms.models import Submission, PrivacyConsent
+from forms.serializers import SubmissionSerializer, PrivacyConsentSerializer
 from .BaseFormMixin import BaseFormMixin
 from forms.map import FORM_SECTIONS_MAP, FORM_TYPE_UNSLUG_MAP, OPTIONAL_SECTIONS, FORM_TYPE_SLUG_MAP
 from users.utils import log_action
 
+
+class PrivacyConsentViewSet(viewsets.ModelViewSet):
+    queryset = PrivacyConsent.objects.all()
+    serializer_class = PrivacyConsentSerializer
 
 class DraftSubmissionMixin:
     def perform_create(self, serializer):
