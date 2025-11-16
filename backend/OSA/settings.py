@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'djoser',
     'forms.apps.FormsConfig',
     'analytics',
+    'storages'
 ]
 
 MIDDLEWARE = [
@@ -136,6 +137,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+MEDIA_URL = 'media/'
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',  
@@ -223,6 +225,17 @@ LOGGING = {
         "level": "INFO",
     },
 }
+
+# FIX ME 
+# ADD OPTIONS
+# STORAGES = {
+#     "default": {
+#         "BACKEND": "storages.backends.s3.S3Storage",
+#         "OPTIONS": {
+            
+#         },
+#     },
+# }
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
