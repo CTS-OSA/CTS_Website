@@ -10,7 +10,7 @@ class PARD(models.Model):
     submission_id = models.ForeignKey(Submission, on_delete=models.CASCADE)
     
     # CONTACT INFO PAGE
-    preferred_date = models.CharField(max_length=10, null=True)
+    preferred_date = models.DateField(null=True)
     preferred_time = models.TimeField(null=True)
     
     # PSYCH ASSESSMENT PAGE
