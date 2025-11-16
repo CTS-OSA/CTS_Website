@@ -26,8 +26,6 @@ class PARDSubmitView(APIView):
             response_data = {
                 "submission": {
                     "id": submission.id,
-                    # "status": submission.status,
-                    # "form_type": submission.form_type,
                 },
                 "student_profile": {
                     "student_number": student.student_number,
@@ -81,20 +79,12 @@ class PARDSubmitView(APIView):
             # Get the submission
             submission = get_object_or_404(Submission, id=submission_id)
 
-            # student_id = request.data.get('student_number')
-            # submission = Submission.objects.select_related('student').get(
-            #                 student__student_number=student_id,
-            #                 form_type="Basic Information Sheet"
-            #             )
-
             # Verify the submission belongs to the authenticated user
             if submission.student.user != request.user:
                 return Response(
                     {
                         "error": (
-                            f"You don't have permission to submit this form. "
-                            f"Current user: {request.user}, "
-                            f"Allowed user: {submission.student.user}."
+                            "You don't have permission to submit this form."
                         )
                     },
                     status=status.HTTP_403_FORBIDDEN

@@ -204,6 +204,8 @@ const PARD = () => {
             date_diagnosed: {
                 required: true,
                 message: "This field is required.",
+                lesserThan: new Date(),
+                lesserThanMessage: "Please enter a valid date."
             },
             diagnosed_by: {
                 required: true,
@@ -242,6 +244,13 @@ const PARD = () => {
                 if (inputDate <= currentDate) {
                     newErrors[fieldKey] = rule.greaterThanMessage;
                 }
+            } else if (rule.lesserThan && value){
+                const inputDate = new Date(value);
+                const currentDate = new Date(rule.lesserThan);
+                if (inputDate >= currentDate) {
+                    newErrors[fieldKey] = rule.lesserThanMessage;
+                }
+                
             } else if (rule.minTime && rule.maxTime && value) {
                 const [h, m] = value.split(":").map(Number);
                 const totalMinutes = h * 60 + m;
