@@ -39,7 +39,7 @@ FORM_SECTIONS_MAP = {
 
 
 OPTIONAL_SECTIONS = {
-    'student-cumulative-information-file': ['siblings', 'scholarship', 'counseling_info'],
+    'student-cumulative-information-file': ['siblings', 'scholarship', 'counseling_info', 'guidance_notes'],
     'basic-information-sheet': []
 }
 
