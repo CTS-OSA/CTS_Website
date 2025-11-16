@@ -32,9 +32,10 @@ urlpatterns = [
     path('edit/bis/<str:student_id>/', BISEditView.as_view(), name='bis-edit'),
     path('edit/scif/<str:student_id>/', SCIFEditView.as_view(), name='scif-edit'),
     
-    # PARD SUBMIT
+    # PARD 
     path('pard/submit/<int:submission_id>/', PARDSubmitView.as_view(), name='pard-submit'),
     path('pard/student-data/<str:student_number>/', PARDSubmitView.as_view(), name='pard-student-data'),
+    path('edit/pard/<str:student_number>', PARDSubmitView.as_view(), name='pard-edit'),
     
     path('display/', include(router.urls)), 
 ]
