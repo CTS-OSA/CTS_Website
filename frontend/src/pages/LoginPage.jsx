@@ -39,7 +39,7 @@ const LoginPage = () => {
         setIsError(false);
         setLoading(false);
         setTimeout(() => {
-          navigate(role === "admin" ? "/admin" : "/student");
+          navigate(role === "admin" ? "/admin" : "");
         }, 500);
       } else {
         setShowMessageModal(true);
@@ -76,7 +76,7 @@ const LoginPage = () => {
               </section>
 
               <section className="login__right fade-in-up">
-                <h2 className="login__header">Login as {roleLabel}</h2>
+                <h2 className="login__header">Login as Admin</h2>
                 <form className="login__form" onSubmit={handleSubmit}>
                   <div className="mt-3">
                     <FormField

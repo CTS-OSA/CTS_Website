@@ -1,5 +1,5 @@
-import React, { useState, useContext } from "react";
-import { useApiRequest } from "../../context/ApiRequestContext";
+import React, { useState, useContext, useEffect } from "react";
+
 import { AuthContext } from "../../context/AuthContext";
 import DefaultLayout from "../../components/DefaultLayout";
 import StepIndicator from "../../components/StepIndicator";
@@ -15,23 +15,83 @@ import PARDAuthorization from "./PARDAuthorization";
 import PARDSubmissionConfirmation from "./PARDSubmissionConfirmation";
 
 import Button from "../../components/UIButton";
-import ToastMessage from "../../components/ToastMessage";
 import ConfirmDialog from "../../components/ConfirmDialog";
-import ModalMessage from "../../components/ModalMessage";
+
+import { useFormApi } from "./PARDApi";
 import { useNavigate } from "react-router-dom";
 
 const PARD = () => {
-    const { request } = useApiRequest();
     const { profileData } = useContext(AuthContext);
-    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const navigate = useNavigate();
+    const {
+        getStudentData,
+        submitForm,
+    } = useFormApi();
     const [step, setStep] = useState(1);
     const [submissionId, setSubmissionId] = useState(null);
+    const [studentNumber, setStudentNumber] = useState(profileData?.student_number);
     
     const [loading, setLoading] = useState(false);
     const [readOnly, setReadOnly] = useState(false);
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     
+    // Fetch student data on component mount
+    useEffect(() => {
+        const fetchStudentData = async () => {
+            if (studentNumber) {
+                try {
+
+                    // PROBLEM: CANNOT RETURN SUBMISSION ID
+                    const data = await getStudentData(studentNumber);
+
+                    if (data && data.student_profile) {
+                        // Set submission ID from the response
+                        
+                        if (data.submission && data.submission.id) {
+                            setSubmissionId(data.submission.id);
+                            if (data.submission.status === "submitted") {
+                                setReadOnly(true);
+                            }
+                        }
+                        
+                        const student = data.student_profile;
+                        const permanentAddr = data.permanent_address;
+                        const upAddr = data.address_while_in_up;
+                        const student_email = data.user;
+                        
+                        setFormData(prev => ({
+                            ...prev,
+                            pard_demographic_profile: {
+                                student_last_name: student?.last_name || "",
+                                student_first_name: student?.first_name || "",
+                                student_middle_name: student?.middle_name || "",
+                                student_nickname: student?.nickname || "",
+                                student_year: student?.current_year_level || "",
+                                student_degree_program: student?.degree_program || "",
+                            },
+                            pard_contact_info: {
+                                ...prev.pard_contact_info,
+                                student_contact_number: student?.contact_number || "",
+                                hometown_address: permanentAddr ? `${permanentAddr.address_line_1}, ${permanentAddr.address_line_2}, ${permanentAddr.barangay}, ${permanentAddr.city_municipality}, ${permanentAddr.province}, ${permanentAddr.region}` : "",
+                                current_address: upAddr ? `${upAddr.address_line_1}, ${upAddr.address_line_2}, ${upAddr.barangay}, ${upAddr.city_municipality}, ${upAddr.province}, ${upAddr.region}` : "",
+                                student_email: student_email?.email || ""
+                            }
+                        }));
+                    } else {
+                        setError("Failed to create or fetch the form.");
+                    }
+                } catch (error) {
+                    console.error('Error fetching student data:', error);
+                } finally {
+                    setLoading(false);
+                }
+            }
+        };
+        
+        if (studentNumber) fetchStudentData();
+    }, [studentNumber]);
+
     const [formData, setFormData] = useState({
         pard_demographic_profile: {
             student_last_name: "",
@@ -51,7 +111,7 @@ const PARD = () => {
         },
         pard_psych_assessment: {
             date_started: "",
-            is_diagnosed: "",
+            is_currently_on_medication: "",
             symptoms_observed: "",
             communication_platform: "",
             date_diagnosed: "",
@@ -61,6 +121,8 @@ const PARD = () => {
         authorization_agreed: false,
       });
 
+
+    // Set of rules for all input fields
     const rules = {
         pard_demographic_profile: {
             student_last_name: { 
@@ -112,9 +174,14 @@ const PARD = () => {
             preferred_date: {
                 required: true,
                 message: "This field is required.",
+                greaterThan: new Date(),
+                greaterThanMessage: "Please enter a valid date."
             },
             preferred_time: {
                 required: true,
+                minTime: "8:00",
+                maxTime: "16:00",
+                timeRangeMessage: "Please enter a time within the office hours.",
                 message: "This field is required.",
             },
         },
@@ -123,9 +190,9 @@ const PARD = () => {
                 required: true,
                 message: "This field is required.",
             },
-            is_diagnosed: {
+            is_currently_on_medication: {
                 required: true,
-                message: "This field is required.",
+                message: "This field is required."
             },
             symptoms_observed: {
                 required: true,
@@ -138,6 +205,8 @@ const PARD = () => {
             date_diagnosed: {
                 required: true,
                 message: "This field is required.",
+                lesserThan: new Date(),
+                lesserThanMessage: "Please enter a valid date."
             },
             diagnosed_by: {
                 required: true,
@@ -150,9 +219,9 @@ const PARD = () => {
 
         // NOTE: UNCOMMENT THIS TO VIEW VALIDATION
         const stepMap = {
-            // 3: 'pard_demographic_profile',
-            // 4: 'pard_contact_info',
-            // 5: 'pard_psych_assessment'
+            3: 'pard_demographic_profile',
+            4: 'pard_contact_info',
+            5: 'pard_psych_assessment'
         };
         
         const sectionKey = stepMap[stepNumber];
@@ -166,10 +235,36 @@ const PARD = () => {
             const rule = sectionRules[fieldKey];
             const value = sectionData[fieldKey];
             
-            if (rule.required && (!value || value.trim() === '')) {
+            if (rule.required && (!value)) {
                 newErrors[fieldKey] = rule.message;
             } else if (rule.pattern && value && !rule.pattern.test(value)) {
-                newErrors[fieldKey] = rule.patternMessage || 'Invalid format.';
+                newErrors[fieldKey] = rule.patternMessage;
+            } else if (rule.greaterThan && value) {
+                const inputDate = new Date(value);
+                const currentDate = new Date(rule.greaterThan);
+                if (inputDate <= currentDate) {
+                    newErrors[fieldKey] = rule.greaterThanMessage;
+                }
+            } else if (rule.lesserThan && value){
+                const inputDate = new Date(value);
+                const currentDate = new Date(rule.lesserThan);
+                if (inputDate >= currentDate) {
+                    newErrors[fieldKey] = rule.lesserThanMessage;
+                }
+                
+            } else if (rule.minTime && rule.maxTime && value) {
+                const [h, m] = value.split(":").map(Number);
+                const totalMinutes = h * 60 + m;
+
+                const [minH, minM] = rule.minTime.split(":").map(Number);
+                const [maxH, maxM] = rule.maxTime.split(":").map(Number);
+
+                const minMinutes = minH * 60 + minM;
+                const maxMinutes = maxH * 60 + maxM;
+
+                if (totalMinutes < minMinutes || totalMinutes > maxMinutes) {
+                newErrors[fieldKey] = rule.timeRangeMessage || "Time is outside allowed range.";
+                }
             }
         });
         
@@ -178,28 +273,7 @@ const PARD = () => {
 
     const [error, setError] = useState(null);
     const [errors, setErrors] = useState({});
-    
-    const handleSaveDraft = async () => {
-        if (!submissionId) {
-            alert("Submission ID is missing. Try reloading the page.");
-        return;
-        }
 
-        setLoading(true);
-        try {
-        const response = await saveDraft(submissionId, studentNumber, formData);
-
-        if (response?.ok) {
-            setShowDraftSuccessToast(true);
-        } else {
-            alert("Error saving draft.");
-        }
-        } catch (err) {
-        alert("Failed to save draft.");
-        } finally {
-        setLoading(false);
-        }
-    };
 
     const handleNextStep = () => {
 
@@ -250,10 +324,34 @@ const PARD = () => {
     const handleSubmit = async () => {
         setLoading(true);
 
-        // VALIDATION & HANDLE SUBMISSION TO BACKEND HERE
+        try {
+            const result = await submitForm(
+                submissionId,
+                formData
+            );
 
-        setShowConfirmation(true);
-  };
+            if (result.success) {
+                setShowConfirmation(true);
+                setTimeout(() => {
+                    navigate("/student");
+                }, 3000);
+            } else {
+                if (result.status === 400 && result.data.errors) {
+                    setError("Validation errors: " + JSON.stringify(result.data.errors, null, 2));
+                } else if (result.data.error) {
+                    setError(`Error: ${result.data.error}`);
+                } else if (result.data.message) {
+                    setError(`Error: ${result.data.message}`);
+                } else {
+                    setError("Unknown error occurred.");
+                }
+            }
+        } catch (err) {
+            setError("Failed to submit form.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const steps = [
         { label: "Introduction" },
@@ -267,7 +365,7 @@ const PARD = () => {
         <>
             <DefaultLayout variant="student">
                 <div className="absolute w-full left-0 -z-1"></div>
-                {/* Mainfrom */}
+                {/* Main form */}
                 <div className="relative flex flex-col min-h-screen">
                     <div className="mx-auto w-3/4 flex flex-col items-center">
                     </div>
@@ -303,7 +401,7 @@ const PARD = () => {
                                 {!showConfirmation && (
                                     <div className="flex justify-end mt-auto">
                                         <div className="main-form-buttons">
-                                        {/* Step 1: 'Save Draft' and 'Next' button */}
+                                        {/* Step 1: 'Next' button */}
                                         {step === 1 && !loading && (
                                         <>
                                             <Button variant="primary" onClick={handleNextStep}>
@@ -322,16 +420,6 @@ const PARD = () => {
                                                     >
                                                     Back
                                                     </Button>
-                                                    {!readOnly && (
-                                                    <Button
-                                                        variant="tertiary"
-                                                        onClick={handleSaveDraft}
-                                                        disabled={loading}
-                                                        style={{ marginLeft: "0.5rem" }}
-                                                    >
-                                                        {loading ? "Saving Draft..." : "Save Draft"}
-                                                    </Button>
-                                                    )}
                                                     <Button
                                                     variant="primary"
                                                     onClick={handleNextStep}
@@ -343,7 +431,7 @@ const PARD = () => {
                                             </>
                                         )}
 
-                                            {/* Step 6: 'Back', 'Save Draft', 'Preview', and 'Submit' buttons */}
+                                            {/* Step 6: 'Back', 'Preview', and 'Submit' buttons */}
                                             {step === 6 && !loading && (
                                             <>
                                                 <Button
@@ -352,16 +440,6 @@ const PARD = () => {
                                                 >
                                                 Back
                                                 </Button>
-                                                {!readOnly && (
-                                                <Button
-                                                    variant="tertiary"
-                                                    onClick={handleSaveDraft}
-                                                    disabled={loading}
-                                                    style={{ marginLeft: "0.5rem" }}
-                                                >
-                                                    {loading ? "Saving Draft..." : "Save Draft"}
-                                                </Button>
-                                                )}
 
                                                 {!readOnly && (
                                                 <Button

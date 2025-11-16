@@ -69,7 +69,13 @@ class SupportChoices(models.TextChoices):
     COMBINATION = 'combination', 'Combination'
     OTHERS = 'others', 'Others'
     GOV_FUNDED = 'gov_funded', 'Government Funded'
-    
+
+class PARDStatus(models.TextChoices):
+    READ = 'read', 'Read'
+    UNREAD = 'unread', 'Unread'
+    PENDING = 'pending', 'Pending'
+    COMPLETED = 'completed', 'Completed'
+
 DEGREE_TO_COLLEGE = {
     DegreeProgramEnum.BS_ARCHITECTURE: [CollegeEnum.CHSS],
     DegreeProgramEnum.MA_URBAN_PLANNING: [CollegeEnum.CHSS, CollegeEnum.GRADUATE_PROGRAM],

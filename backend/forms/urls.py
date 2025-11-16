@@ -31,7 +31,10 @@ urlpatterns = [
     path('admin/student-forms/<str:student_id>/<str:form_type>/', AdminStudentFormView.as_view(), name='admin-student-form-view'),
     path('edit/bis/<str:student_id>/', BISEditView.as_view(), name='bis-edit'),
     path('edit/scif/<str:student_id>/', SCIFEditView.as_view(), name='scif-edit'),
+    
+    # PARD SUBMIT
     path('pard/submit/<int:submission_id>/', PARDSubmitView.as_view(), name='pard-submit'),
+    path('pard/student-data/<str:student_number>/', PARDSubmitView.as_view(), name='pard-student-data'),
     
     path('display/', include(router.urls)), 
 ]

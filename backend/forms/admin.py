@@ -128,3 +128,9 @@ class PrivacyConsentAdmin(admin.ModelAdmin):
     search_fields = ('student__first_name', 'student__last_name')
 
 admin.site.register(PrivacyConsent, PrivacyConsentAdmin)
+
+@admin.register(PARD)
+class PARDAdmin(admin.ModelAdmin):
+    list_display = ('student_number', 'submission_id', 'preferred_date', 'preferred_time', 'is_currently_on_medication')
+    search_fields = ('student_number__student_number', 'student_number__first_name', 'student_number__last_name')
+    list_filter = ('is_currently_on_medication', 'date_started')
