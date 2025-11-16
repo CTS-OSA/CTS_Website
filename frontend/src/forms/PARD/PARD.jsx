@@ -19,7 +19,6 @@ import ConfirmDialog from "../../components/ConfirmDialog";
 
 import { useFormApi } from "./PARDApi";
 import { useNavigate } from "react-router-dom";
-import { DataArray } from "@mui/icons-material";
 
 const PARD = () => {
     const { profileData } = useContext(AuthContext);
@@ -122,6 +121,8 @@ const PARD = () => {
         authorization_agreed: false,
       });
 
+
+    // Set of rules for all input fields
     const rules = {
         pard_demographic_profile: {
             student_last_name: { 
@@ -322,12 +323,10 @@ const PARD = () => {
 
     const handleSubmit = async () => {
         setLoading(true);
-        console.log("HandleSubmit - submissionId:", submissionId);
 
         try {
             const result = await submitForm(
                 submissionId,
-                studentNumber,
                 formData
             );
 

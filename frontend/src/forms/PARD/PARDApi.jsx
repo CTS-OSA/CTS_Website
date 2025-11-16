@@ -1,3 +1,4 @@
+import { data } from "react-router-dom";
 import { useApiRequest } from "../../context/ApiRequestContext";
 const BASE_URL = "http://localhost:8000/api/forms/pard";
 
@@ -32,19 +33,18 @@ export const useFormApi = () => {
     }
   };
 
-  const submitForm = async (submissionId, studentNumber, formData) => {
+  const submitForm = async (submissionId, formData) => {
     try {
       const response = await request(
         `${BASE_URL}/submit/${submissionId}/`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData)
         }
       );
-      console.log("Response", response);
       return { success: true, data: response };
     } catch (error) {
-      console.error("Error finalizing submission:", error);
       return {
         success: false,
         status: error.status || 500,
