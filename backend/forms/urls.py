@@ -29,6 +29,8 @@ urlpatterns = [
     path('get/enums/', EnumChoicesView.as_view(), name='enum-choices'),
     path('admin/student-forms/<str:student_id>/', AdminStudentFormsView.as_view()),
     path('admin/student-forms/<str:student_id>/<str:form_type>/', AdminStudentFormView.as_view(), name='admin-student-form-view'),
+    
+    # ADMIN SIDE
     path('edit/bis/<str:student_id>/', BISEditView.as_view(), name='bis-edit'),
     path('edit/scif/<str:student_id>/', SCIFEditView.as_view(), name='scif-edit'),
     
