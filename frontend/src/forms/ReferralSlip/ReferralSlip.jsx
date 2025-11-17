@@ -2,7 +2,7 @@ import React, { useContext, useState } from "react";
 import { useApiRequest } from "../../context/ApiRequestContext";
 import { AuthContext } from "../../context/AuthContext";
 
-// Sections
+// Sections to be updated
 import RSStudentDetails from "./RSStudentDetails";
 import RSRefferal from "./RSReferral";
 import RSReferrer from "./RSReferrer";
