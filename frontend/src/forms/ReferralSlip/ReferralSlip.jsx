@@ -1,25 +1,13 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState } from "react";
 import { useApiRequest } from "../../context/ApiRequestContext";
 import { AuthContext } from "../../context/AuthContext";
 
-// Add Referral Sections Here
+// Sections
 import RSStudentDetails from "./RSStudentDetails";
 import RSRefferal from "./RSReferral";
 import RSReferrer from "./RSReferrer";
-// import BISPresentScholastic from "./BISPresentScholastic";
-// import BISCertify from "./BISCertify";
-// import BISPreview from "./BISPreview";
-
 // Add Referral Slip API here
 // import { useFormApi } from "./BISApi";
-
-// Add Referral Slip Validation here
-// import {
-//   validatePreferences,
-//   validateScholasticStatus,
-//   validateSocioEconomicStatus,
-//   validateSupport,
-// } from "../../utils/BISValidation";
 import Button from "../../components/UIButton";
 import ToastMessage from "../../components/ToastMessage";
 import ModalMessage from "../../components/ModalMessage";
@@ -33,7 +21,20 @@ const ReferralSlip = () => {
   const { request } = useApiRequest();
   const { profileData } = useContext(AuthContext);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [errors, setErrors] = useState(null);
+  const [step, setStep] = useState(1);
+  const [submissionId, setSubmissionId] = useState(null);
+  const [studentNumber, setStudentNumber] = useState(
+    profileData?.student_number
+  );
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [readOnly, setReadOnly] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [showDraftSuccessToast, setShowDraftSuccessToast] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
   // Change to Referral Slip APIs
@@ -43,10 +44,6 @@ const ReferralSlip = () => {
   //     saveDraft,
   //     finalizeSubmission,
   //   } = useFormApi();
-  const [showSuccessToast, setShowSuccessToast] = useState(false);
-  const [showDraftSuccessToast, setShowDraftSuccessToast] = useState(false);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [formData, setFormData] = useState({
     refer_student_details: {
       refer_student_last_name: "",
@@ -69,130 +66,111 @@ const ReferralSlip = () => {
     },
   });
 
-  const [step, setStep] = useState(1);
-  const [submissionId, setSubmissionId] = useState(null);
-  const [studentNumber, setStudentNumber] = useState(
-    profileData?.student_number
-  );
+  const rules = {
+    refer_student_details: {
+      refer_student_last_name: {
+        required: true,
+        message: "This field is required.",
+      },
+      refer_student_first_name: {
+        required: true,
+        message: "This field is required.",
+      },
+      refer_student_year: {
+        required: true,
+        message: "This field is required.",
+      },
+      refer_student_degree_program: {
+        required: true,
+        message: "This field is required.",
+      },
+      refer_student_gender: {
+        required: true,
+        message: "This field is required.",
+      },
+      refer_student_contact_number: {
+        required: true,
+        message: "This field is required.",
+        pattern: /^(\+63|0)\d{9,10}$/,
+        patternMessage: "Please enter a valid phone number.",
+      },
+    },
+    referral_details: {
+      reason_for_referral: {
+        required: true,
+        message: "This field is required.",
+      },
+      initial_actions_taken: {
+        required: true,
+        message: "This field is required.",
+      },
+    },
+    referrer_details: {
+      referrer_last_name: {
+        required: true,
+        message: "This field is required.",
+      },
+      referrer_first_name: {
+        required: true,
+        message: "This field is required.",
+      },
+      referrer_department: {
+        required: true,
+        message: "This field is required.",
+      },
+      referrer_email: {
+        required: true,
+        message: "This field is required.",
+        pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        patternMessage: "Please enter a valid email address.",
+      },
+      referrer_contact_number: {
+        required: true,
+        message: "This field is required.",
+        pattern: /^(\+63|0)\d{9,10}$/,
+        patternMessage: "Please enter a valid phone number.",
+      },
+    },
+  };
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [readOnly, setReadOnly] = useState(false);
+  const validateStep = (stepNumber) => {
+    // NOTE: UNCOMMENT THIS TO VIEW VALIDATION
+    const stepMap = {
+      1: "refer_student_details",
+      2: "referral_details",
+      3: "referrer_details",
+    };
 
-  // Change to Referral Slip section validations
-  //   const validateStep = (step, formData) => {
-  //     switch (step) {
-  //       case 2:
-  //         const errors = {
-  //           ...validateSocioEconomicStatus(formData),
-  //           ...validateSupport(formData),
-  //         };
-  //         return errors;
-  //       case 3:
-  //         return validatePreferences(formData);
-  //       case 4:
-  //         return validateScholasticStatus(formData);
-  //       case 5:
-  //         if (!formData.privacy_consent.has_consented) {
-  //           setShowPrivacyModal(true);
-  //           return false;
-  //         }
-  //         return true;
-  //       default:
-  //         return true;
-  //     }
-  //   };
+    const sectionKey = stepMap[stepNumber];
+    if (!sectionKey) return {};
 
-  //   useEffect(() => {
-  //     if (profileData?.is_complete !== true) {
-  //       navigate("/myprofile");
-  //     }
-  //   }, [profileData, navigate]);
+    const sectionRules = rules[sectionKey];
+    const sectionData = formData[sectionKey];
+    const newErrors = {};
 
-  // Change to Referral Slip Content Management Logic from its own API
-  //   useEffect(() => {
-  //     const fetchFormData = async () => {
-  //       setLoading(true);
-  //       try {
-  //         let response = await getFormBundle(studentNumber);
+    Object.keys(sectionRules).forEach((fieldKey) => {
+      const rule = sectionRules[fieldKey];
+      const value = sectionData[fieldKey];
 
-  //         if (!response) {
-  //           response = await createDraftSubmission(studentNumber);
-  //           response = await getFormBundle(studentNumber);
-  //         }
-
-  //         if (response) {
-  //           setFormData({
-  //             socio_economic_status: response.socio_economic_status || {},
-  //             scholastic_status: response.scholastic_status || {},
-  //             preferences: response.preferences || {},
-  //             student_support: response.student_support || {},
-  //             privacy_consent: response.privacy_consent || false,
-  //           });
-  //           setSubmissionId(response.submission.id);
-
-  //           if (response.submission.status === "submitted") {
-  //             setReadOnly(true);
-  //           }
-  //         } else {
-  //           setError("Failed to create or fetch the form.");
-  //         }
-  //       } catch (err) {
-  //         setError("Error fetching or creating form.");
-  //       } finally {
-  //         setLoading(false);
-  //       }
-  //     };
-
-  //     if (studentNumber) fetchFormData();
-  //   }, [studentNumber]);
-
-  const handleSaveDraft = async () => {
-    if (!submissionId) {
-      alert("Submission ID is missing. Try reloading the page.");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await saveDraft(submissionId, studentNumber, formData);
-
-      if (response?.ok) {
-        setShowDraftSuccessToast(true);
-      } else {
-        alert("Error saving draft.");
+      if (rule.required && (!value || value.trim() === "")) {
+        newErrors[fieldKey] = rule.message;
+      } else if (rule.pattern && value && !rule.pattern.test(value)) {
+        newErrors[fieldKey] = rule.patternMessage || "Invalid format.";
       }
-    } catch (err) {
-      alert("Failed to save draft.");
-    } finally {
-      setLoading(false);
-    }
+    });
+
+    return newErrors;
   };
 
   const handleNextStep = () => {
-    // Uncomment when validation logic is available
-    // const validationErrors = validateStep(step, formData);
+    const stepErrors = validateStep(step);
+    if (Object.keys(stepErrors).length > 0) {
+      setErrors(stepErrors);
+      return;
+    }
 
-    // if (
-    //   validationErrors &&
-    //   typeof validationErrors === "object" &&
-    //   !Array.isArray(validationErrors) &&
-    //   Object.keys(validationErrors).length > 0
-    // ) {
-    //   setErrors(validationErrors);
-    //   return;
-    // }
-
-    // if (Array.isArray(validationErrors) && validationErrors.length > 0) {
-    //   const errorObj = {};
-    //   validationErrors.forEach((err, index) => {
-    //     errorObj[`error_${index}`] = err;
-    //   });
-    //   setErrors(errorObj);
-    //   return;
-    // }
-
-    // setErrors(null);
+    setError(null);
+    setErrors({});
     setStep((prev) => prev + 1);
   };
 
@@ -273,12 +251,10 @@ const ReferralSlip = () => {
               <h1 className="left-1/2 text-center font-bold text-[2rem] text-white">
                 Counseling Referral Slip
               </h1>
-              <p className="text-center text-white my-5 text-base w-full max-w-2xl mx-auto whitespace-normal">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-                eiusmod tempor incididunt ut labore et dolore magna aliqua.
-              </p>
+              <p className="text-center text-white my-5 text-base w-full max-w-2xl mx-auto whitespace-normal">  Refers a student for counseling services to address personal, academic, or behavioral concerns</p>
             </div>
 
+            {/* Main Form - Steps and Fields */}
             <div className="bg-white rounded-[15px] p-8 w-full mx-auto mb-[70px] shadow-md box-border">
               <div className="flex lg:flex-row flex-col w-full items-stretch">
                 <div className="lg:w-1/3 lg:bg-upmaroon rounded-lg p-4 pt-10">
@@ -286,128 +262,46 @@ const ReferralSlip = () => {
                 </div>
                 <div className="main-form p-4 w-full flex flex-col">
                   <div className="flex-1">
-                    {step === 1 && <RSStudentDetails />}
-                    {step === 2 && (
-                      <RSRefferal
-                      //   data={{
-                      //     socio_economic_status: formData.socio_economic_status,
-                      //     student_support: formData.student_support,
-                      //   }}
-                      //   updateData={(newData) =>
-                      //     setFormData((prev) => ({
-                      //       ...prev,
-                      //       socio_economic_status: {
-                      //         ...prev.socio_economic_status,
-                      //         ...newData.socio_economic_status,
-                      //       },
-                      //       student_support: {
-                      //         ...prev.student_support,
-                      //         ...newData.student_support,
-                      //       },
-                      //     }))
-                      //   }
-                      //   readOnly={readOnly}
-                      //   errors={errors}
-                      //   setErrors={setErrors}
-                      />
+                    {!showConfirmation ? (
+                      <>
+                        {step === 1 && (<RSStudentDetails formData={formData} setFormData={setFormData} step={step} errors={errors} setErrors={setErrors} />)}
+                        {step === 2 && (<RSRefferal  formData={formData}  setFormData={setFormData}  step={step}  errors={errors}  setErrors={setErrors} />)}
+                        {step === 3 && (<RSReferrer formData={formData} setFormData={setFormData} step={step} errors={errors} setErrors={setErrors}/> )}
+                        {step === 4 && <RSSubmit />}
+                      </>
+                    ) : (
+                      <ReferralSubssionConfirmation />
                     )}
-                    {step === 3 && (
-                      <RSReferrer
-                      //   data={formData.preferences}
-                      //   updateData={(newData) =>
-                      //     setFormData((prev) => ({
-                      //       ...prev,
-                      //       preferences: { ...prev.preferences, ...newData },
-                      //     }))
-                      //   }
-                      //   readOnly={readOnly}
-                      //   errors={errors}
-                      //   setErrors={setErrors}
-                      />
-                    )}
-                    {step === 4 && <RSSubmit />}
-
                     {/* Error Message */}
-                    {error && <div className="text-[#D32F2F] text-xs ml-4 mt-4 italic">{error}</div>}
+                    {error && (
+                      <div className="text-[#D32F2F] text-xs ml-4 mt-4 italic">
+                        {error}
+                      </div>
+                    )}
                   </div>
 
                   {/* Buttons Section */}
                   <div className="flex justify-end mt-auto">
                     <div className="main-form-buttons">
-                      {/* Step 1: 'Save Draft' and 'Next' button */}
+                      {/* Step 1: 'Next' button */}
                       {step === 1 && !loading && (
                         <>
-                          {!readOnly && (
-                            <Button
-                              variant="tertiary"
-                              onClick={handleSaveDraft}
-                              disabled={loading}
-                              style={{ marginLeft: "0.5rem" }}
-                            >
-                              {loading ? "Saving Draft..." : "Save Draft"}
-                            </Button>
-                          )}
-                          <Button variant="primary" onClick={handleNextStep}>
-                            Next
-                          </Button>
+                          <Button variant="primary" onClick={handleNextStep}> Next </Button>
                         </>
                       )}
 
                       {step >= 2 && step <= 3 && !loading && (
                         <>
-                          <Button
-                            variant="secondary"
-                            onClick={handlePreviousStep}
-                          >
-                            Back
-                          </Button>
-                          {!readOnly && (
-                            <Button
-                              variant="tertiary"
-                              onClick={handleSaveDraft}
-                              disabled={loading}
-                              style={{ marginLeft: "0.5rem" }}
-                            >
-                              {loading ? "Saving Draft..." : "Save Draft"}
-                            </Button>
-                          )}
-                          <Button
-                            variant="primary"
-                            onClick={handleNextStep}
-                            style={{ marginLeft: "0.5rem" }}
-                          >
-                            Next
-                          </Button>
+                          <Button variant="secondary" onClick={handlePreviousStep}> Back </Button>
+                          <Button variant="primary" onClick={handleNextStep} style={{ marginLeft: "0.5rem" }}> Next </Button>
                         </>
                       )}
 
                       {/* Step 4: 'Back', 'Save Draft', 'Preview', and 'Submit' buttons */}
                       {step === 4 && !loading && (
                         <>
-                          <Button
-                            variant="secondary"
-                            onClick={handlePreviousStep}
-                          >
-                            Back
-                          </Button>
-                          {!readOnly && (
-                            <Button
-                              variant="tertiary"
-                              onClick={handleSaveDraft}
-                              disabled={loading}
-                              style={{ marginLeft: "0.5rem" }}
-                            >
-                              {loading ? "Saving Draft..." : "Save Draft"}
-                            </Button>
-                          )}
-
-                          <Button
-                            variant="tertiary"
-                            onClick={handlePreview}
-                            style={{ marginLeft: "0.5rem" }}
-                          >
-                            Preview
-                          </Button>
+                          <Button variant="secondary" onClick={handlePreviousStep}> Back </Button>
+                          <Button variant="tertiary" onClick={handlePreview} style={{ marginLeft: "0.5rem" }} > Preview </Button>
 
                           {!readOnly && (
                             <Button

@@ -257,7 +257,7 @@ const StudentSideInfo = ({
   const handleUpdate = async () => {
     const mergedData = mergeProfileAndFormData(profileData, formData);
     
-    if (errors.photo || !photoFile) {
+    if (errors.photo || !profileData.photo) {
       setToast( "Please upload a valid profile photo before saving.");
       setValidationErrors((prev) => ({
         ...prev,
@@ -288,7 +288,7 @@ const StudentSideInfo = ({
       setToast("Profile updated successfully!");
       setValidationErrors({});
     } else if (confirmAction === "cancel") {
-      setFormData(profileData); // Reset changes
+      setFormData(profileData);
       setToast("Changes were discarded.");
       setValidationErrors({});
     }
@@ -395,11 +395,6 @@ const StudentSideInfo = ({
               </div>
             )}
           </div>
-          {errors?.photo && (
-            <p className="text-red-500 text-sm font-medium mt-2 text-center italic">
-              {errors.photo}
-            </p>
-          )}
           {errors?.photo && (
             <p className="text-red-500 text-sm font-medium mt-2 text-center italic">
               {errors.photo}

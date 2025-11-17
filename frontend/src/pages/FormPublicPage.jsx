@@ -26,7 +26,7 @@ export const FormPublicPage = () => {
       const width = window.innerWidth;
       if (width < 640) setCardsPerRow(1);
       else if (width < 1024) setCardsPerRow(2);
-      else if (width < 1440) setCardsPerRow(3);
+      else if (width < 1330) setCardsPerRow(3);
       else setCardsPerRow(4);
     };
 
@@ -46,8 +46,8 @@ export const FormPublicPage = () => {
   };
 
   const handleCardClick = (form) => {
-    if (form === "referral") {
-      setToastMessage("Counseling Referral Slip is coming soon!");
+    if (form === "referral-slip") {
+      navigate(`/forms/${form}`);
       return;
     }
 
