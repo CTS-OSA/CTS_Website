@@ -166,7 +166,7 @@ const FormField = ({
         <p className="mt-2 text-xs text-gray-500">{helperText}</p>
       )}
       {isError && (
-        <p className="mt-2 text-xs text-red-600" id={`${id}_help`}>
+        <p className="mt-2 text-[#D32F2F] text-xs italic" id={`${id}_help`}>
           {error}
         </p>
       )}

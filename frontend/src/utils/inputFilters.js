@@ -26,7 +26,7 @@ export const filterNumbersOnly = (value) => {
  * @returns {string} - The filtered string.
  */
 export const filterGeneralText = (value) => {
-  return value.replace(/[^a-zA-Z0-9\s.,\-/'"?()&:;!]/g, "");
+  return value.replace(/[^a-zA-Z0-9\s.,\-/'"?()&:;!#%*]/g, "");
 };
 
 export const filterDecimalNumbers = value => {
