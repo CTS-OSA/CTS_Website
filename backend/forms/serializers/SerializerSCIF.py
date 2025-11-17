@@ -111,13 +111,90 @@ class SiblingSerializer(serializers.ModelSerializer):
         return super().to_internal_value(data)
 
 class ParentSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True)
+    is_deceased = serializers.BooleanField(required=False, default=False)
+    is_none = serializers.BooleanField(required=False, default=False)
+    first_name = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    last_name = serializers.CharField(allow_null=True, allow_blank=True, required=False)
     age = serializers.IntegerField(allow_null=True, required=False)
+    contact_number = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    highest_educational_attainment = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    job_occupation = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    company_agency = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    company_address = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    
 
     def to_internal_value(self, data):
-        if data.get('age') == '':
-            data['age'] = None
+        # Handle empty strings -> None for all nullable fields
+        nullable_fields = [
+            'first_name', 'last_name','age', 'contact_number', 'highest_educational_attainment',
+            'job_occupation', 'company_agency', 'company_address'
+        ]
+        
+        for field in nullable_fields:
+            if data.get(field) == '' or data.get(field) is None:
+                data[field] = None
+
+        # Handle is_deceased as string
+        if 'is_deceased' in data:
+            if isinstance(data['is_deceased'], str):
+                data['is_deceased'] = data['is_deceased'].lower() in ['true', 'yes', '1']
+
+        # Handle is_none as string
+        if 'is_none' in data:
+            if isinstance(data['is_none'], str):
+                data['is_none'] = data['is_none'].lower() in ['true', 'yes', '1']
     
         return super().to_internal_value(data)
+    
+    def validate(self, data):
+        """
+        Custom validation based on is_deceased and is_none flags
+        """
+        is_deceased = data.get('is_deceased', False)
+        is_none = data.get('is_none', False)
+        
+        # If "None" is checked, nothing is required, set all to null
+        if is_none:
+            # Clear all fields when none is selected
+            data['first_name'] = None
+            data['last_name'] = None
+            data['age'] = None
+            data['contact_number'] = None
+            data['highest_educational_attainment'] = None
+            data['job_occupation'] = None
+            data['company_agency'] = None
+            data['company_address'] = None
+            return data
+        
+        # If "Deceased" is checked, only first_name and last_name are required
+        if is_deceased:
+            if not data.get('first_name'):
+                raise serializers.ValidationError({'first_name': 'First name is required for deceased parent.'})
+            if not data.get('last_name'):
+                raise serializers.ValidationError({'last_name': 'Last name is required for deceased parent.'})
+            
+            # Clear other fields when deceased is selected
+            data['age'] = None
+            data['contact_number'] = None
+            data['highest_educational_attainment'] = None
+            data['job_occupation'] = None
+            data['company_agency'] = None
+            data['company_address'] = None
+            return data
+        
+        # If neither deceased nor none, validate all required fields
+        required_fields = ['first_name', 'last_name', 'age', 'contact_number']
+        errors = {}
+        
+        for field in required_fields:
+            if not data.get(field):
+                errors[field] = f'{field.replace("_", " ").title()} is required.'
+        
+        if errors:
+            raise serializers.ValidationError(errors)
+        
+        return data
             
     class Meta:
         model = Parent
@@ -134,6 +211,7 @@ class FamilyDataSerializer(serializers.ModelSerializer):
     mother = ParentSerializer(required=False, allow_null=True)
     father = ParentSerializer(required=False, allow_null=True)
     guardian = GuardianSerializer(required=False, allow_null=True)
+    
 
     class Meta:
         model = FamilyData
@@ -360,4 +438,3 @@ class GuidanceSpecialistNotesSerializer(serializers.ModelSerializer):
     class Meta:
         model = GuidanceSpecialistNotes
         fields = '__all__'
-  

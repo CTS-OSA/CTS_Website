@@ -17,12 +17,14 @@ const SCIFPreviousSchoolRecord = ({
   errors,
   setErrors,
 }) => {
-  const [schoolRecords, setSchoolRecords] = useState(data || []);
+  const [schoolRecords, setSchoolRecords] = useState(data?.records || []);
+  const [sameAsPrimary, setSameAsPrimary] = useState(
+    data?.sameAsPrimary || {
+      "Junior High": false,
+      "Senior High": false,
+    }
+  );
   const { enums, loading, error } = useEnumChoices();
-  const [sameAsPrimary, setSameAsPrimary] = useState({
-    "Junior High": false,
-    "Senior High": false,
-  });
 
   const handleErrorClear = (globalIndex, field) => {
     const errorKey = `previous_school[${globalIndex}].${field}`;
@@ -33,6 +35,21 @@ const SCIFPreviousSchoolRecord = ({
         return updatedErrors;
       });
     }
+  };
+
+  // Initialize required levels
+  useEffect(() => {
+    if (schoolRecords.length === 0) {
+      REQUIRED_LEVELS.forEach((level) => addRecord(level));
+    }
+  }, []);
+
+  const updateDataWithState = (records, same = sameAsPrimary) => {
+    setSchoolRecords(records);
+    updateData({
+      records,
+      sameAsPrimary: same,
+    });
   };
 
   const handleFieldChange = (index, field, value) => {
@@ -50,8 +67,7 @@ const SCIFPreviousSchoolRecord = ({
       updated[index].senior_high_gpa = "";
     }
 
-    setSchoolRecords(updated);
-    updateData(updated);
+    updateDataWithState(updated);
   };
 
   const handleInputFilterChange = (index, field, rawValue, filterFn) => {
@@ -82,8 +98,7 @@ const SCIFPreviousSchoolRecord = ({
       senior_high_gpa: "",
     };
     const updated = [...schoolRecords, newRecord];
-    setSchoolRecords(updated);
-    updateData(updated);
+    updateDataWithState(updated);
   };
 
   const removeRecord = (index) => {
@@ -99,24 +114,14 @@ const SCIFPreviousSchoolRecord = ({
     }
 
     const updated = schoolRecords.filter((_, i) => i !== index);
-    setSchoolRecords(updated);
-    updateData(updated);
+    updateDataWithState(updated);
   };
-
-  // Initialize required levels
-  useEffect(() => {
-    if (schoolRecords.length === 0) {
-      REQUIRED_LEVELS.forEach((level) => addRecord(level));
-    }
-    // eslint-disable-next-line
-  }, []);
 
   const handleSameAsPrimaryToggle = (level) => {
     const updatedSame = {
       ...sameAsPrimary,
       [level]: !sameAsPrimary[level],
     };
-    setSameAsPrimary(updatedSame);
 
     const primary = schoolRecords.find((r) => r.education_level === "Primary");
     const levelRecord = schoolRecords.find((r) => r.education_level === level);
@@ -132,8 +137,8 @@ const SCIFPreviousSchoolRecord = ({
       updated[idx].school.school_address = { ...primary.school.school_address };
     }
 
-    setSchoolRecords(updated);
-    updateData(updated);
+    setSameAsPrimary(updatedSame);
+    updateDataWithState(updated, updatedSame);
   };
 
   const renderSection = (level, isRequired = true) => {
@@ -153,7 +158,7 @@ const SCIFPreviousSchoolRecord = ({
             <label className="flex items-center space-x-2 text-gray-700 text-sm">
               <input
                 type="checkbox"
-                checked={sameAsPrimary[level]}
+                checked={sameAsPrimary[level] || false}
                 onChange={() => handleSameAsPrimaryToggle(level)}
                 className="accent-blue-600"
                 disabled={readOnly}

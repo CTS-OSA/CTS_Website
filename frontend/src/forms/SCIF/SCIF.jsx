@@ -21,7 +21,7 @@ import DefaultLayout from "../../components/DefaultLayout";
 import StepIndicator from "../../components/StepIndicator";
 import { useNavigate } from "react-router-dom";
 
-// Step Components (each file per step, as you mentioned)
+// Step Components
 import SCIFCredentials from "./SCIFCredentials";
 import SCIFPersonalData from "./SCIFPersonalData";
 import SCIFFamilyData from "./SCIFFamilyData";
@@ -111,28 +111,34 @@ const SCIF = () => {
         submission: "",
       },
     ],
-    previous_school_record: [
-      {
-        student_number: "",
-        school: {
-          name: "",
-          school_address: {
-            address_line_1: "",
-            barangay: "",
-            city_municipality: "",
-            province: "",
-            region: "",
-            zip_code: "",
+    previous_school_record: {
+      records: [
+        {
+          student_number: "",
+          school: {
+            name: "",
+            school_address: {
+              address_line_1: "",
+              barangay: "",
+              city_municipality: "",
+              province: "",
+              region: "",
+              zip_code: "",
+            },
           },
+          education_level: "",
+          start_year: "",
+          end_year: "",
+          honors_received: "",
+          senior_high_gpa: "",
+          submission: "",
         },
-        education_level: "",
-        start_year: "",
-        end_year: "",
-        honors_received: "",
-        senior_high_gpa: "",
-        submission: "",
+      ],
+      sameAsPrimary: {
+        "Junior High": false,
+        "Senior High": false,
       },
-    ],
+    },
     health_data: {
       student_number: "",
       health_condition: "",
@@ -212,7 +218,7 @@ const SCIF = () => {
       case 4: // Health Data
         return validateHealthData(data);
       case 5: // Previous School
-        return validatePreviousSchool(data.previous_school_record);
+        return validatePreviousSchool(data.previous_school_record.records);
       case 6: // Scholarships
         return true;
       case 7: // Other Personal Data
@@ -225,11 +231,6 @@ const SCIF = () => {
         return true;
     }
   };
-
-  // const handleConfirmAction = () => {
-  //   setShowConfirmDialog(false);
-  //   handleSubmit();
-  // };
 
   // ---------- initial fetch ----------
   useEffect(() => {
@@ -269,15 +270,24 @@ const SCIF = () => {
                   students: s.students?.length ? s.students : [studentNumber],
                 }))
               : prev.siblings,
-            previous_school_record: Array.isArray(
-              response.previous_school_record
-            )
-              ? response.previous_school_record.map((r) => ({
-                  ...r,
-                  submission: newSubmissionId,
-                  student_number: studentNumber,
-                }))
-              : prev.previous_school_record,
+            previous_school_record: {
+              records: Array.isArray(response.previous_school_record?.records)
+                ? response.previous_school_record.records.map((r) => ({
+                    ...r,
+                    submission: newSubmissionId,
+                    student_number: studentNumber,
+                  }))
+                : Array.isArray(response.previous_school_record)
+                ? response.previous_school_record.map((r) => ({
+                    ...r,
+                    submission: newSubmissionId,
+                    student_number: studentNumber,
+                  }))
+                : prev.previous_school_record.records,
+              sameAsPrimary:
+                response.previous_school_record?.sameAsPrimary ||
+                prev.previous_school_record.sameAsPrimary,
+            },
             health_data: {
               ...prev.health_data,
               ...response.health_data,
@@ -552,10 +562,13 @@ const SCIF = () => {
                         {step === 5 && (
                           <SCIFPreviousSchoolRecord
                             data={formData.previous_school_record}
-                            updateData={(newData) =>
+                            updateData={(updatedData) =>
                               setFormData((prev) => ({
                                 ...prev,
-                                previous_school_record: newData,
+                                previous_school_record: {
+                                  records: updatedData.records,
+                                  sameAsPrimary: updatedData.sameAsPrimary,
+                                },
                               }))
                             }
                             readOnly={readOnly}

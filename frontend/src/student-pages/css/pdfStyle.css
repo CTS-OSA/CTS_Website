@@ -131,6 +131,7 @@ textarea {
   border-bottom: 1px solid black;
   font-size: 12px;
   background-color: transparent;
+  border-radius: 0;
 }
 
 .pdf label {

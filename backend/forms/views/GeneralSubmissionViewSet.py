@@ -479,3 +479,92 @@ class FinalizeSubmissionView(APIView):
                    f"Submission ID: {submission.id}, Form type: {submission.form_type}")
 
         return Response({'message': 'Submission finalized successfully.'}, status=status.HTTP_200_OK)
+
+# ADMIN FORM EDIT VIEW
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+
+class AdminFormEditView(APIView, BaseFormMixin):
+    permission_classes = [IsAuthenticated, IsAdminUser]  # Only admin/counselors
+
+    def patch(self, request, submission_id):
+        try:
+            submission = Submission.objects.get(id=submission_id)
+        except Submission.DoesNotExist:
+            return Response({'error': 'Submission not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        form_type_slug = FORM_TYPE_UNSLUG_MAP.get(submission.form_type)
+        sections = FORM_SECTIONS_MAP.get(form_type_slug)
+
+        if not sections:
+            return Response({'error': 'Invalid form type.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        updated_data = {}
+        errors = {}
+
+        for key, (model, serializer_class) in sections.items():
+            section_data = request.data.get(key)
+            if not section_data:
+                continue
+
+            many = isinstance(section_data, list)
+            section_data = self._attach_foreign_keys(
+                section_data, model, submission, submission.student, many
+            )
+
+            serializer = self._get_section_serializer(
+                serializer_class, model, submission, submission.student, section_data, many
+            )
+
+            if serializer.is_valid():
+                serializer.save()
+                updated_data[key] = serializer.data
+            else:
+                errors[key] = serializer.errors
+
+        if errors:
+            return Response(
+                {'message': 'Some sections failed validation.', 'errors': errors, 'data': updated_data},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        submission.saved_on = timezone.now()
+        submission.save()
+
+        return Response(
+            {'message': 'Form updated successfully by admin.', 'data': updated_data},
+            status=status.HTTP_200_OK
+        )
+        
+    def _attach_foreign_keys(self, section_data, model, submission, student, many):
+        """Ensure each section has submission/student foreign keys attached."""
+        def attach_keys(item):
+            if 'submission' not in item and 'submission' in [f.name for f in model._meta.fields]:
+                item['submission'] = submission.id
+            if 'student' not in item and 'student' in [f.name for f in model._meta.fields]:
+                item['student'] = student.student_number
+            return item
+
+        if many:
+            return [attach_keys(item) for item in section_data]
+        return attach_keys(section_data)
+
+    def _get_section_serializer(self, serializer_class, model, submission, student, section_data, many):
+        """Return a properly configured serializer instance for a given section."""
+        if many:
+            instances = model.objects.filter(submission=submission)
+            return serializer_class(
+                instance=instances,
+                data=section_data,
+                many=True,
+                partial=True,
+                context={'submission': submission, 'student': student}
+            )
+        else:
+            instance = model.objects.filter(submission=submission).first()
+            return serializer_class(
+                instance=instance,
+                data=section_data,
+                many=False,
+                partial=True,
+                context={'submission': submission, 'student': student}
+            )
