@@ -1,7 +1,7 @@
 import React, { useContext, useRef, useState, useEffect } from "react";
-import "./css/pdfStyle.css";
+// import "./css/pdfStyle.css";
 import "./css/SCIFpdf.css";
-import "../forms/SetupProfile/css/multistep.css";
+// import "../forms/SetupProfile/css/multistep.css";
 import FormHeader from "./FormHeader";
 import AutoResizeTextarea from "../components/AutoResizeTextarea";
 import html2pdf from "html2pdf.js";
@@ -13,197 +13,423 @@ import Button from "../components/UIButton";
 import { AuthContext } from "../context/AuthContext";
 import { useApiRequest } from "../context/ApiRequestContext";
 import BackToTopButton from "../components/BackToTop";
+import { useEnumChoices } from "../utils/enumChoices";
+
+const INTEGER_ONLY_FIELDS = new Set([
+  "birth_rank",
+  "permanent_address_zip_code",
+  "age",
+  "landline_number",
+  "contact_number",
+  "father_contact_number",
+  "mother_contact_number",
+  "guardian_contact_number",
+  "father_age",
+  "mother_age",
+]);
+
+const DECIMAL_ALLOWED_FIELDS = new Set(["height", "weight", "senior_high_gpa"]);
+
+const sanitizeNumericInput = (field, value) => {
+  if (typeof value !== "string") return value;
+  if (INTEGER_ONLY_FIELDS.has(field)) {
+    return value.replace(/\D/g, "");
+  }
+  if (DECIMAL_ALLOWED_FIELDS.has(field)) {
+    const cleaned = value.replace(/[^0-9.]/g, "");
+    const parts = cleaned.split(".");
+    if (parts.length <= 1) return cleaned;
+    const [first, ...rest] = parts;
+    return `${first}.${rest.join("")}`;
+  }
+  return value;
+};
+
+const safeTrim = (value) =>
+  typeof value === "string" ? value.trim() : value ?? "";
+
+const splitFullName = (fullName) => {
+  if (typeof fullName !== "string") {
+    return { first_name: "", last_name: "" };
+  }
+  const trimmed = fullName.trim();
+  if (!trimmed) {
+    return { first_name: "", last_name: "" };
+  }
+  if (trimmed.includes(",")) {
+    const [last, first] = trimmed.split(",");
+    return {
+      first_name: safeTrim(first),
+      last_name: safeTrim(last),
+    };
+  }
+  const parts = trimmed.split(/\s+/);
+  if (parts.length === 1) {
+    return { first_name: parts[0], last_name: "" };
+  }
+  return {
+    first_name: parts.slice(0, -1).join(" "),
+    last_name: parts.slice(-1)[0],
+  };
+};
+
+const listFromInput = (value) => {
+  if (Array.isArray(value)) {
+    return value.map((item) => safeTrim(item)).filter(Boolean);
+  }
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+  }
+  return [];
+};
+
+const normalizeScholarshipEntries = (value) => {
+  if (!Array.isArray(value)) return [];
+  return value.map((entry) => safeTrim(entry)).filter(Boolean);
+};
+
+const toBoolean = (value) => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    return value.toLowerCase() === "true";
+  }
+  return Boolean(value);
+};
 
 const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
   const pdfRef = useRef();
   const navigate = useNavigate();
   const { role } = useContext(AuthContext);
   const { request } = useApiRequest();
+  const { enums, loading: enumsLoading, error: enumsError } = useEnumChoices();
+  const regionOptions = enums?.region || [];
+  const shouldUseRegionDropdown =
+    !enumsError && (regionOptions.length > 0 || enumsLoading);
+  const seniorHighRecordRef = useRef(null);
   const [errors, setErrors] = useState({});
   const [showDownloadConfirm, setShowDownloadConfirm] = useState(false);
   const [downloadToast, setDownloadToast] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const canEdit = role === "admin" || isAdmin;
+  const errorAliasMap = {
+    "father.first_name": "father_name",
+    "father.last_name": "father_name",
+    "mother.first_name": "mother_name",
+    "mother.last_name": "mother_name",
+    "guardian.first_name": "guardian_name",
+    "guardian.last_name": "guardian_name",
+  };
+  const parentFields = [
+    "age",
+    "job_occupation",
+    "company_agency",
+    "company_address",
+    "highest_educational_attainment",
+    "contact_number",
+  ];
+  parentFields.forEach((field) => {
+    errorAliasMap[`father.${field}`] = `father_${field}`;
+    errorAliasMap[`mother.${field}`] = `mother_${field}`;
+  });
+  errorAliasMap["guardian.contact_number"] = "guardian_contact_number";
+  errorAliasMap["guardian.address"] = "guardian_address";
+  errorAliasMap["guardian.relationship_to_guardian"] =
+    "guardian_relationship_to_guardian";
+  errorAliasMap["guardian.language_dialect"] = "guardian_language_dialect";
   const [formState, setFormState] = useState({
-    name: "",
-    last_name: "",
-    first_name: "",
-    middle_name: "",
-    nickname: "",
-    sex: "",
-    age: "",
-    religion: "",
-    birth_rank: "",
-    birthdate: "",
-    birthplace: "",
-    permanent_address: "",
-    landline_number: "",
-    email: "",
-    contact_number: "",
-    student_number: "",
-    degree_program: "",
-    date_initial_entry: "",
-    father_name: "",
-    father_age: "",
-    father_job_occupation: "",
-    father_company_agency: "",
-    father_company_address: "",
-    father_highest_educational_attainment: "",
-    father_contact_number: "",
-    mother_name: "",
-    mother_age: "",
-    mother_job_occupation: "",
-    mother_company_agency: "",
-    mother_company_address: "",
-    mother_highest_educational_attainment: "",
-    mother_contact_number: "",
-    guardian_name: "",
-    guardian_contact_number: "",
-    guardian_address: "",
-    guardian_relationship_to_guardian: "",
-    guardian_language_dialect: "",
-    scholarships_and_assistance: "",
-    health_condition: "",
-    height: "",
-    weight: "",
-    eyesight: "",
-    hearing: "",
-    physical_disabilities: "",
-    common_ailments: "",
-    last_hospitalization: "",
-    reason_of_hospitalization: "",
-    senior_high_gpa: "",
-    enrollment_reason: "",
-    program_match_goal: "",
-    aspiration_explanation: "",
-    special_talents: "",
-    musical_instruments: "",
-    hobbies: "",
-    likes_in_people: "",
-    dislikes_in_people: "",
-    closest_to: "",
-    personal_characteristics: "",
-    problem_confidant: "",
-    confidant_reason: "",
-    potential_problems: "",
-    previous_counseling: "",
-    counseling_location: "",
-    counseling_counselor: "",
-    counseling_reason: "",
-    guidance_notes: "",
+    family_data: {
+      student_number: "",
+      mother: {
+        first_name: "",
+        last_name: "",
+        age: "",
+        job_occupation: "",
+        company_agency: "",
+        company_address: "",
+        highest_educational_attainment: "",
+        contact_number: "",
+        submission: "",
+        is_deceased: "",
+        is_none: "",
+      },
+      father: {
+        first_name: "",
+        last_name: "",
+        age: "",
+        job_occupation: "",
+        company_agency: "",
+        company_address: "",
+        highest_educational_attainment: "",
+        contact_number: "",
+        submission: "",
+        is_deceased: "",
+        is_none: "",
+      },
+      guardian: {
+        first_name: "",
+        last_name: "",
+        contact_number: "",
+        address: "",
+        relationship_to_guardian: "",
+        language_dialect: [],
+        submission: "",
+      },
+    },
+    siblings: [
+      {
+        first_name: "",
+        last_name: "",
+        sex: "",
+        age: "",
+        job_occupation: "",
+        company_school: "",
+        educational_attainment: "",
+        students: [],
+        submission: "",
+      },
+    ],
+    previous_school_record: {
+      records: [
+        {
+          student_number: "",
+          school: {
+            name: "",
+            school_address: {
+              address_line_1: "",
+              barangay: "",
+              city_municipality: "",
+              province: "",
+              region: "",
+              zip_code: "",
+            },
+          },
+          education_level: "",
+          start_year: "",
+          end_year: "",
+          honors_received: "",
+          senior_high_gpa: "",
+          submission: "",
+        },
+      ],
+      sameAsPrimary: {
+        "Junior High": false,
+        "Senior High": false,
+      },
+    },
+    health_data: {
+      student_number: "",
+      health_condition: "",
+      height: "",
+      weight: "",
+      eye_sight: "",
+      hearing: "",
+      physical_disabilities: [],
+      common_ailments: [],
+      last_hospitalization: "",
+      reason_of_hospitalization: "",
+      submission: "",
+    },
+    scholarship: {
+      student_number: "",
+      scholarships_and_assistance: [],
+      submission: "",
+    },
+    personality_traits: {
+      student_number: "",
+      enrollment_reason: "",
+      degree_program_aspiration: "",
+      aspiration_explanation: "",
+      special_talents: "",
+      musical_instruments: "",
+      hobbies: "",
+      likes_in_people: "",
+      dislikes_in_people: "",
+      submission: "",
+    },
+    family_relationship: {
+      student_number: "",
+      closest_to: "",
+      specify_other: "",
+      submission: "",
+    },
+    counseling_info: {
+      student_number: "",
+      personal_characteristics: "",
+      problem_confidant: "",
+      confidant_reason: "",
+      anticipated_problems: "",
+      previous_counseling: "",
+      counseling_location: "",
+      counseling_counselor: "",
+      counseling_reason: "",
+      submission: "",
+    },
+    privacy_consent: {
+      student_number: "",
+      has_consented: false,
+      submission: "",
+    },
   });
 
   useEffect(() => {
-    if (formData && profileData) {
-      const {
-        family_data,
-        personality_traits,
-        health_data,
-        previous_school_record,
-        family_relationship,
-        counseling_info,
-        guidance_notes,
-      } = formData;
-      const father = family_data?.father;
-      const mother = family_data?.mother;
-      const guardian = family_data?.guardian;
-      const seniorHighRecord = Array.isArray(previous_school_record)
-        ? previous_school_record.find(
-            (r) => r.education_level === "Senior High"
-          )
-        : null;
+    if (!formData || !profileData) return;
 
-      setFormState({
-        name: `${profileData.last_name}, ${profileData.first_name} ${profileData.middle_name}`,
-        last_name: profileData.last_name || "",
-        first_name: profileData.first_name || "",
-        middle_name: profileData.middle_name || "",
-        nickname: profileData.nickname || "",
-        sex: profileData.sex || "",
-        age: calculateAge(profileData.birthdate) || "",
-        religion: profileData.religion || "",
-        birth_rank: profileData.birth_rank || "",
-        birthdate: profileData.birthdate || "",
-        birthplace: profileData.birthplace || "",
-        permanent_address:
-          [
-            profileData.permanent_address?.address_line_1,
-            profileData.permanent_address?.barangay,
-            profileData.permanent_address?.city_municipality,
-            profileData.permanent_address?.province,
-          ]
-            .filter(Boolean)
-            .join(", ") || "",
-        landline_number: profileData.landline_number || "",
-        email: profileData.email || "",
-        contact_number: profileData.contact_number || "",
-        student_number: profileData.student_number || "",
-        degree_program: profileData.degree_program || "",
-        date_initial_entry:
-          `${profileData.date_initial_entry_sem} - AY ${profileData.date_initial_entry}` ||
-          "",
-        father_name: `${father?.first_name || ""} ${father?.last_name || ""}`,
-        father_age: father?.age || "",
-        father_job_occupation: father?.job_occupation || "",
-        father_company_agency: father?.company_agency || "",
-        father_company_address: father?.company_address || "",
-        father_highest_educational_attainment:
-          father?.highest_educational_attainment || "",
-        father_contact_number: father?.contact_number || "",
-        mother_name: `${mother?.first_name || ""} ${mother?.last_name || ""}`,
-        mother_age: mother?.age || "",
-        mother_job_occupation: mother?.job_occupation || "",
-        mother_company_agency: mother?.company_agency || "",
-        mother_company_address: mother?.company_address || "",
-        mother_highest_educational_attainment:
-          mother?.highest_educational_attainment || "",
-        mother_contact_number: mother?.contact_number || "",
-        guardian_name: `${guardian?.first_name || ""} ${
-          guardian?.last_name || ""
-        }`,
-        guardian_contact_number: guardian?.contact_number || "",
-        guardian_address: guardian?.address || "",
-        guardian_relationship_to_guardian:
-          guardian?.relationship_to_guardian || "",
-        guardian_language_dialect: guardian?.language_dialect || "",
-        scholarships_and_assistance:
-          scholarship?.scholarships_and_assistance || [],
-        health_condition: health_data?.health_condition || "",
-        height: health_data?.height || "",
-        weight: health_data?.weight || "",
-        eyesight: health_data?.eye_sight || "",
-        hearing: health_data?.hearing || "",
-        physical_disabilities:
-          health_data?.physical_disabilities?.join(", ") || "",
-        common_ailments: health_data?.common_ailments?.join(", ") || "",
-        last_hospitalization: health_data?.last_hospitalization || "",
-        reason_of_hospitalization: health_data?.reason_of_hospitalization || "",
-        senior_high_gpa: seniorHighRecord?.senior_high_gpa || "",
-        enrollment_reason: personality_traits?.enrollment_reason || "",
-        program_match_goal: personality_traits?.degree_program_aspiration
-          ? "Yes"
-          : "No",
-        aspiration_explanation:
-          personality_traits?.aspiration_explanation || "",
-        special_talents: personality_traits?.special_talents || "",
-        musical_instruments: personality_traits?.musical_instruments || "",
-        hobbies: personality_traits?.hobbies || "",
-        likes_in_people: personality_traits?.likes_in_people || "",
-        dislikes_in_people: personality_traits?.dislikes_in_people || "",
-        closest_to: family_relationship?.closest_to || "",
+    const {
+      family_data,
+      personality_traits,
+      health_data,
+      previous_school_record,
+      family_relationship,
+      counseling_info,
+      guidance_notes,
+      scholarship,
+    } = formData;
 
-        personal_characteristics:
-          counseling_info?.personal_characteristics || "",
-        problem_confidant: counseling_info?.problem_confidant || "",
-        confidant_reason: counseling_info?.confidant_reason || "",
-        potential_problems: counseling_info?.anticipated_problems || "",
-        previous_counseling: counseling_info?.previous_counseling
-          ? "Yes"
-          : "No",
-        counseling_location: counseling_info?.counseling_location || "",
-        counseling_counselor: counseling_info?.counseling_counselor || "",
-        counseling_reason: counseling_info?.counseling_reason || "",
-        guidance_notes: guidance_notes?.notes || "",
-      });
-    }
+    const father = family_data?.father;
+    const mother = family_data?.mother;
+    const guardian = family_data?.guardian;
+    const seniorHighRecord = Array.isArray(previous_school_record)
+      ? previous_school_record.find((r) => r.education_level === "Senior High")
+      : null;
+
+    const scholarshipsArray = Array.isArray(
+      scholarship?.scholarships_and_assistance
+    )
+      ? scholarship.scholarships_and_assistance
+      : scholarship?.scholarships_and_assistance
+      ? [scholarship.scholarships_and_assistance]
+      : [];
+
+    const preparedState = {
+      // Personal Information
+      name: `${submission.student}`,
+      last_name: profileData.last_name || "",
+      first_name: profileData.first_name || "",
+      middle_name: profileData.middle_name || "",
+      nickname: profileData.nickname || "",
+      sex: profileData.sex || "",
+      age: calculateAge(profileData.birthdate) || "",
+      religion: profileData.religion || "",
+      birth_rank: profileData.birth_rank || "",
+      birthdate: profileData.birthdate || "",
+      birthplace: profileData.birthplace || "",
+
+      // Permanent Address
+      permanent_address_line_1:
+        profileData.permanent_address?.address_line_1 || "",
+      permanent_address_line_2:
+        profileData.permanent_address?.address_line_2 || "",
+      permanent_address_barangay: profileData.permanent_address?.barangay || "",
+      permanent_address_city:
+        profileData.permanent_address?.city_municipality || "",
+      permanent_address_province: profileData.permanent_address?.province || "",
+      permanent_address_region: profileData.permanent_address?.region || "",
+      permanent_address_zip_code: profileData.permanent_address?.zip_code || "",
+
+      // Contact Information
+      landline_number: profileData.landline_number || "",
+      email: profileData.email || "",
+      contact_number: profileData.contact_number || "",
+
+      // Student Information
+      student_number: profileData.student_number || "",
+      degree_program: profileData.degree_program || "",
+      date_initial_entry:
+        `${profileData.date_initial_entry_sem} - AY ${profileData.date_initial_entry}` ||
+        "",
+
+      // Father Information
+      father_name: `${family_data.father?.first_name || ""} ${
+        family_data.father?.last_name || ""
+      }`.trim(),
+      father_age: family_data.father?.age || "",
+      father_job_occupation: family_data.father?.job_occupation || "",
+      father_company_agency: family_data.father?.company_agency || "",
+      father_company_address: family_data.father?.company_address || "",
+      father_highest_educational_attainment:
+        family_data.father?.highest_educational_attainment || "",
+      father_contact_number: family_data.father?.contact_number || "",
+      father_is_deceased: !!family_data.father?.is_deceased,
+      father_is_none: !!family_data.father?.is_none,
+
+      // Mother Information
+      mother_name: `${family_data.mother?.first_name || ""} ${
+        family_data.mother?.last_name || ""
+      }`.trim(),
+      mother_age: family_data.mother?.age || "",
+      mother_job_occupation: family_data.mother?.job_occupation || "",
+      mother_company_agency: family_data.mother?.company_agency || "",
+      mother_company_address: family_data.mother?.company_address || "",
+      mother_highest_educational_attainment:
+        family_data.mother?.highest_educational_attainment || "",
+      mother_contact_number: family_data.mother?.contact_number || "",
+      mother_is_deceased: !!family_data.mother?.is_deceased,
+      mother_is_none: !!family_data.mother?.is_none,
+
+      // Guardian Information
+      guardian_name: `${family_data.guardian?.first_name || ""} ${
+        family_data.guardian?.last_name || ""
+      }`.trim(),
+      guardian_contact_number: family_data.guardian?.contact_number || "",
+      guardian_address: family_data.guardian?.address || "",
+      guardian_relationship_to_guardian:
+        family_data.guardian?.relationship_to_guardian || "",
+      guardian_language_dialect: family_data.guardian?.language_dialect || [],
+
+      // Health Information
+      health_condition: health_data.health_condition || "",
+      height: health_data.height || "",
+      weight: health_data.weight || "",
+      eyesight: health_data.eye_sight || "",
+      hearing: health_data.hearing || "",
+      physical_disabilities: Array.isArray(health_data.physical_disabilities)
+        ? health_data.physical_disabilities.join(", ")
+        : health_data.physical_disabilities || "",
+      common_ailments: Array.isArray(health_data.common_ailments)
+        ? health_data.common_ailments.join(", ")
+        : health_data.common_ailments || "",
+      last_hospitalization: health_data.last_hospitalization || "",
+      reason_of_hospitalization: health_data.reason_of_hospitalization || "",
+
+      // Academic Records
+      senior_high_gpa: previous_school_record[0]?.senior_high_gpa || "",
+
+      // Personality & Aspirations
+      enrollment_reason: personality_traits.enrollment_reason || "",
+      degree_program_aspiration:
+        personality_traits.degree_program_aspiration ?? null,
+      aspiration_explanation: personality_traits.aspiration_explanation || "",
+      special_talents: personality_traits.special_talents || "",
+      musical_instruments: personality_traits.musical_instruments || "",
+      hobbies: personality_traits.hobbies || "",
+      likes_in_people: personality_traits.likes_in_people || "",
+      dislikes_in_people: personality_traits.dislikes_in_people || "",
+
+      // Family Relationships
+      closest_to: family_relationship.closest_to || "",
+      specify_other: family_relationship.specify_other || "",
+
+      // Counseling Information
+      personal_characteristics: counseling_info.personal_characteristics || "",
+      problem_confidant: counseling_info.problem_confidant || "",
+      confidant_reason: counseling_info.confidant_reason || "",
+      anticipated_problems: counseling_info.anticipated_problems || "",
+      previous_counseling: !!counseling_info.previous_counseling,
+      counseling_location: counseling_info.counseling_location || "",
+      counseling_counselor: counseling_info.counseling_counselor || "",
+      counseling_reason: counseling_info.counseling_reason || "",
+
+      // Additional Notes
+      scholarships_and_assistance:
+        scholarship.scholarships_and_assistance || [],
+      guidance_notes: guidance_notes?.notes || "",
+    };
+
+    setFormState(preparedState);
+    seniorHighRecordRef.current = seniorHighRecord || null;
   }, [formData, profileData]);
 
   const handleDownloadClick = () => {
@@ -222,7 +448,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
   };
 
   const handleReturn = () => {
-    if (role === "admin" && profileData.student_number) {
+    if (canEdit && profileData.student_number) {
       navigate(`/admin/students/${profileData.student_number}`);
     } else {
       navigate("/myprofile");
@@ -230,13 +456,24 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
   };
 
   const handleFieldChange = (field, value) => {
-    if (role === "admin") {
-      setFormState((prev) => ({ ...prev, [field]: value }));
-    }
+    if (!canEdit) return;
+    const sanitizedValue = sanitizeNumericInput(field, value);
+    setFormState((prev) => {
+      const next = { ...prev, [field]: sanitizedValue };
+      if (field === "previous_counseling" && !value) {
+        next.counseling_location = "";
+        next.counseling_counselor = "";
+        next.counseling_reason = "";
+      }
+      if (field === "degree_program_aspiration" && value === true) {
+        next.aspiration_explanation = "";
+      }
+      return next;
+    });
   };
 
   const handleConditionChange = (key) => {
-    console.log("Role:", role, "Key:", key);
+    if (!canEdit) return;
     setFormState((prev) => ({
       ...prev,
       health_condition: key,
@@ -244,16 +481,20 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
   };
 
   const handleClosestOptionChange = (key) => {
-    if (role === "admin") {
-      setFormState((prev) => ({
-        ...prev,
-        closest_to: key,
-      }));
-    }
+    if (!canEdit) return;
+    setFormState((prev) => ({
+      ...prev,
+      closest_to: key,
+      specify_other: key === "Other" ? prev.specify_other : "",
+    }));
   };
 
   const handleScholarshipChange = (idx, e) => {
-    const updated = [...formState.scholarships_and_assistance];
+    if (!canEdit) return;
+    const list = Array.isArray(formState.scholarships_and_assistance)
+      ? [...formState.scholarships_and_assistance]
+      : [];
+    const updated = [...list];
     updated[idx] = e.target.value;
     setFormState((prev) => ({
       ...prev,
@@ -261,60 +502,370 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     }));
   };
 
+  const flattenErrors = (errorData) => {
+    if (!errorData || typeof errorData !== "object") return {};
+    const normalized = {};
+
+    const assignMessage = (key, message) => {
+      const normalizedKey = key.replace(/\./g, "_");
+      normalized[key] = message;
+      normalized[normalizedKey] = message;
+      if (errorAliasMap[key]) {
+        normalized[errorAliasMap[key]] = message;
+      }
+      if (key.includes("permanent_address")) {
+        normalized.permanent_address = message;
+      }
+    };
+
+    Object.entries(errorData).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        assignMessage(key, value.join(" "));
+      } else if (value && typeof value === "object") {
+        Object.entries(value).forEach(([nestedKey, nestedValue]) => {
+          const nestedMessage = Array.isArray(nestedValue)
+            ? nestedValue.join(" ")
+            : String(nestedValue);
+          assignMessage(`${key}.${nestedKey}`, nestedMessage);
+        });
+      } else if (value !== null && value !== undefined) {
+        assignMessage(key, String(value));
+      }
+    });
+
+    return normalized;
+  };
+
+  const appendFormDataValue = (formData, key, value) => {
+    if (value === undefined || value === null) return;
+    if (typeof File !== "undefined" && value instanceof File) {
+      formData.append(key, value);
+      return;
+    }
+    if (typeof value === "object" && !Array.isArray(value)) {
+      Object.entries(value).forEach(([subKey, subValue]) => {
+        appendFormDataValue(formData, `${key}.${subKey}`, subValue);
+      });
+      return;
+    }
+    if (Array.isArray(value)) {
+      value.forEach((item, index) => {
+        appendFormDataValue(formData, `${key}.${index}`, item);
+      });
+      return;
+    }
+    formData.append(key, value);
+  };
+
+  const buildStudentProfilePayload = () => ({
+    last_name: safeTrim(formState.last_name),
+    first_name: safeTrim(formState.first_name),
+    middle_name: safeTrim(formState.middle_name),
+    nickname: safeTrim(formState.nickname),
+    sex: safeTrim(formState.sex),
+    religion: safeTrim(formState.religion),
+    birth_rank: safeTrim(formState.birth_rank),
+    birthdate: safeTrim(formState.birthdate),
+    birthplace: safeTrim(formState.birthplace),
+    contact_number: safeTrim(formState.contact_number),
+    landline_number: safeTrim(formState.landline_number),
+    degree_program: safeTrim(formState.degree_program),
+    email: safeTrim(formState.email),
+    permanent_address: {
+      address_line_1: safeTrim(formState.permanent_address_line_1),
+      address_line_2: safeTrim(formState.permanent_address_line_2),
+      barangay: safeTrim(formState.permanent_address_barangay),
+      city_municipality: safeTrim(formState.permanent_address_city),
+      province: safeTrim(formState.permanent_address_province),
+      region: safeTrim(formState.permanent_address_region),
+      zip_code: safeTrim(formState.permanent_address_zip_code),
+    },
+  });
+
+  const buildScifPayload = () => {
+    const father = splitFullName(formState.father_name);
+    const mother = splitFullName(formState.mother_name);
+    const guardian = splitFullName(formState.guardian_name);
+    const guardianLanguages = Array.isArray(formState.guardian_language_dialect)
+      ? formState.guardian_language_dialect
+      : listFromInput(formState.guardian_language_dialect);
+
+    const payload = {
+      family_data: {
+        student_number: profileData.student_number,
+        father: {
+          first_name: father.first_name,
+          last_name: father.last_name,
+          age: safeTrim(formState.father_age),
+          job_occupation: safeTrim(formState.father_job_occupation),
+          company_agency: safeTrim(formState.father_company_agency),
+          company_address: safeTrim(formState.father_company_address),
+          highest_educational_attainment: safeTrim(
+            formState.father_highest_educational_attainment
+          ),
+          contact_number: safeTrim(formState.father_contact_number),
+          is_deceased: Boolean(formState.father_is_deceased),
+          is_none: Boolean(formState.father_is_none),
+        },
+        mother: {
+          first_name: mother.first_name,
+          last_name: mother.last_name,
+          age: safeTrim(formState.mother_age),
+          job_occupation: safeTrim(formState.mother_job_occupation),
+          company_agency: safeTrim(formState.mother_company_agency),
+          company_address: safeTrim(formState.mother_company_address),
+          highest_educational_attainment: safeTrim(
+            formState.mother_highest_educational_attainment
+          ),
+          contact_number: safeTrim(formState.mother_contact_number),
+          is_deceased: Boolean(formState.mother_is_deceased),
+          is_none: Boolean(formState.mother_is_none),
+        },
+        guardian: {
+          first_name: guardian.first_name,
+          last_name: guardian.last_name,
+          contact_number: safeTrim(formState.guardian_contact_number),
+          address: safeTrim(formState.guardian_address),
+          relationship_to_guardian: safeTrim(
+            formState.guardian_relationship_to_guardian
+          ),
+          language_dialect: guardianLanguages,
+        },
+      },
+      health_data: {
+        student_number: profileData.student_number,
+        health_condition: safeTrim(formState.health_condition),
+        height: safeTrim(formState.height),
+        weight: safeTrim(formState.weight),
+        eye_sight: safeTrim(formState.eyesight),
+        hearing: safeTrim(formState.hearing),
+        physical_disabilities: listFromInput(formState.physical_disabilities),
+        common_ailments: listFromInput(formState.common_ailments),
+        last_hospitalization: safeTrim(formState.last_hospitalization),
+        reason_of_hospitalization: safeTrim(
+          formState.reason_of_hospitalization
+        ),
+      },
+      scholarship: {
+        student_number: profileData.student_number,
+        scholarships_and_assistance: normalizeScholarshipEntries(
+          formState.scholarships_and_assistance
+        ),
+      },
+      personality_traits: {
+        student_number: profileData.student_number,
+        enrollment_reason: safeTrim(formState.enrollment_reason),
+        degree_program_aspiration:
+          formState.degree_program_aspiration === null
+            ? null
+            : Boolean(formState.degree_program_aspiration),
+        aspiration_explanation: safeTrim(formState.aspiration_explanation),
+        special_talents: safeTrim(formState.special_talents),
+        musical_instruments: safeTrim(formState.musical_instruments),
+        hobbies: safeTrim(formState.hobbies),
+        likes_in_people: safeTrim(formState.likes_in_people),
+        dislikes_in_people: safeTrim(formState.dislikes_in_people),
+      },
+      family_relationship: {
+        student_number: profileData.student_number,
+        closest_to: safeTrim(formState.closest_to),
+        specify_other: safeTrim(formState.specify_other),
+      },
+      counseling_info: {
+        student_number: profileData.student_number,
+        personal_characteristics: safeTrim(formState.personal_characteristics),
+        problem_confidant: safeTrim(formState.problem_confidant),
+        confidant_reason: safeTrim(formState.confidant_reason),
+        anticipated_problems: safeTrim(formState.anticipated_problems),
+        previous_counseling: toBoolean(formState.previous_counseling),
+        counseling_location: safeTrim(formState.counseling_location),
+        counseling_counselor: safeTrim(formState.counseling_counselor),
+        counseling_reason: safeTrim(formState.counseling_reason),
+      },
+      guidance_notes: safeTrim(formState.guidance_notes),
+    };
+
+    if (seniorHighRecordRef.current) {
+      const record = seniorHighRecordRef.current;
+      const schoolAddress = record.school?.school_address
+        ? {
+            ...record.school.school_address,
+          }
+        : {
+            address_line_1: "",
+            barangay: "",
+            city_municipality: "",
+            province: "",
+            region: "",
+            zip_code: "",
+          };
+      const school = record.school
+        ? {
+            ...record.school,
+            school_address: schoolAddress,
+          }
+        : {
+            name: "",
+            school_address: schoolAddress,
+          };
+      payload.previous_school_record = [
+        {
+          id: record.id,
+          student_number: profileData.student_number,
+          education_level: record.education_level || "Senior High",
+          start_year: record.start_year || "",
+          end_year: record.end_year || "",
+          honors_received: record.honors_received || "",
+          senior_high_gpa: safeTrim(formState.senior_high_gpa),
+          school,
+        },
+      ];
+    }
+    console.log("Payload:", payload);
+
+    return payload;
+  };
+
+  const submissionId = formData?.submission?.id;
+  console.log("Submission ID:", submissionId);
+
+  const updateStudentProfile = async (payload, submissionId) => {
+    const formData = new FormData();
+    Object.entries(payload).forEach(([key, value]) => {
+      appendFormDataValue(formData, key, value);
+    });
+
+    console.log("IDDD:", submissionId);
+    return request(
+      `http://localhost:8000/api/forms/admin-edit/${submissionId}/`,
+      {
+        method: "PATCH",
+        body: formData,
+        headers: {},
+      }
+    );
+  };
+
   const handleSubmit = async () => {
+    if (!canEdit) return;
     const newErrors = {};
 
-    // Validate required fields
     if (
-      !formState.first_name ||
-      formState.first_name.trim() === "" ||
-      !formState.last_name ||
-      formState.last_name.trim() === "" ||
-      !formState.middle_name ||
-      formState.middle_name.trim() === ""
+      !formState.first_name?.trim() ||
+      !formState.last_name?.trim() ||
+      !formState.middle_name?.trim()
     ) {
       newErrors.first_name = "Name cannot be empty.";
     }
 
-    if (!formState.sex || formState.sex.trim() === "") {
+    if (!formState.sex?.trim()) {
       newErrors.sex = "Sex cannot be empty.";
     }
 
-    if (!formState.religion || formState.religion.trim() === "") {
+    if (!formState.religion?.trim()) {
       newErrors.religion = "Religion cannot be empty.";
     }
 
-    if (
-      !formState.health_condition ||
-      formState.health_condition.trim() === ""
-    ) {
+    if (!formState.health_condition?.trim()) {
       newErrors.health_condition = "Health condition must be selected.";
     }
 
-    setErrors(newErrors);
+    if (!formState.permanent_address_line_1?.trim()) {
+      newErrors["permanent_address.address_line_1"] =
+        "Street/House number is required.";
+    }
+    if (!formState.permanent_address_barangay?.trim()) {
+      newErrors["permanent_address.barangay"] = "Barangay is required.";
+    }
+    if (!formState.permanent_address_city?.trim()) {
+      newErrors["permanent_address.city_municipality"] =
+        "City/Municipality is required.";
+    }
+    if (!formState.permanent_address_province?.trim()) {
+      newErrors["permanent_address.province"] = "Province is required.";
+    }
+    if (!formState.permanent_address_region?.trim()) {
+      newErrors["permanent_address.region"] = "Region is required.";
+    }
+    if (!formState.permanent_address_zip_code?.trim()) {
+      newErrors["permanent_address.zip_code"] = "ZIP code is required.";
+    }
 
+    setErrors(newErrors);
+    console.log("Validation errors:", newErrors);
+    console.log("Form state:", formState);
     if (Object.keys(newErrors).length > 0) {
+      setDownloadToast("Please fix the highlighted fields.");
+      return;
+    }
+
+    const profilePayload = buildStudentProfilePayload();
+    const scifPayload = buildScifPayload();
+
+    // const submissionId = formData?.submission?.id;
+    // console.log("Submission ID:", submissionId);
+
+    if (!submissionId) {
+      setDownloadToast(
+        "Submission data is not available. Please reload the page."
+      );
       return;
     }
 
     try {
-      const response = await request(
-        `/api/forms/edit/scif/${profileData.student_number}/`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formState),
-        }
+      setIsSaving(true);
+      const profileResponse = await updateStudentProfile(
+        profilePayload,
+        submissionId
       );
 
-      if (response.ok) {
-        const data = await response.json();
-        setDownloadToast(data.message);
+      if (!profileResponse || !profileResponse.ok) {
+        const profileData = await profileResponse?.json().catch(() => ({}));
+        setDownloadToast(
+          profileData?.message ||
+            profileData?.error ||
+            "Failed to update personal information."
+        );
+
+        return;
       }
+
+      const response = await request(`/api/forms/admin-edit/${submissionId}/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(scifPayload),
+      });
+
+      if (!response) {
+        setDownloadToast("Unable to reach the server. Please try again.");
+        return;
+      }
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const apiErrors = flattenErrors(data);
+        if (Object.keys(apiErrors).length > 0) {
+          setErrors(apiErrors);
+        }
+        setDownloadToast(
+          data?.message ||
+            data?.error ||
+            "Failed to update form. Please review the fields."
+        );
+        return;
+      }
+
+      setErrors({});
+      setDownloadToast(data?.message || "Changes saved successfully.");
     } catch (error) {
+      console.error("Error updating form:", error);
+      console.log("Id:", submissionId);
       setDownloadToast("Failed to update form.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -331,7 +882,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     html2pdf().set(opt).from(element).save();
   };
 
-  if (!profileData) return <div>Loading...</div>;
+  if (!profileData || !formData) return <div>Loading...</div>;
 
   const {
     family_data,
@@ -363,25 +914,24 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     { value: "Other", label: "Others (specify)" },
   ];
 
-  const HealthConditionRadio = ({ selectedValue, onChange, role }) => {
+  const HealthConditionRadio = ({ selectedValue, onChange }) => {
     return (
-      <div className="SCIF-inline health-condition-inline">
-        <label>Health Condition:</label>
-        <div className="radio-group-inline">
-          {ConditionOptions.map((option) => (
-            <label key={option.key} className="radio-option">
-              <input
-                type="radio"
-                name="health_condition"
-                value={option.key}
-                checked={selectedValue === option.key}
-                onChange={() => onChange(option.key)}
-                disabled={role !== "admin"}
-              />
-              {option.label}
-            </label>
-          ))}
-        </div>
+      <div className="flex items-center gap-2 mb-0">
+        <label className="whitespace-nowrap">Health Condition:</label>
+
+        {ConditionOptions.map((option) => (
+          <label key={option.key} className="flex items-center gap-1">
+            <input
+              type="radio"
+              name="health_condition"
+              value={option.key}
+              checked={selectedValue === option.key}
+              onChange={() => onChange(option.key)}
+              disabled={!canEdit}
+            />
+            {option.label}
+          </label>
+        ))}
       </div>
     );
   };
@@ -392,14 +942,24 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     }
 
     return (
-      <table className="school-records-table">
+      <table className="w-full border-collapse mt-4 text-xs">
         <thead>
           <tr>
-            <th>Level</th>
-            <th>Name of School</th>
-            <th>Address</th>
-            <th>Inclusive Years of Attendance</th>
-            <th>Honor/s Received</th>
+            <th className="border border-gray-400 px-2.5 py-2 text-left bg-gray-100">
+              Level
+            </th>
+            <th className="border border-gray-400 px-2.5 py-2 text-left bg-gray-100">
+              Name of School
+            </th>
+            <th className="border border-gray-400 px-2.5 py-2 text-left bg-gray-100">
+              Address
+            </th>
+            <th className="border border-gray-400 px-2.5 py-2 text-left bg-gray-100">
+              Inclusive Years
+            </th>
+            <th className="border border-gray-400 px-2.5 py-2 text-left bg-gray-100">
+              Honor/s
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -415,11 +975,19 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
 
             return (
               <tr key={record.id || idx}>
-                <td>{record.education_level}</td>
-                <td>{record.school.name}</td>
-                <td>{address}</td>
-                <td>{`${record.start_year} - ${record.end_year}`}</td>
-                <td>{record.honors_received}</td>
+                <td className="border border-gray-400 px-2.5 py-2">
+                  {record.education_level}
+                </td>
+                <td className="border border-gray-400 px-2.5 py-2">
+                  {record.school.name}
+                </td>
+                <td className="border border-gray-400 px-2.5 py-2">
+                  {address}
+                </td>
+                <td className="border border-gray-400 px-2.5 py-2">{`${record.start_year} - ${record.end_year}`}</td>
+                <td className="border border-gray-400 px-2.5 py-2">
+                  {record.honors_received}
+                </td>
               </tr>
             );
           })}
@@ -434,54 +1002,76 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     }
 
     return (
-      <table className="siblings-table">
+      <table className="w-full border-collapse mt-12 text-xs">
         <thead>
           <tr>
-            <th>Brothers/Sisters</th>
-            <th>Sex</th>
-            <th>Age</th>
-            <th>Job/Occupation</th>
-            <th>Company/School</th>
-            <th>Educational Attainment</th>
+            <th className="border border-black px-4 py-3 text-left bg-gray-100 font-bold">
+              Brothers/Sisters
+            </th>
+            <th className="border border-black px-4 py-3 text-left bg-gray-100 font-bold">
+              Sex
+            </th>
+            <th className="border border-black px-4 py-3 text-left bg-gray-100 font-bold">
+              Age
+            </th>
+            <th className="border border-black px-4 py-3 text-left bg-gray-100 font-bold">
+              Job/Occupation
+            </th>
+            <th className="border border-black px-4 py-3 text-left bg-gray-100 font-bold">
+              Company/School
+            </th>
+            <th className="border border-black px-4 py-3 text-left bg-gray-100 font-bold">
+              Educational Attainment
+            </th>
           </tr>
         </thead>
         <tbody>
           {siblings.map((sibling, index) => (
             <tr key={sibling.id || index}>
-              <td>
+              <td className="border border-black px-4 py-3">
                 {sibling.first_name} {sibling.last_name}
               </td>
-              <td>{sibling.sex}</td>
-              <td>{sibling.age}</td>
-              <td>{sibling.job_occupation}</td>
-              <td>{sibling.company_school}</td>
-              <td>{sibling.educational_attainment}</td>
+              <td className="border border-black px-4 py-3">{sibling.sex}</td>
+              <td className="border border-black px-4 py-3">{sibling.age}</td>
+              <td className="border border-black px-4 py-3">
+                {sibling.job_occupation}
+              </td>
+              <td className="border border-black px-4 py-3">
+                {sibling.company_school}
+              </td>
+              <td className="border border-black px-4 py-3">
+                {sibling.educational_attainment}
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
     );
   };
+
   const seniorHighRecord = Array.isArray(previous_school_record)
     ? previous_school_record.find((r) => r.education_level === "Senior High")
     : null;
 
-  const seniorHighGPA = seniorHighRecord?.senior_high_gpa || "";
-
-  const ClosestToRadio = ({ selectedValue, specifyOther }) => {
+  const ClosestToRadio = ({
+    selectedValue,
+    specifyOther,
+    errorClosest,
+    errorSpecify,
+  }) => {
     return (
-      <div className="SCIF-inline closest-to-inline">
+      <div className="my-2.5">
         <label>Closest to:</label>
-        <div className="radio-group-inline">
+        <div className="flex gap-6 mt-2">
           {closestOptions.map((option) => (
-            <label key={option.value} className="radio-option">
+            <label key={option.value} className="flex items-center gap-1 w-fit">
               <input
                 type="radio"
                 name="closest_to"
                 value={option.value}
                 checked={selectedValue === option.value}
-                onChange={handleClosestOptionChange}
-                readOnly={role !== "admin"}
+                onChange={() => handleClosestOptionChange(option.value)}
+                disabled={!canEdit}
               />
               {option.label}
             </label>
@@ -490,13 +1080,21 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             <input
               type="text"
               value={specifyOther || ""}
-              readOnly
+              readOnly={!canEdit}
               placeholder="Specify other"
-              className="input-other"
-              style={{ marginLeft: "1rem" }}
+              onChange={(e) =>
+                handleFieldChange("specify_other", e.target.value)
+              }
+              className="ml-4 px-1 py-0.5 border border-gray-300 rounded"
             />
           )}
         </div>
+        {errorClosest && (
+          <div className="error-state-message">{errorClosest}</div>
+        )}
+        {selectedValue === "Other" && errorSpecify && (
+          <div className="error-state-message">{errorSpecify}</div>
+        )}
       </div>
     );
   };
@@ -512,13 +1110,14 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
         >
           Return to Profile
         </Button>
-        {role === "admin" && (
+        {canEdit && (
           <Button
             variant="secondary"
             onClick={handleSubmit}
             className="pdf-button"
+            disabled={isSaving}
           >
-            Save Changes
+            {isSaving ? "Saving..." : "Save Changes"}
           </Button>
         )}
         <Button
@@ -561,7 +1160,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   onChange={(e) =>
                     handleFieldChange("last_name", e.target.value)
                   }
-                  readOnly={role !== "admin"}
+                  readOnly={!canEdit}
                 />
                 <input
                   type="text"
@@ -569,7 +1168,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   onChange={(e) =>
                     handleFieldChange("first_name", e.target.value)
                   }
-                  readOnly={role !== "admin"}
+                  readOnly={!canEdit}
                 />
                 <input
                   type="text"
@@ -577,7 +1176,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   onChange={(e) =>
                     handleFieldChange("middle_name", e.target.value)
                   }
-                  readOnly={role !== "admin"}
+                  readOnly={!canEdit}
                 />
               </div>
               <div className="SCIF-name-label">
@@ -586,7 +1185,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 <label>MIDDLE NAME</label>
               </div>
               {errors.first_name && (
-                <div className="error-state-message text-center">
+                <div className="error-state-message flex justify-center">
                   {errors.first_name}
                 </div>
               )}
@@ -600,8 +1199,11 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   onChange={(e) =>
                     handleFieldChange("nickname", e.target.value)
                   }
-                  readOnly={role !== "admin"}
+                  readOnly={!canEdit}
                 />
+                <div className="error-state-message text-center">
+                  {errors.nickname}
+                </div>
               </label>
               <div>
                 <label>
@@ -609,7 +1211,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   <select
                     value={formState.sex}
                     onChange={(e) => handleFieldChange("sex", e.target.value)}
-                    disabled={role !== "admin"}
+                    disabled={!canEdit}
                   >
                     <option value="">Select</option>
                     <option value="Male">Male</option>
@@ -630,7 +1232,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                       : calculateAge(formState.birthdate).toString()
                   }
                   onChange={(e) => handleFieldChange("age", e.target.value)}
-                  readOnly={role !== "admin"}
+                  readOnly={!canEdit}
                 />
               </label>
             </div>
@@ -644,7 +1246,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                     onChange={(e) =>
                       handleFieldChange("religion", e.target.value)
                     }
-                    readOnly={role !== "admin"}
+                    readOnly={!canEdit}
                   />
                 </label>
                 {errors.religion && (
@@ -659,7 +1261,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   onChange={(e) =>
                     handleFieldChange("birth_rank", e.target.value)
                   }
-                  readOnly={role !== "admin"}
+                  readOnly={!canEdit}
                 />
               </label>
             </div>
@@ -672,7 +1274,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   onChange={(e) =>
                     handleFieldChange("birthdate", e.target.value)
                   }
-                  readOnly={role !== "admin"}
+                  readOnly={!canEdit}
                 />
               </label>
               <label>
@@ -683,20 +1285,148 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   onChange={(e) =>
                     handleFieldChange("birthplace", e.target.value)
                   }
-                  readOnly={role !== "admin"}
+                  readOnly={!canEdit}
                 />
               </label>
             </div>
             <div className="SCIF-inline">
-              <label>
-                HOME/PERMANENT ADDRESS:
+              <label className="span-2">
+                Address Line 1:
                 <input
                   type="text"
-                  readOnly={role !== "admin"}
-                  value={formState.permanent_address}
+                  value={formState.permanent_address_line_1}
                   onChange={(e) =>
-                    handleFieldChange("permanent_address", e.target.value)
+                    handleFieldChange(
+                      "permanent_address_line_1",
+                      e.target.value
+                    )
                   }
+                  readOnly={!canEdit}
+                />
+              </label>
+              {errors["permanent_address.address_line_1"] && (
+                <div className="error-state-message text-center">
+                  {errors["permanent_address.address_line_1"]}
+                </div>
+              )}
+            </div>
+            <div className="SCIF-inline">
+              <label className="span-2">
+                Address Line 2:
+                <input
+                  type="text"
+                  value={formState.permanent_address_line_2}
+                  onChange={(e) =>
+                    handleFieldChange(
+                      "permanent_address_line_2",
+                      e.target.value
+                    )
+                  }
+                  readOnly={!canEdit}
+                />
+              </label>
+            </div>
+            <div className="SCIF-inline flex-row">
+              <label>
+                Barangay:
+                <input
+                  type="text"
+                  value={formState.permanent_address_barangay}
+                  onChange={(e) =>
+                    handleFieldChange(
+                      "permanent_address_barangay",
+                      e.target.value
+                    )
+                  }
+                  readOnly={!canEdit}
+                />
+              </label>
+              <label>
+                City/Municipality:
+                <input
+                  type="text"
+                  value={formState.permanent_address_city}
+                  onChange={(e) =>
+                    handleFieldChange("permanent_address_city", e.target.value)
+                  }
+                  readOnly={!canEdit}
+                />
+              </label>
+            </div>
+            <div className="SCIF-inline flex-row">
+              <label>
+                Province:
+                <input
+                  type="text"
+                  value={formState.permanent_address_province}
+                  onChange={(e) =>
+                    handleFieldChange(
+                      "permanent_address_province",
+                      e.target.value
+                    )
+                  }
+                  readOnly={!canEdit}
+                />
+              </label>
+              <label>
+                Region:
+                {shouldUseRegionDropdown ? (
+                  <select
+                    value={formState.permanent_address_region}
+                    onChange={(e) =>
+                      handleFieldChange(
+                        "permanent_address_region",
+                        e.target.value
+                      )
+                    }
+                    disabled={!canEdit || enumsLoading}
+                  >
+                    <option value="">
+                      {enumsLoading ? "Loading regions..." : "Select a region"}
+                    </option>
+                    {regionOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={formState.permanent_address_region}
+                    onChange={(e) =>
+                      handleFieldChange(
+                        "permanent_address_region",
+                        e.target.value
+                      )
+                    }
+                    readOnly={!canEdit}
+                  />
+                )}
+              </label>
+              {errors["permanent_address.region"] && (
+                <div className="error-state-message text-center">
+                  {errors["permanent_address.region"]}
+                </div>
+              )}
+              {enumsError && (
+                <div className="error-state-message text-center">
+                  Unable to load region options. Please enter the region
+                  manually.
+                </div>
+              )}
+              <label>
+                ZIP Code:
+                <input
+                  type="text"
+                  value={formState.permanent_address_zip_code}
+                  onChange={(e) =>
+                    handleFieldChange(
+                      "permanent_address_zip_code",
+                      e.target.value
+                    )
+                  }
+                  readOnly={!canEdit}
                 />
               </label>
             </div>
@@ -705,11 +1435,11 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 LANDLINE/CONTACT NO.:{" "}
                 <input
                   type="text"
-                  value={formState.landline_number || "None"}
+                  value={formState.landline_number || ""}
                   onChange={(e) =>
                     handleFieldChange("landline_number", e.target.value)
                   }
-                  readOnly={role !== "admin"}
+                  readOnly={!canEdit}
                 />
               </label>
             </div>
@@ -720,7 +1450,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   type="text"
                   value={formState.email}
                   onChange={(e) => handleFieldChange("email", e.target.value)}
-                  readOnly={role !== "admin"}
+                  readOnly={!canEdit}
                 />
               </label>
             </div>
@@ -733,8 +1463,11 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   onChange={(e) =>
                     handleFieldChange("contact_number", e.target.value)
                   }
-                  readOnly={role !== "admin"}
+                  readOnly={!canEdit}
                 />
+                <div className="error-state-message text-center">
+                  {errors.contact_number}
+                </div>
               </label>
             </div>
           </div>
@@ -747,14 +1480,18 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 formState.last_name?.[0] || ""
               }`}
             </div>
+
             <input
               type="text"
               value={formState.student_number}
               onChange={(e) =>
                 handleFieldChange("student_number", e.target.value)
               }
-              readOnly={role !== "admin"}
+              readOnly={!canEdit}
             />
+            <div className="error-state-message text-center">
+              {errors.student_number}
+            </div>
             <label>STUDENT NUMBER</label>
             <input
               type="text"
@@ -762,24 +1499,31 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               onChange={(e) =>
                 handleFieldChange("degree_program", e.target.value)
               }
-              readOnly={role !== "admin"}
+              readOnly={!canEdit}
             />
+            <div className="error-state-message text-center">
+              {errors.degree_program}
+            </div>
             <label>DEGREE PROGRAM</label>
+
             <input
               type="text"
-              readOnly={role !== "admin"}
+              readOnly={!canEdit}
               value={formState.date_initial_entry}
               onChange={(e) =>
                 handleFieldChange("date_initial_entry", e.target.value)
               }
             />
+            <div className="error-state-message text-center">
+              {errors.date_initial_entry}
+            </div>
             <label>DATE OF INITIAL ENTRY</label>
           </div>
         </div>
 
         <div className="SCIF-section-2 SCIF-section">
           <div className="SCIF-left">
-            <div className="section-title">FAMILY DATA</div>
+            <div className="mb-15 -mt-5 font-bold">FAMILY DATA:</div>
             <div className="SCIF-inline">
               <div className="flex-row SCIF-inline">
                 <label className="span-2">
@@ -787,12 +1531,15 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   <input
                     type="text"
                     value={formState.father_name}
-                    readOnly={role !== "admin"}
+                    readOnly={!canEdit}
                     onChange={(e) =>
                       handleFieldChange("father_name", e.target.value)
                     }
                   />
                 </label>
+                <div className="error-state-message text-center">
+                  {errors.father_name}
+                </div>
                 <label>
                   Age:
                   <input
@@ -801,9 +1548,12 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                     onChange={(e) =>
                       handleFieldChange("father_age", e.target.value)
                     }
-                    readOnly={role !== "admin"}
+                    readOnly={!canEdit}
                   />
                 </label>
+                <div className="error-state-message text-center">
+                  {errors.father_age}
+                </div>
               </div>
               <label>
                 Occupation:{" "}
@@ -813,9 +1563,12 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   onChange={(e) =>
                     handleFieldChange("father_job_occupation", e.target.value)
                   }
-                  readOnly={role !== "admin"}
+                  readOnly={!canEdit}
                 />
               </label>
+              <div className="error-state-message text-center">
+                {errors.father_job_occupation}
+              </div>
               <label>
                 Company:{" "}
                 <input
@@ -824,7 +1577,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   onChange={(e) =>
                     handleFieldChange("father_company_agency", e.target.value)
                   }
-                  readOnly={role !== "admin"}
+                  readOnly={!canEdit}
                 />
               </label>
               <label>
@@ -837,7 +1590,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   onChange={(e) =>
                     handleFieldChange("father_company_address", e.target.value)
                   }
-                  readOnly={role !== "admin"}
+                  readOnly={!canEdit}
                 />
               </label>
               <label>
@@ -853,7 +1606,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                       e.target.value
                     )
                   }
-                  readOnly={role !== "admin"}
+                  readOnly={!canEdit}
                 />
               </label>
               <label>
@@ -866,13 +1619,100 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   onChange={(e) =>
                     handleFieldChange("father_contact_number", e.target.value)
                   }
-                  readOnly={role !== "admin"}
+                  readOnly={!canEdit}
+                />
+              </label>
+              <label className="span-2">
+                Mother’s Name:{" "}
+                <input
+                  type="text"
+                  value={formState.mother_name}
+                  readOnly={!canEdit}
+                  onChange={(e) =>
+                    handleFieldChange("mother_name", e.target.value)
+                  }
+                />
+              </label>
+              <label>
+                Age:
+                <input
+                  type="text"
+                  value={formState.mother_age}
+                  onChange={(e) =>
+                    handleFieldChange("mother_age", e.target.value)
+                  }
+                  readOnly={!canEdit}
+                />
+              </label>
+
+              <label>
+                Occupation:{" "}
+                <input
+                  type="text"
+                  value={formState.mother_job_occupation}
+                  onChange={(e) =>
+                    handleFieldChange("mother_job_occupation", e.target.value)
+                  }
+                  readOnly={!canEdit}
+                />
+              </label>
+              <label>
+                Company:{" "}
+                <input
+                  type="text"
+                  value={formState.mother_company_agency}
+                  onChange={(e) =>
+                    handleFieldChange("mother_company_agency", e.target.value)
+                  }
+                  readOnly={!canEdit}
+                />
+              </label>
+              <label>
+                <span className="label" style={{ width: "30%" }}>
+                  Company Address:{" "}
+                </span>
+                <input
+                  type="text"
+                  value={formState.mother_company_address}
+                  onChange={(e) =>
+                    handleFieldChange("mother_company_address", e.target.value)
+                  }
+                  readOnly={!canEdit}
+                />
+              </label>
+              <label>
+                <span className="label" style={{ width: "35%" }}>
+                  Educational Attainment:{" "}
+                </span>
+                <input
+                  type="text"
+                  value={formState.mother_highest_educational_attainment}
+                  onChange={(e) =>
+                    handleFieldChange(
+                      "mother_highest_educational_attainment",
+                      e.target.value
+                    )
+                  }
+                  readOnly={!canEdit}
+                />
+              </label>
+              <label>
+                <span className="label" style={{ width: "15%" }}>
+                  Contact No.:{" "}
+                </span>
+                <input
+                  type="text"
+                  value={formState.mother_contact_number}
+                  onChange={(e) =>
+                    handleFieldChange("mother_contact_number", e.target.value)
+                  }
+                  readOnly={!canEdit}
                 />
               </label>
             </div>
           </div>
           <div className="SCIF-right graduation">
-            <label style={{ textAlign: "left", textDecoration: "underline" }}>
+            <label style={{ textAlign: "center", textDecoration: "underline" }}>
               Do not fill-out this portion
             </label>
             <input type="text" readOnly value=" Sem. AY 20    -20     " />
@@ -886,111 +1726,11 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
         </div>
 
         <div className="SCIF-section">
-          <div className="SCIF-inline">
-            <div className="flex-row SCIF-inline">
-              <label className="span-2">
-                Mother’s Name:{" "}
-                <input
-                  type="text"
-                  value={formState.mother_name}
-                  readOnly={role !== "admin"}
-                  onChange={(e) =>
-                    handleFieldChange("mother_name", e.target.value)
-                  }
-                />
-              </label>
-
-              <label>
-                Age:
-                <input
-                  type="text"
-                  value={formState.mother_age}
-                  onChange={(e) =>
-                    handleFieldChange("mother_age", e.target.value)
-                  }
-                  readOnly={role !== "admin"}
-                />
-              </label>
-            </div>
-            <div className="SCIF-inline flex-row">
-              <label>
-                Occupation:{" "}
-                <input
-                  type="text"
-                  value={formState.mother_job_occupation}
-                  onChange={(e) =>
-                    handleFieldChange("mother_job_occupation", e.target.value)
-                  }
-                  readOnly={role !== "admin"}
-                />
-              </label>
-              <label>
-                Company:{" "}
-                <input
-                  type="text"
-                  value={formState.mother_company_agency}
-                  onChange={(e) =>
-                    handleFieldChange("mother_company_agency", e.target.value)
-                  }
-                  readOnly={role !== "admin"}
-                />
-              </label>
-            </div>
-            <div className="SCIF-inline">
-              <label>
-                <span className="label" style={{ width: "19%" }}>
-                  Company Address:{" "}
-                </span>
-                <input
-                  type="text"
-                  value={formState.mother_company_address}
-                  onChange={(e) =>
-                    handleFieldChange("mother_company_address", e.target.value)
-                  }
-                  readOnly={role !== "admin"}
-                />
-              </label>
-            </div>
-            <div className="SCIF-inline flex-row">
-              <label>
-                <span className="label" style={{ width: "35%" }}>
-                  Educational Attainment:{" "}
-                </span>{" "}
-                <input
-                  type="text"
-                  value={formState.mother_highest_educational_attainment}
-                  onChange={(e) =>
-                    handleFieldChange(
-                      "mother_educational_attainment",
-                      e.target.value
-                    )
-                  }
-                  readOnly={role !== "admin"}
-                />
-              </label>
-              <label>
-                <span className="label" style={{ width: "20%" }}>
-                  Contact No.:{" "}
-                </span>
-                <input
-                  type="text"
-                  value={formState.mother_contact_number}
-                  onChange={(e) =>
-                    handleFieldChange("mother_contact_number", e.target.value)
-                  }
-                  readOnly={role !== "admin"}
-                />
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <div className="SCIF-section">
           <SiblingsTable siblings={siblings} />
         </div>
         <div className="SCIF-section SCIF-inline">
-          <div className="section-title">GUARDIAN</div>
-          <div className="flex-row SCIF-inline">
+          <div className="mb-8 font-bold">GUARDIAN:</div>
+          <div className="SCIF-inline flex-row">
             <label>
               Guardian while in UP:{" "}
               <input
@@ -999,7 +1739,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 onChange={(e) =>
                   handleFieldChange("guardian_name", e.target.value)
                 }
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
               />
             </label>
             <label>
@@ -1010,11 +1750,10 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 onChange={(e) =>
                   handleFieldChange("guardian_contact_number", e.target.value)
                 }
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
               />
             </label>
-          </div>
-          <div className="SCIF-inline flex-row">
+
             <label>
               Address:{" "}
               <input
@@ -1023,7 +1762,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 onChange={(e) =>
                   handleFieldChange("guardian_address", e.target.value)
                 }
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
               />
             </label>
             <label>
@@ -1037,7 +1776,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                     e.target.value
                   )
                 }
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
               />
             </label>
           </div>
@@ -1049,11 +1788,13 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </span>
               <input
                 type="text"
-                value={formState.guardian_language_dialect || "N/A"}
+                value={
+                  formState.guardian_language_dialect || (!canEdit ? "N/A" : "")
+                }
                 onChange={(e) =>
                   handleFieldChange("guardian_language_dialect", e.target.value)
                 }
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
               />
             </label>
           </div>
@@ -1064,26 +1805,25 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           <HealthConditionRadio
             selectedValue={formState.health_condition}
             onChange={handleConditionChange}
-            role={role}
           />
 
-          <div className="SCIF-inline flex-row">
+          <div className="flex justify-between -mt-5 gap-4">
             <label>
-              Height (m):{" "}
+              Height (m):
               <input
                 type="text"
                 value={formState.height}
                 onChange={(e) => handleFieldChange("height", e.target.value)}
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
               />
             </label>
             <label>
-              Weight (kg):{" "}
+              Weight (kg):
               <input
                 type="text"
                 value={formState.weight}
                 onChange={(e) => handleFieldChange("weight", e.target.value)}
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
               />
             </label>
             <label>
@@ -1091,20 +1831,20 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               <input
                 type="text"
                 value={formState.eyesight}
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
                 onChange={(e) => handleFieldChange("eyesight", e.target.value)}
               />
             </label>
           </div>
 
-          <div className="SCIF-inline flex-row">
+          <div className="flex justify-between -mt-5 gap-4">
             <label>
               Hearing [Good, Medium, Poor]:{" "}
               <input
                 type="text"
                 value={formState.hearing}
                 onChange={(e) => handleFieldChange("hearing", e.target.value)}
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
               />
             </label>
             <label>
@@ -1119,12 +1859,12 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 onChange={(e) =>
                   handleFieldChange("physical_disabilities", e.target.value)
                 }
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
               />
             </label>
           </div>
 
-          <div className="SCIF-inline flex-row">
+          <div className="flex justify-between -mt-5 gap-4">
             <label>
               Frequent Ailments:{" "}
               <input
@@ -1133,7 +1873,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 onChange={(e) =>
                   handleFieldChange("common_ailments", e.target.value)
                 }
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
               />
             </label>
             <label>
@@ -1144,7 +1884,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 onChange={(e) =>
                   handleFieldChange("last_hospitalization", e.target.value)
                 }
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
               />
             </label>
           </div>
@@ -1157,7 +1897,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 onChange={(e) =>
                   handleFieldChange("reason_of_hospitalization", e.target.value)
                 }
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
               />
             </label>
           </div>
@@ -1168,23 +1908,25 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           <PreviousSchoolRecordsTable records={previous_school_record} />
           <div className="SCIF-inline">
             <label>
-              <span
-                className="label"
-                style={{ width: "80%", textAlign: "right" }}
-              >
-                SR. HIGH GEN. AVE:{" "}
-              </span>{" "}
-              <span style={{ width: "20%" }}>
-                {" "}
-                <input
-                  type="text"
-                  value={formState.senior_high_gpa}
-                  onChange={(e) =>
-                    handleFieldChange("senior_high_gpa", e.target.value)
-                  }
-                  readOnly={role !== "admin"}
-                />{" "}
-              </span>
+              <div className="flex justify-between mt-5 gap-4">
+                <span
+                  className="label"
+                  style={{ width: "80%", textAlign: "right" }}
+                >
+                  SR. HIGH GEN. AVE:{" "}
+                </span>{" "}
+                <span className="-mt-3" style={{ width: "20%" }}>
+                  {" "}
+                  <input
+                    type="text"
+                    value={formState.senior_high_gpa}
+                    onChange={(e) =>
+                      handleFieldChange("senior_high_gpa", e.target.value)
+                    }
+                    readOnly={!canEdit}
+                  />{" "}
+                </span>
+              </div>
             </label>
           </div>
         </div>
@@ -1202,7 +1944,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   value={formState.scholarships_and_assistance[idx]}
                   onChange={(e) => handleScholarshipChange(idx, e)}
                   style={{ width: "90%" }}
-                  readOnly={role !== "admin"}
+                  readOnly={!canEdit}
                 />
               </div>
             ))
@@ -1236,7 +1978,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </tbody>
             </table>
           ) : (
-            <p>No organization data available.</p>
+            <label>No organization data available.</label>
           )}
         </div>
 
@@ -1265,7 +2007,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </tbody>
             </table>
           ) : (
-            <p>No awards data available.</p>
+            <label>No awards data available.</label>
           )}
         </div>
 
@@ -1281,24 +2023,43 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 onChange={(e) =>
                   handleFieldChange("enrollment_reason", e.target.value)
                 }
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
               />
             </label>
           </div>
-          <div className="flex-row SCIF-inline">
+          <div className="flex justify-between -mt-5 gap-4">
             <label>
               <span className="label" style={{ width: "55%" }}>
                 Does your program match your goal?
-              </span>{" "}
-              <input
-                type="text"
-                value={formState.degree_program_aspiration ? "Yes" : "No"}
-                onChange={(e) =>
-                  handleFieldChange("degree_program_aspiration", e.target.value)
-                }
-                readOnly={role !== "admin"}
-              />
+              </span>
             </label>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-1">
+                <input
+                  type="radio"
+                  name="degree_program_aspiration"
+                  checked={formState.degree_program_aspiration === true}
+                  onChange={() =>
+                    handleFieldChange("degree_program_aspiration", true)
+                  }
+                  disabled={!canEdit}
+                />
+                Yes
+              </label>
+              <label className="flex items-center gap-1">
+                <input
+                  type="radio"
+                  name="degree_program_aspiration"
+                  checked={formState.degree_program_aspiration === false}
+                  onChange={() =>
+                    handleFieldChange("degree_program_aspiration", false)
+                  }
+                  disabled={!canEdit}
+                />
+                No
+              </label>
+            </div>
+
             <label>
               <span className="label" style={{ width: "20%" }}>
                 If not, why?
@@ -1308,7 +2069,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 onChange={(e) =>
                   handleFieldChange("aspiration_explanation", e.target.value)
                 }
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
               />
             </label>
           </div>
@@ -1322,7 +2083,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 onChange={(e) =>
                   handleFieldChange("special_talents", e.target.value)
                 }
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
               />
             </label>
           </div>
@@ -1336,7 +2097,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 onChange={(e) =>
                   handleFieldChange("musical_instruments", e.target.value)
                 }
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
               />
             </label>
           </div>
@@ -1346,7 +2107,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               <AutoResizeTextarea
                 value={formState.hobbies || ""}
                 onChange={(e) => handleFieldChange("hobbies", e.target.value)}
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
               />
             </label>
           </div>
@@ -1360,7 +2121,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 onChange={(e) =>
                   handleFieldChange("likes_in_people", e.target.value)
                 }
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
               />
             </label>
           </div>
@@ -1375,14 +2136,21 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 onChange={(e) =>
                   handleFieldChange("dislikes_in_people", e.target.value)
                 }
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
               />
             </label>
           </div>
-          <div className="SCIF-inline">
+          <div className="flex justify-between -mt-5 gap-4">
             <ClosestToRadio
-              selectedValue={family_relationship.closest_to}
-              specifyOther={family_relationship.specify_other}
+              selectedValue={formState.closest_to}
+              specifyOther={formState.specify_other}
+              errorClosest={
+                errors.closest_to || errors["family_relationship.closest_to"]
+              }
+              errorSpecify={
+                errors.specify_other ||
+                errors["family_relationship.specify_other"]
+              }
             />
           </div>
           <div className="SCIF-inline">
@@ -1396,11 +2164,11 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 onChange={(e) =>
                   handleFieldChange("personal_characteristics", e.target.value)
                 }
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
               />
             </label>
           </div>
-          <div className="SCIF-inline flex-row">
+          <div className="flex justify-between -mt-5 gap-4">
             <label>
               <span className="label" style={{ width: "40%" }}>
                 Who do you open up to?{" "}
@@ -1411,7 +2179,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 onChange={(e) =>
                   handleFieldChange("problem_confidant", e.target.value)
                 }
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
               />
             </label>
             <label>
@@ -1421,7 +2189,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 onChange={(e) =>
                   handleFieldChange("confidant_reason", e.target.value)
                 }
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
               />
             </label>
           </div>
@@ -1435,59 +2203,83 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 onChange={(e) =>
                   handleFieldChange("anticipated_problems", e.target.value)
                 }
-                readOnly={role !== "admin"}
+                readOnly={!canEdit}
               />
             </label>
           </div>
-          <div className="SCIF-inline flex-row">
+          <div className="flex justify-between -mt-5 gap-4">
             <label>
               <span className="label" style={{ width: "40%" }}>
                 Any previous counseling?
-              </span>{" "}
-              <input
-                type="text"
-                value={formState.previous_counseling ? "Yes" : "None"}
-                onChange={(e) =>
-                  handleFieldChange("previous_counseling", e.target.value)
-                }
-                readOnly={role !== "admin"}
-              />
+              </span>
             </label>
-            <label>
-              If yes, where:{" "}
-              <input
-                type="text"
-                value={formState.counseling_location || "N/A"}
-                onChange={(e) =>
-                  handleFieldChange("counseling_location", e.target.value)
-                }
-                readOnly={role !== "admin"}
-              />
-            </label>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-1">
+                <input
+                  type="radio"
+                  name="previous_counseling"
+                  checked={formState.previous_counseling === true}
+                  onChange={() =>
+                    handleFieldChange("previous_counseling", true)
+                  }
+                  disabled={!canEdit}
+                />
+                Yes
+              </label>
+              <label className="flex items-center gap-1">
+                <input
+                  type="radio"
+                  name="previous_counseling"
+                  checked={formState.previous_counseling === false}
+                  onChange={() =>
+                    handleFieldChange("previous_counseling", false)
+                  }
+                  disabled={!canEdit}
+                />
+                No
+              </label>
+            </div>
           </div>
-          <div className="SCIF-inline flex-row">
-            <label>
-              To whom?{" "}
-              <input
-                type="text"
-                value={formState.counseling_counselor || "N/A"}
-                onChange={(e) =>
-                  handleFieldChange("counseling_counselor", e.target.value)
-                }
-                readOnly={role !== "admin"}
-              />
-            </label>
-            <label>
-              Why?{" "}
-              <AutoResizeTextarea
-                value={formState.counseling_reason || "N/A"}
-                onChange={(e) =>
-                  handleFieldChange("counseling_reason", e.target.value)
-                }
-                readOnly={role !== "admin"}
-              />
-            </label>
-          </div>
+          {formState.previous_counseling && (
+            <>
+              <div className="flex justify-between -mt-5 gap-4">
+                <label>
+                  If yes, where:{" "}
+                  <input
+                    type="text"
+                    value={formState.counseling_location || ""}
+                    onChange={(e) =>
+                      handleFieldChange("counseling_location", e.target.value)
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+                <label>
+                  To whom?{" "}
+                  <input
+                    type="text"
+                    value={formState.counseling_counselor || ""}
+                    onChange={(e) =>
+                      handleFieldChange("counseling_counselor", e.target.value)
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+              </div>
+              <div className="SCIF-inline flex-row">
+                <label>
+                  Why?{" "}
+                  <AutoResizeTextarea
+                    value={formState.counseling_reason || ""}
+                    onChange={(e) =>
+                      handleFieldChange("counseling_reason", e.target.value)
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="signature">
@@ -1550,7 +2342,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           <textarea
             className="guidance-notes"
             rows={5}
-            readOnly={role !== "admin"}
+            readOnly={!canEdit}
             placeholder="____________________________________________________________________________________________&#10;____________________________________________________________________________________________&#10;____________________________________________________________________________________________"
             value={formState.guidance_notes || ""}
             onChange={(e) =>
@@ -1595,14 +2387,13 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           </label>
         </div>
 
-        <div className="flex-row">
+        <div className="flex justify-between -mt-5 gap-4">
           <label>
             Name of Student:{" "}
             <input type="text" value={formState.name} readOnly />
           </label>
           <label>
-            Signature of Student:{" "}
-            <input type="text" readOnly={role !== "admin"} />
+            Signature of Student: <input type="text" readOnly={!canEdit} />
           </label>
           <label>
             Date Signed:{" "}

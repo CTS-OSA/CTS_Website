@@ -85,28 +85,31 @@ const SCIFFamilyData = ({
         ...currentParent,
         first_name: currentParent.first_name || "",
         last_name: currentParent.last_name || "",
-        age: "0",
-        contact_number: "00000000000",
-        highest_educational_attainment: "N/A",
-        job_occupation: "N/A",
-        company_agency: "N/A",
-        company_address: "N/A",
+        age: null,
+        contact_number: null,
+        highest_educational_attainment: null,
+        job_occupation: null,
+        company_address: null,
+        company_agency: null,
         is_deceased: true,
         is_none: false,
       },
     });
+
+    // Clear errors for this parent
+    clearParentErrors(parent);
   };
 
   const fillNoneFields = (parent) => {
     const fields = {
-      first_name: "None",
-      last_name: "None",
-      age: "N/A",
-      contact_number: "N/A",
-      highest_educational_attainment: "N/A",
-      job_occupation: "N/A",
-      company_agency: "N/A",
-      company_address: "N/A",
+      first_name: null,
+      last_name: null,
+      age: null,
+      contact_number: null,
+      highest_educational_attainment: null,
+      job_occupation: null,
+      company_agency: null,
+      company_address: null,
       is_none: true,
       is_deceased: false,
     };
@@ -115,6 +118,9 @@ const SCIFFamilyData = ({
       ...family_data,
       [parent]: fields,
     });
+
+    // Clear errors for this parent
+    clearParentErrors(parent);
   };
 
   const clearParentFields = (parent) => {
@@ -133,6 +139,26 @@ const SCIFFamilyData = ({
         company_address: "",
       },
     });
+  };
+
+  // Clear all validation errors for a parent
+  const clearParentErrors = (parent) => {
+    const parentErrorKeys = [
+      `${parent}.first_name`,
+      `${parent}.last_name`,
+      `${parent}.age`,
+      `${parent}.contact_number`,
+      `${parent}.highest_educational_attainment`,
+      `${parent}.job_occupation`,
+      `${parent}.company_agency`,
+      `${parent}.company_address`,
+    ];
+
+    const newErrors = { ...errors };
+    parentErrorKeys.forEach((key) => {
+      delete newErrors[key];
+    });
+    setErrors(newErrors);
   };
 
   const handleParentToggle = (parent, field, value) => {
@@ -230,8 +256,8 @@ const SCIFFamilyData = ({
     <div className="space-y-2">
       <h2 className="text-2xl font-bold text-gray-800 ">Family Data</h2>
       <small className="text-gray-600 block mb-4">
-        Provide complete details of your parents and siblings; indicate “N/A”,
-        “Deceased”, or “None” if applicable.
+        Provide complete details of your parents and siblings; indicate "N/A",
+        "Deceased", or "None" if applicable.
       </small>
 
       {/* Father Section */}
@@ -344,9 +370,13 @@ const SCIFFamilyData = ({
                     label="Contact Number"
                     type="text"
                     value={family_data.father?.contact_number || ""}
+                    onFocus={() =>
+                      clearError(errors, setErrors, "father.contact_number")
+                    }
                     onChange={(e) =>
                       handleContactChange("father", e.target.value)
                     }
+                    error={errors?.["father.contact_number"]}
                   />
                 </div>
 
@@ -455,6 +485,7 @@ const SCIFFamilyData = ({
                   onChange={(e) =>
                     handleFieldChange("mother", "age", e.target.value)
                   }
+                  error={errors?.["mother.age"]}
                   required
                 />
               )}
@@ -496,6 +527,7 @@ const SCIFFamilyData = ({
                     onChange={(e) =>
                       handleContactChange("mother", e.target.value)
                     }
+                    error={errors?.["mother.contact_number"]}
                   />
                 </div>
 
@@ -657,6 +689,7 @@ const SCIFFamilyData = ({
             onChange={(e) =>
               handleFieldChange("guardian", "first_name", e.target.value)
             }
+            error={errors?.["guardian.first_name"]}
             required
           />
           <FormField
@@ -666,6 +699,7 @@ const SCIFFamilyData = ({
             onChange={(e) =>
               handleFieldChange("guardian", "last_name", e.target.value)
             }
+            error={errors?.["guardian.last_name"]}
             required
           />
         </div>
@@ -676,6 +710,7 @@ const SCIFFamilyData = ({
             type="text"
             value={family_data.guardian?.contact_number || ""}
             onChange={(e) => handleContactChange("guardian", e.target.value)}
+            error={errors?.["guardian.contact_number"]}
             required
           />
           <FormField
@@ -685,6 +720,7 @@ const SCIFFamilyData = ({
             onChange={(e) =>
               handleFieldChange("guardian", "address", e.target.value)
             }
+            error={errors?.["guardian.address"]}
             required
           />
         </div>
@@ -701,6 +737,7 @@ const SCIFFamilyData = ({
                 e.target.value
               )
             }
+            error={errors?.["guardian.relationship_to_guardian"]}
             required
           />
           <FormField
@@ -708,7 +745,7 @@ const SCIFFamilyData = ({
             type="text"
             value={languageInput}
             onChange={handleLanguageChange}
-            helpertext="e.g., Tagalog, English"
+            error={errors?.["guardian.language_dialect"]}
             required
           />
         </div>

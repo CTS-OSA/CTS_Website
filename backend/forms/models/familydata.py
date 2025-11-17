@@ -8,7 +8,7 @@ from django.core.validators import RegexValidator
 
 def get_phone_validator():
     return RegexValidator(
-        regex=r'^\+?\d{9,15}$',
+        regex=r'^\+?\d{9,11}$',
         message="Enter a valid phone number (9 to 15 digits, optional leading '+')."
     )
 
@@ -21,12 +21,28 @@ class Parent(models.Model):
     company_address = models.TextField(null=True, blank=True)
     highest_educational_attainment = models.CharField(max_length=50, null=True, blank=True)
     contact_number = models.CharField(max_length=15, validators=[get_phone_validator()], null=True, blank=True)
+    is_deceased = models.BooleanField(default=False)
+    is_none = models.BooleanField(default=False)
 
     def clean(self):
         if self.submission.status == 'draft':
             return
         
         elif self.submission.status == 'submitted':
+            # If marked as deceased, only first_name and last_name are required
+            if self.is_deceased:
+                required_fields = {
+                    'first_name': 'required',
+                    'last_name': 'required'
+                }
+                check_required_fields(self, required_fields, self.submission.status)
+                return
+            
+            # If marked as none, skip all validation
+            if self.is_none:
+                return
+            
+            # Otherwise, all fields are required
             required_fields = {
                 'first_name': 'required',
                 'last_name': 'required',
@@ -73,6 +89,7 @@ class Guardian(models.Model):
     address = models.CharField(max_length=100, null=True, blank=True)
     relationship_to_guardian = models.CharField(max_length=50, null=True, blank=True)
     language_dialect = models.JSONField(null=True, blank=True)
+    
 
     def clean(self):
         if self.submission.status == 'draft':
@@ -98,6 +115,8 @@ class FamilyData(models.Model):
     mother = models.ForeignKey(Parent, null=True, blank=True, on_delete=models.CASCADE, related_name='children_mother')
     father = models.ForeignKey(Parent, null=True, blank=True, on_delete=models.CASCADE, related_name='children_father')
     guardian = models.ForeignKey(Guardian, null=True, blank=True, on_delete=models.CASCADE)
+    
+   
 
     def clean(self):
         if self.submission.status == 'draft':

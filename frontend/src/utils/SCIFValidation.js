@@ -2,37 +2,68 @@ export const validateParent = (formData) => {
   const errors = {};
 
   const mother = formData.family_data.mother || {};
-  if (!mother.first_name)
-    errors["mother.first_name"] = "Mother's first name is required.";
-  if (!mother.last_name)
-    errors["mother.last_name"] = "Mother's last name is required.";
-  if (mother.age === undefined || mother.age === null || mother.age === "") {
-    errors["mother.age"] = "Mother's age is required.";
-  } else if (Number(mother.age) < 0) {
-    errors["mother.age"] = "Mother's age must be 0 or greater.";
-  }
-  if (!mother.contact_number) {
-    errors["mother.contact_number"] = "Mother's contact number is required.";
-  } else if (!/^\+?\d{9,15}$/.test(mother.contact_number)) {
-    errors["mother.contact_number"] =
-      "Mother's contact must be a valid phone number.";
+  const father = formData.family_data.father || {};
+
+  // --- MOTHER VALIDATION ---
+  // If "None" is checked, skip all validation
+  if (!mother.is_none) {
+    // First name and last name are always required (even if deceased)
+    if (!mother.first_name)
+      errors["mother.first_name"] = "Mother's first name is required.";
+    if (!mother.last_name)
+      errors["mother.last_name"] = "Mother's last name is required.";
+
+    // Age and contact number only required if NOT deceased
+    if (!mother.is_deceased) {
+      if (
+        mother.age === undefined ||
+        mother.age === null ||
+        mother.age === ""
+      ) {
+        errors["mother.age"] = "Mother's age is required.";
+      } else if (Number(mother.age) < 0) {
+        errors["mother.age"] = "Mother's age must be 0 or greater.";
+      }
+
+      if (!mother.contact_number) {
+        errors["mother.contact_number"] =
+          "Mother's contact number is required.";
+      } else if (!/^\+?\d{11}$/.test(mother.contact_number)) {
+        errors["mother.contact_number"] =
+          "Mother's contact must be a valid phone number.";
+      }
+    }
   }
 
-  const father = formData.family_data.father || {};
-  if (!father.first_name)
-    errors["father.first_name"] = "Father's first name is required.";
-  if (!father.last_name)
-    errors["father.last_name"] = "Father's last name is required.";
-  if (father.age === undefined || father.age === null || father.age === "") {
-    errors["father.age"] = "Father's age is required.";
-  } else if (Number(father.age) < 0) {
-    errors["father.age"] = "Father's age must be 0 or greater.";
-  }
-  if (!father.contact_number) {
-    errors["father.contact_number"] = "Father's contact number is required.";
-  } else if (!/^\+?\d{9,15}$/.test(father.contact_number)) {
-    errors["father.contact_number"] =
-      "Father's contact number must be a valid phone number.";
+  // --- FATHER VALIDATION ---
+  // If "None" is checked, skip all validation
+  if (!father.is_none) {
+    // First name and last name are always required (even if deceased)
+    if (!father.first_name)
+      errors["father.first_name"] = "Father's first name is required.";
+    if (!father.last_name)
+      errors["father.last_name"] = "Father's last name is required.";
+
+    // Age and contact number only required if NOT deceased
+    if (!father.is_deceased) {
+      if (
+        father.age === undefined ||
+        father.age === null ||
+        father.age === ""
+      ) {
+        errors["father.age"] = "Father's age is required.";
+      } else if (Number(father.age) < 0) {
+        errors["father.age"] = "Father's age must be 0 or greater.";
+      }
+
+      if (!father.contact_number) {
+        errors["father.contact_number"] =
+          "Father's contact number is required.";
+      } else if (!/^\+?\d{11}$/.test(father.contact_number)) {
+        errors["father.contact_number"] =
+          "Father's contact number must be a valid phone number.";
+      }
+    }
   }
 
   return errors;
@@ -59,7 +90,7 @@ export const validateGuardian = (formData) => {
     if (!guardian.contact_number) {
       errors["guardian.contact_number"] =
         "Guardian's contact number is required.";
-    } else if (!/^\+?\d{9,15}$/.test(guardian.contact_number)) {
+    } else if (!/^\+?\d{11}$/.test(guardian.contact_number)) {
       errors["guardian.contact_number"] =
         "Guardian's contact number must be a valid phone number.";
     }
@@ -74,7 +105,7 @@ export const validateGuardian = (formData) => {
       guardian.language_dialect.length === 0
     ) {
       errors["guardian.language_dialect"] =
-        "Guardian's language dialect is required.";
+        "Indicate at least one language or dialect.";
     }
   }
   return errors;
@@ -104,7 +135,9 @@ export const validateSibling = (formData) => {
       if (!sibling.age) {
         errors[`${prefix}.age`] = `Sibling #${index + 1}'s age is required.`;
       } else if (Number(sibling.age) < 0) {
-        errors[`${prefix}.age`] = `Sibling #${index + 1}'s age must be 0 or greater.`;
+        errors[`${prefix}.age`] = `Sibling #${
+          index + 1
+        }'s age must be 0 or greater.`;
       }
       if (!sibling.educational_attainment) {
         errors[`${prefix}.educational_attainment`] = `Sibling #${
@@ -217,10 +250,12 @@ export const validatePreviousSchool = (records) => {
     const yearRegex = /^\d{4}$/;
 
     if (!yearRegex.test(record.start_year)) {
-      errors[`${prefix}.start_year`] = "Start year must be a 4-digit year (e.g., 2024).";
+      errors[`${prefix}.start_year`] =
+        "Start year must be a 4-digit year (e.g., 2024).";
     }
     if (!yearRegex.test(record.end_year)) {
-      errors[`${prefix}.end_year`] = "End year must be a 4-digit year (e.g., 2024).";
+      errors[`${prefix}.end_year`] =
+        "End year must be a 4-digit year (e.g., 2024).";
     }
 
     const start = Number(record.start_year);
@@ -229,32 +264,37 @@ export const validatePreviousSchool = (records) => {
     const currentYear = new Date().getFullYear();
 
     if (!yearRegex.test(record.start_year)) {
-        errors[`${prefix}.start_year`] = "Start year must be a 4-digit year (e.g., 2024).";
+      errors[`${prefix}.start_year`] =
+        "Start year must be a 4-digit year (e.g., 2024).";
     }
     if (!yearRegex.test(record.end_year)) {
-        errors[`${prefix}.end_year`] = "End year must be a 4-digit year (e.g., 2024).";
+      errors[`${prefix}.end_year`] =
+        "End year must be a 4-digit year (e.g., 2024).";
     }
 
     if (!isNaN(start) && !isNaN(end)) {
-        // --- MIN/MAX YEAR VALIDATION ---
-        if (start < MIN_YEAR) {
-            errors[`${prefix}.start_year`] = `Start year cannot be earlier than ${MIN_YEAR}.`;
-        }
-        if (end < MIN_YEAR) {
-            errors[`${prefix}.end_year`] = `End year cannot be earlier than ${MIN_YEAR}.`;
-        }
-        if (start > currentYear) {
-            errors[`${prefix}.start_year`] = "Start year cannot be in the future.";
-        }
-        if (end > currentYear) {
-            errors[`${prefix}.end_year`] = "End year cannot be in the future.";
-        }
-        if (end < start) {
-            errors[`${prefix}.end_year`] =
-                "End year cannot be earlier than start year.";
-          }
-        }
-      
+      // --- MIN/MAX YEAR VALIDATION ---
+      if (start < MIN_YEAR) {
+        errors[
+          `${prefix}.start_year`
+        ] = `Start year cannot be earlier than ${MIN_YEAR}.`;
+      }
+      if (end < MIN_YEAR) {
+        errors[
+          `${prefix}.end_year`
+        ] = `End year cannot be earlier than ${MIN_YEAR}.`;
+      }
+      if (start > currentYear) {
+        errors[`${prefix}.start_year`] = "Start year cannot be in the future.";
+      }
+      if (end > currentYear) {
+        errors[`${prefix}.end_year`] = "End year cannot be in the future.";
+      }
+      if (end < start) {
+        errors[`${prefix}.end_year`] =
+          "End year cannot be earlier than start year.";
+      }
+    }
 
     if (record.education_level === "Senior High") {
       if (
@@ -275,7 +315,6 @@ export const validatePreviousSchool = (records) => {
       requiredLevels[record.education_level] = true;
     }
   });
-  
 
   Object.entries(requiredLevels).forEach(([level, found]) => {
     if (!found) {

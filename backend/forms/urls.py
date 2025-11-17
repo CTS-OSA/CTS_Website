@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views.profilesetup import create_student_profile, get_student_profile, update_student_profile, check_student_number
-from .views.GeneralSubmissionViewSet import FormBundleView, FinalizeSubmissionView
+from .views.GeneralSubmissionViewSet import FormBundleView, FinalizeSubmissionView, AdminFormEditView
 from .views.adminDisplay import AdminStudentListView, get_student_profile_by_id, AdminBISList, AdminStudentFormsView, AdminSCIFList, AdminStudentFormView
 from .views.display import SubmissionViewSet 
 from .views.getEnums import EnumChoicesView
@@ -33,6 +33,7 @@ urlpatterns = [
     # ADMIN SIDE
     path('edit/bis/<str:student_id>/', BISEditView.as_view(), name='bis-edit'),
     path('edit/scif/<str:student_id>/', SCIFEditView.as_view(), name='scif-edit'),
+    path('admin-edit/<int:submission_id>/', AdminFormEditView.as_view(), name='admin-form-edit'),
     
     # PARD SUBMIT
     path('pard/submit/<int:submission_id>/', PARDSubmitView.as_view(), name='pard-submit'),

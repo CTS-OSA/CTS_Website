@@ -78,7 +78,7 @@ class SCIFEditView(APIView):
 
             # Update health data
             health_data, created = HealthData.objects.get_or_create(
-                student_number=student,
+                student=student,
                 submission=submission
             )
 
@@ -150,7 +150,7 @@ class SCIFEditView(APIView):
 
                 guidance_serializer = GuidanceSpecialistNotesSerializer(guidance_notes, data=data, partial=True)
                 if guidance_serializer.is_valid():
-                    guidance_serializer.save
+                    guidance_serializer.save()
                 else: 
                     logger.error(f"Error on guidance notes validation:", {personality_traits_serializer.errors})
                     return Response({'An error occurred while updating the data.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -161,4 +161,5 @@ class SCIFEditView(APIView):
         except Submission.DoesNotExist:
             return Response({'error': 'SCIF form not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
+            logger.error(f"Error updating SCIF form: {str(e)}", exc_info=True)
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
