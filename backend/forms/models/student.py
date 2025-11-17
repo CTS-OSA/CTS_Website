@@ -20,7 +20,7 @@ def get_phone_validator():
     )
 
 def student_photo_upload_path(instance, filename):
-    return f'student_photos/{instance.student.student_number}/{filename}'
+    return f'student_photos/{filename}'
 
 class Student(models.Model):
     # Education
