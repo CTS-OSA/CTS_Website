@@ -301,12 +301,8 @@ const StudentSideInfo = ({
   useEffect(() => {
     setFormData(profileData);
 
-    let photoUrl = null;
-    const imagePath = profileData?.photo?.image;
+    let photoUrl = profileData?.photo?.image;
 
-    if (imagePath && typeof imagePath === "string" && imagePath.trim() !== "") {
-      photoUrl = `${"http://localhost:8000/"}${imagePath}`;
-    }
     setPhotoPreview(photoUrl);
     setValidationErrors({});
   }, [profileData]);
