@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
-
+from django.core.validators import RegexValidator
 
 def check_required_fields(instance, fields, status):
     """
@@ -47,3 +47,10 @@ def get_or_create_school_and_address(school_data):
     )
 
     return school
+
+
+def get_phone_validator():
+    return RegexValidator(
+        regex=r'^\+?\d{9,15}$',
+        message="Enter a valid phone number (9 to 15 digits, optional leading '+')."
+    )

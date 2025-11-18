@@ -8,6 +8,7 @@ from .views.getEnums import EnumChoicesView
 from .views.BISEditView import BISEditView
 from .views.SCIFEditView import SCIFEditView
 from .views.PARDView import PARDSubmitView
+from .views.AdminProfileView import get_counselor_profile, update_counselor_profile, create_counselor_profile
 
 app_name= 'forms'
 
@@ -40,4 +41,17 @@ urlpatterns = [
     path('pard/student-data/<str:student_number>/', PARDSubmitView.as_view(), name='pard-student-data'),
     
     path('display/', include(router.urls)), 
+    
+    # Create a new counselor profile (POST)
+    path("counselors/create/", create_counselor_profile, name="create-counselor"),
+
+    # Get logged-in counselor profile (GET)
+    path("counselors/me/", get_counselor_profile, name="get-counselor-profile"),
+
+    # Update counselor profile (PATCH)
+    # - Admin can pass counselor_id
+    # - Counselor can update their own profile
+    path("counselors/update/", update_counselor_profile, name="update-counselor-self"),
+    path("counselors/update/<int:counselor_id>/", update_counselor_profile, name="update-counselor-admin"),
 ]
+

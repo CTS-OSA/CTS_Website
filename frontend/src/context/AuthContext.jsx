@@ -81,6 +81,21 @@ export const AuthProvider = ({ children }) => {
         }
       }
 
+      else if (currentRole === "admin") {
+      const profileRes = await apiRequest(
+        "http://localhost:8000/api/forms/counselors/me/", 
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (profileRes.ok) {
+        const profileJson = await profileRes.json();
+        setProfileData(profileJson);
+      } else if (profileRes.status === 404) {
+        setProfileData({});
+      } else {
+        throw new Error("Failed to fetch staff profile");
+      }
+    }
+
       setLoading(false);
     } catch (err) {
       console.error("User/profile fetch failed", err);
