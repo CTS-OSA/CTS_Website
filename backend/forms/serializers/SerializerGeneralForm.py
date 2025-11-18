@@ -16,3 +16,13 @@ class SubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Submission
         fields = ['id', 'form_type', 'status', 'saved_on', 'submitted_on', 'created_at', 'updated_at', 'student']
+        
+    def validate(self, data):
+        """
+        Enforce conditional validation depending on form type:
+        - If the form is not 'Counseling Referral Slip' (CRS),
+          then student must be specified.
+        """
+        if data['form_type'] != 'CRS' and not data.get('student'):
+            raise serializers.ValidationError("Student is required for this form type.")
+        return data

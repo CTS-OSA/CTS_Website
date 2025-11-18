@@ -69,12 +69,26 @@ class SupportChoices(models.TextChoices):
     COMBINATION = 'combination', 'Combination'
     OTHERS = 'others', 'Others'
     GOV_FUNDED = 'gov_funded', 'Government Funded'
+    
+class ReceiptStatus(models.TextChoices):
+    CLOSED_AT_INTAKE = "closed_intake", "Closed at Intake Interview"
+    FOR_COUNSELING = "for_counseling", "For Counseling"
+    FOR_PSY_TESTING = "for_psych_test", "For Psychological testing"
+    COUNSELING_ONGOING = "counseling_ongoing", "Counseling Sessions are on-going"
+    COUNSELING_COMPLETED = "counseling_completed", "Sessions Completed / Case Terminated"
+    NO_SHOW = "no_show", "Student did not show up"
+    REFERRED_TO = "referred_to", "Referred to"
 
 class PARDStatus(models.TextChoices):
     READ = 'read', 'Read'
     UNREAD = 'unread', 'Unread'
     PENDING = 'pending', 'Pending'
     COMPLETED = 'completed', 'Completed'
+    
+class ReferralStatus(models.TextChoices):
+    UNREAD = 'unread', 'Unread'
+    PENDING = 'pending', 'Pending'
+    ACKNOWLEDGED = 'acknowledged', 'Acknowledged'
 
 DEGREE_TO_COLLEGE = {
     DegreeProgramEnum.BS_ARCHITECTURE: [CollegeEnum.CHSS],

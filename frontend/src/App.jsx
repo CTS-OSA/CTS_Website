@@ -19,6 +19,7 @@ import {
   AdminSCIFView,
   AdminBISView,
   AdminAuditLog,
+  AdminProfile
 } from "./admin-pages";
 import {
   UserDashboard,
@@ -36,6 +37,7 @@ import LoginPage from "./pages/LoginPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import MultiStepForm from "./forms/SetupProfile/SetupProfile";
+import AdminSetupProfile from "./forms/AdminSetupProfile/AdminSetupProfile"
 import BISForm from "./forms/BIS/BIS";
 import SCIF from "./forms/SCIF/SCIF";
 import ReferralSlip from "./forms/ReferralSlip/ReferralSlip";
@@ -257,6 +259,22 @@ function App() {
           element={
             <ProtectedRoute requireAdmin={true} requireUser={false}>
               <AdminSystemSettings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/myprofile"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <AdminProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/setup-profile"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <AdminSetupProfile />
             </ProtectedRoute>
           }
         />

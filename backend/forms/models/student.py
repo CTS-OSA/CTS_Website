@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from users.models import CustomUser
 from .address import Address  
 from .enums import CollegeEnum, YearLevelEnum, DegreeProgramEnum, SemesterEnum 
-from django.core.validators import RegexValidator
+from forms.utils.helperFunctions import get_phone_validator
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 import os
@@ -12,12 +12,6 @@ import os
 def validate_student_number(value):
     if not re.match(r'^\d{4}-\d{5}$', value):
         raise ValidationError('Student number must be in the format YYYY-XXXXX')
-
-def get_phone_validator():
-    return RegexValidator(
-        regex=r'^\+?\d{9,15}$',
-        message="Enter a valid phone number (9 to 15 digits, optional leading '+')."
-    )
 
 def student_photo_upload_path(instance, filename):
     return f'student_photos/{instance.student.student_number}/{filename}'

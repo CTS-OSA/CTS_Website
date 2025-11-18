@@ -41,3 +41,7 @@ from .AdminSerializers import (
 from .SerializerPARD import (
     PARDSerializer
 )
+
+from .AdminProfileSerializer import (
+    CounselorSerializer
+)

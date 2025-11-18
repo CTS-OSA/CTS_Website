@@ -1,6 +1,8 @@
 # OSA/admin.py
 from django.contrib import admin
 from .models import *
+from .models.counselor import Counselor, CounselorLicense, CounselorPhoto
+
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
@@ -134,3 +136,55 @@ class PARDAdmin(admin.ModelAdmin):
     list_display = ('student_number', 'submission_id', 'preferred_date', 'preferred_time', 'is_currently_on_medication')
     search_fields = ('student_number__student_number', 'student_number__first_name', 'student_number__last_name')
     list_filter = ('is_currently_on_medication', 'date_started')
+    
+
+class CounselorLicenseInline(admin.TabularInline):
+    model = CounselorLicense
+    extra = 1  # show one empty row by default
+
+
+class CounselorPhotoInline(admin.StackedInline):
+    model = CounselorPhoto
+    extra = 0  # do not add empty rows
+    readonly_fields = ['preview']
+
+    def preview(self, obj):
+        if obj and obj.image:
+            return f'<img src="{obj.image.url}" width="150" height="150" />'
+        return "(No photo)"
+    preview.allow_tags = True
+    preview.short_description = "Preview"
+
+
+@admin.register(Counselor)
+class CounselorAdmin(admin.ModelAdmin):
+    list_display = ('first_name', 'last_name', 'sex', 'contact_number', 'is_complete')
+    search_fields = ('first_name', 'last_name', 'contact_number', 'user__email')
+    list_filter = ('sex', 'is_complete')
+    inlines = [CounselorLicenseInline, CounselorPhotoInline]
+    fieldsets = (
+        ("Personal Information", {
+            "fields": (
+                'user',
+                'first_name', 'last_name', 'middle_name', 'nickname', 'suffix',
+                'sex', 'birthdate', 'contact_number',
+            )
+        }),
+        ("Professional Information", {
+            "fields": ('position', 'post_nominal')
+        }),
+        ("Status", {
+            "fields": ('is_complete', 'completed_at')
+        }),
+    )
+
+
+@admin.register(CounselorLicense)
+class CounselorLicenseAdmin(admin.ModelAdmin):
+    list_display = ('counselor', 'name', 'number')
+    search_fields = ('name', 'number', 'counselor__first_name', 'counselor__last_name')
+
+
+@admin.register(CounselorPhoto)
+class CounselorPhotoAdmin(admin.ModelAdmin):
+    list_display = ('counselor', 'uploaded_at')
