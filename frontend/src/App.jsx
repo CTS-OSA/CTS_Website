@@ -19,7 +19,8 @@ import {
   AdminSCIFView,
   AdminBISView,
   AdminAuditLog,
-  AdminProfile
+  AdminProfile,
+  AdminPard,
 } from "./admin-pages";
 import {
   UserDashboard,
@@ -37,7 +38,7 @@ import LoginPage from "./pages/LoginPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import MultiStepForm from "./forms/SetupProfile/SetupProfile";
-import AdminSetupProfile from "./forms/AdminSetupProfile/AdminSetupProfile"
+import AdminSetupProfile from "./forms/AdminSetupProfile/AdminSetupProfile";
 import BISForm from "./forms/BIS/BIS";
 import SCIF from "./forms/SCIF/SCIF";
 import ReferralSlip from "./forms/ReferralSlip/ReferralSlip";
@@ -52,14 +53,7 @@ function App() {
       <ToastContainer position="top-center" autoClose={3000} />
       <Routes>
         {/* HomePage restricted for logged-in users */}
-        <Route
-          path="/"
-          element={
-            <PublicOnlyRoute>
-              <HomePage />
-            </PublicOnlyRoute>
-          }
-        />
+        <Route path="/" element={<HomePage />} />
 
         <Route
           path="/login"
@@ -235,6 +229,14 @@ function App() {
           element={
             <ProtectedRoute requireAdmin={true} requireUser={false}>
               <AdminReferral />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin-pard-list"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <AdminPard />
             </ProtectedRoute>
           }
         />

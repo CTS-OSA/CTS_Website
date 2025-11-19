@@ -101,6 +101,7 @@ export default function Navbar() {
 
           {/* Menu */}
           <div className="hidden md:flex items-center gap-2 lg:gap-4 ">
+            {/* Always visible */}
             <button
               className="sm:text-xs lg:text-sm px-3 transition duration-200 ease-in-out transform hover:scale-105 hover:text-upyellow"
               onClick={() => go("/")}
@@ -115,12 +116,17 @@ export default function Navbar() {
               FAQs
             </button>
 
-            <button
-              className="md:text-xs lg:text-sm px-3 transition duration-200 ease-in-out transform hover:scale-105 hover:text-upyellow"
-              onClick={() => go("/public-forms")}
-            >
-              FORMS
-            </button>
+            {/* STUDENT + PUBLIC can see FORMS */}
+            {(role === "student" || !isAuthenticated) && (
+              <button
+                className="md:text-xs lg:text-sm px-3 transition duration-200 ease-in-out transform hover:scale-105 hover:text-upyellow"
+                onClick={() => go("/public-forms")}
+              >
+                FORMS
+              </button>
+            )}
+
+            {/* ADMIN ONLY — RECORD MANAGEMENT */}
             {role === "admin" && (
               <div className="relative">
                 <button
@@ -144,31 +150,39 @@ export default function Navbar() {
                     <Link
                       to="/admin-bis-list"
                       onClick={() => setShowRecordsDropDown(false)}
-                      className="block px-4 py-2 hover:bg-gray-50 text-left w-full rounded-t hover:font-medium"
+                      className="block px-4 py-2 hover:bg-gray-50"
                     >
                       Basic Information Sheet
                     </Link>
                     <Link
                       to="/admin-scif-list"
                       onClick={() => setShowRecordsDropDown(false)}
-                      className="block px-4 py-2 hover:bg-gray-50 text-left w-full hover:font-medium"
+                      className="block px-4 py-2 hover:bg-gray-50"
                     >
                       Student Cumulative Information
                     </Link>
                     <Link
                       to="/admin-referral-list"
                       onClick={() => setShowRecordsDropDown(false)}
-                      className="block px-4 py-2 hover:bg-gray-50 text-left w-full rounded-b hover:font-medium"
+                      className="block px-4 py-2 hover:bg-gray-50"
                     >
                       Referral Form
+                    </Link>
+                    <Link
+                      to="/admin-pard-list"
+                      onClick={() => setShowRecordsDropDown(false)}
+                      className="block px-4 py-2 hover:bg-gray-50"
+                    >
+                      Psychosocial Assistance and Referral Desk
                     </Link>
                   </div>
                 )}
               </div>
             )}
 
+            {/* PUBLIC ONLY – SHOW LOGIN & SIGNUP */}
             {!isAuthenticated && (
-              <div className="relative" ref={loginRef}>
+              <>
                 <button
                   onClick={() => {
                     setActiveModal("login");
@@ -178,21 +192,17 @@ export default function Navbar() {
                 >
                   LOG IN
                 </button>
-              </div>
-            )}
 
-            {activeModal === "login" && (
-              <LoginModal
-                onClose={() => setActiveModal(null)}
-                onSwitchToSignup={() => setActiveModal("signup")}
-              />
-            )}
-
-            {activeModal === "signup" && (
-              <SignUpModal
-                onClose={() => setActiveModal(null)}
-                onSwitchToLogin={() => setActiveModal("login")}
-              />
+                <button
+                  className="text-white text-sm px-4 py-1 rounded-full border border-white hover:bg-white hover:text-upmaroon transition"
+                  onClick={() => {
+                    setActiveModal("signup");
+                    setMobileOpen(false);
+                  }}
+                >
+                  SIGN UP
+                </button>
+              </>
             )}
 
             {isAuthenticated && (
@@ -206,6 +216,7 @@ export default function Navbar() {
                 >
                   <User size={16} />
                   <span className="max-w-[120px] truncate">{nickname}</span>
+
                   <ChevronDown
                     size={14}
                     className={`${
@@ -222,9 +233,19 @@ export default function Navbar() {
                           {fullName?.charAt(0) || "U"}
                         </div>
                         <div className="text-left">
-                          <div className="font-semibold">
+                          <button
+                            className="text-left font-semibold hover:cursor-pointer hover:scale-105 transform duration-200 flex-1"
+                            onClick={() =>
+                              go(
+                                role === "admin"
+                                  ? "/admin/myprofile"
+                                  : "/myprofile"
+                              )
+                            }
+                          >
                             {fullName || nickname}
-                          </div>
+                          </button>
+
                           {idNumber && (
                             <div className="text-[10px] text-gray-600">
                               {idNumber}
@@ -238,20 +259,26 @@ export default function Navbar() {
                       {role === "student" && (
                         <>
                           <button
-                            className="w-full px-4 py-2 hover:bg-gray-100"
+                            className="w-full px-4 py-2 hover:bg-gray-100 hover:font-semibold hover:cursor-pointer transition duration-200"
+                            onClick={() => go("/student")}
+                          >
+                            Dashboard
+                          </button>
+                          <button
+                            className="w-full px-4 py-2 hover:bg-gray-100 hover:font-semibold hover:cursor-pointer transition duration-200"
                             onClick={() => go("/myprofile")}
                           >
                             My Profile
                           </button>
 
                           <button
-                            className="w-full px-4 py-2 hover:bg-gray-100"
+                            className="w-full px-4 py-2 hover:bg-gray-100 hover:font-semibold hover:cursor-pointer transition duration-200"
                             onClick={() => go("/public-forms")}
                           >
                             Forms
                           </button>
                           <button
-                            className="w-full px-4 py-2 hover:bg-gray-100"
+                            className="w-full px-4 py-2 hover:bg-gray-100 hover:font-semibold hover:cursor-pointer transition duration-200"
                             onClick={() => go("/privacy-setting")}
                           >
                             Privacy Setting
@@ -262,25 +289,25 @@ export default function Navbar() {
                       {role === "admin" && (
                         <>
                           <button
-                            className="block px-4 py-2 hover:bg-gray-50  w-full hover:font-semibold"
+                            className="block px-4 py-2 hover:bg-gray-50  w-full hover:font-semibold hover:cursor-pointer transition duration-200"
                             onClick={() => go("/admin")}
                           >
                             Dashboard
                           </button>
                           <button
-                            className="block px-4 py-2 hover:bg-gray-50  w-full hover:font-semibold"
+                            className="block px-4 py-2 hover:bg-gray-50  w-full hover:font-semibold hover:cursor-pointer transition duration-200"
                             onClick={() => go("/admin-student-list")}
                           >
                             Student List
                           </button>
                           <button
-                            className="block px-4 py-2 hover:bg-gray-50  w-full hover:font-semibold"
+                            className="block px-4 py-2 hover:bg-gray-50  w-full hover:font-semibold hover:cursor-pointer transition duration-200"
                             onClick={() => go("/admin-reports")}
                           >
                             Report Analytics
                           </button>
                           <button
-                            className="block px-4 py-2 hover:bg-gray-50  w-full hover:font-semibold"
+                            className="block px-4 py-2 hover:bg-gray-50  w-full hover:font-semibold hover:cursor-pointer transition duration-200"
                             onClick={() => go("/admin-system-settings")}
                           >
                             System Settings
@@ -298,19 +325,6 @@ export default function Navbar() {
                   </div>
                 )}
               </div>
-            )}
-
-            {!isAuthenticated && (
-              <button
-                className="text-white text-sm px-4 py-1 rounded-full border border-white inline-flex items-center justify-center hover:bg-white hover:text-upmaroon transition"
-                style={{ minWidth: 72 }}
-                onClick={() => {
-                  setActiveModal("signup");
-                  setMobileOpen(false);
-                }}
-              >
-                SIGN UP
-              </button>
             )}
           </div>
 
@@ -342,12 +356,16 @@ export default function Navbar() {
               >
                 FAQS
               </button>
-              <button
-                onClick={() => go("/public-forms")}
-                className="w-full text-center text-white uppercase py-2 transition duration-200 ease-in-out transform hover:text-yellow-500 hover:font-bold"
-              >
-                FORMS
-              </button>
+              {/* FORMS - only for public users and students */}
+              {role !== "admin" && (
+                <button
+                  onClick={() => go("/public-forms")}
+                  className="w-full text-center text-white uppercase py-2 hover:text-yellow-500 hover:font-bold"
+                >
+                  FORMS
+                </button>
+              )}
+
               {role === "admin" && (
                 <div className="relative">
                   <button
@@ -389,6 +407,13 @@ export default function Navbar() {
                       >
                         Referral Form
                       </Link>
+                      <Link
+                        to="/admin-referral-list"
+                        onClick={() => setShowRecordsDropDown(false)}
+                        className="block px-4 py-2 hover:bg-gray-50 text-center w-full rounded-b hover:font-medium"
+                      >
+                        Psychosocial Assistance and Referral Desk
+                      </Link>
                     </div>
                   )}
                 </div>
@@ -426,9 +451,12 @@ export default function Navbar() {
                   {showUserDropdown && (
                     <div className="mt-2 bg-gray-200 text-gray-900 rounded shadow-lg font-roboto">
                       <div className="px-4 py-3 border-b text-center border-gray-400">
-                        <div className="font-semibold">
+                        <button
+                          className="font-semibold hover:cursor-pointer hover:scale-105 transition  duration-200 ease-in-out"
+                          onClick={() => go("/admin/myprofile")}
+                        >
                           {fullName || nickname}
-                        </div>
+                        </button>
                         {idNumber && (
                           <div className="text-xs text-gray-600">
                             {idNumber}
