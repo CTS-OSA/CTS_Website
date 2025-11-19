@@ -66,7 +66,6 @@ INSTALLED_APPS = [
     'forms.apps.FormsConfig',
     'analytics',
     'storages'
-    'storages'
 ]
 
 MIDDLEWARE = [

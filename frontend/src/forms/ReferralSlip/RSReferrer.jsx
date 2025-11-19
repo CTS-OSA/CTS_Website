@@ -1,13 +1,25 @@
 import React from "react";
 import FormField from "../../components/FormField";
 import { clearError } from "../../utils/helperFunctions";
-import { useEnumChoices } from "../../utils/enumChoices";
 
 const RSReferrer = ({ formData, setFormData, errors, setErrors }) => {
-  const { enums, loading, error } = useEnumChoices();
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const fieldName = name;
+
+    setFormData((prev) => ({
+      ...prev,
+      referrer_details: {
+        ...prev.referrer_details,
+        [fieldName]: value,
+      },
+    }));
+    if (errors[fieldName]) {
+      setErrors((prev) => ({
+        ...prev,
+        [fieldName]: null,
+      }));
+    }
   };
   return (
     <div className="form-container">
@@ -18,24 +30,20 @@ const RSReferrer = ({ formData, setFormData, errors, setErrors }) => {
       <div className="grid lg:grid-cols-2 gap-4 pb-4">
         <FormField
           label="Referrer's Last Name"
-          name="family_name"
-          //   value={formData.family_name}
+          name="referrer_last_name"
+          value={formData.referrer_details.referrer_last_name || ""}
           onChange={handleChange}
-          //   onFocus={() =>
-          //     clearError(errors, setErrors, "personal_info.family_name")
-          //   }
-          //   error={errors?.["personal_info.family_name"]}
+          onFocus={() => clearError(errors, setErrors, "referrer_last_name")}
+          error={errors?.["referrer_last_name"]}
           required
         />
         <FormField
           label="Referrer's First Name"
-          name="first_name"
-          //   value={formData.first_name}
+          name="referrer_first_name"
+          value={formData.referrer_details.referrer_first_name || ""}
           onChange={handleChange}
-          //   onFocus={() =>
-          //     clearError(errors, setErrors, "personal_info.first_name")
-          //   }
-          //   error={errors?.["personal_info.first_name"]}
+          onFocus={() => clearError(errors, setErrors, "referrer_first_name")}
+          error={errors?.["referrer_first_name"]}
           required
         />
       </div>
@@ -43,42 +51,37 @@ const RSReferrer = ({ formData, setFormData, errors, setErrors }) => {
       <div className="grid gap-4 pb-4">
         <FormField
           label="Unit/Department"
-          name="first_name"
-          //   value={formData.first_name}
+          name="referrer_department"
+          value={formData.referrer_details.referrer_department || ""}
           onChange={handleChange}
-          //   onFocus={() =>
-          //     clearError(errors, setErrors, "personal_info.first_name")
-          //   }
-          //   error={errors?.["personal_info.first_name"]}
+          onFocus={() => clearError(errors, setErrors, "referrer_department")}
+          error={errors?.["referrer_department"]}
           required
         />
       </div>
 
-      <div className="grid gap-4 pb-4">
+      <div className="grid lg:grid-cols-2 gap-4 pb-4">
         <FormField
           label="Email Address"
-          name="gender"
-          //   value={formData.gender}
-          onChange={handleChange}
-          //   onFocus={() => clearError(errors, setErrors, "personal_info.gender")}
-          //   error={errors?.["personal_info.gender"]}
-          required
           type="email"
+          name="referrer_email"
+          value={formData.referrer_details.referrer_email || ""}
+          onChange={handleChange}
+          onFocus={() => clearError(errors, setErrors, "referrer_email")}
+          error={errors?.["referrer_email"]}
+          required
         />
-
-        <div className="grid gap-4 pb-4">
-          <FormField
-            label="Contact Number"
-            name="mobile_number"
-            // value={formData.mobile_number}
-            // onBlur={() =>
-            //   clearError(errors, setErrors, "personal_info.mobile_number")
-            // }
-            onChange={handleChange}
-            // error={errors?.["personal_info.mobile_number"]}
-            required
-          />
-        </div>
+        <FormField
+          label="Contact Number"
+          name="referrer_contact_number"
+          value={formData.referrer_details.referrer_contact_number || ""}
+          onBlur={() =>
+            clearError(errors, setErrors, "referrer_contact_number")
+          }
+          onChange={handleChange}
+          error={errors?.["referrer_contact_number"]}
+          required
+        />
       </div>
     </div>
   );

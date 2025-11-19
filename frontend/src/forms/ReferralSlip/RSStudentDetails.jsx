@@ -3,13 +3,35 @@ import FormField from "../../components/FormField";
 import { clearError } from "../../utils/helperFunctions";
 import { useEnumChoices } from "../../utils/enumChoices";
 
-const RSStudentDetails = ({ formData, setFormData, errors, setErrors }) => {
-  const { enums, loading, error } = useEnumChoices();
+const RSStudentDetails = ({
+  formData,
+  setFormData,
+  errors = {},
+  setErrors,
+}) => {
+  const { enums } = useEnumChoices();
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const fieldName = name;
+
+    setFormData((prev) => ({
+      ...prev,
+      refer_student_details: {
+        ...prev.refer_student_details,
+        [fieldName]: value,
+      },
+    }));
+    if (errors[fieldName]) {
+      setErrors((prev) => ({
+        ...prev,
+        [fieldName]: null,
+      }));
+    }
   };
+
   const allDegreeOptions = enums?.degree_program || [];
+
   return (
     <div className="form-container">
       <h2 className="text-upmaroon text-2xl font-bold pb-4">
@@ -19,59 +41,57 @@ const RSStudentDetails = ({ formData, setFormData, errors, setErrors }) => {
       <div className="grid lg:grid-cols-2 gap-4 pb-4">
         <FormField
           label="Last Name"
-          name="family_name"
-          //   value={formData.family_name}
+          type="text"
+          name="refer_student_last_name"
+          value={formData.refer_student_details.refer_student_last_name || ""}
           onChange={handleChange}
-          //   onFocus={() =>
-          //     clearError(errors, setErrors, "personal_info.family_name")
-          //   }
-          //   error={errors?.["personal_info.family_name"]}
+          onFocus={() => clearError(errors, setErrors, "refer_student_last_name")}
           required
+          error={errors?.["refer_student_last_name"]}
         />
         <FormField
           label="First Name"
-          name="first_name"
-          //   value={formData.first_name}
+          type="text"
+          name="refer_student_first_name"
+          value={formData.refer_student_details.refer_student_first_name || ""}
           onChange={handleChange}
-          //   onFocus={() =>
-          //     clearError(errors, setErrors, "personal_info.first_name")
-          //   }
-          //   error={errors?.["personal_info.first_name"]}
+          onFocus={() =>
+            clearError(errors, setErrors, "refer_student_first_name")
+          }
           required
+          error={errors?.["refer_student_first_name"]}
         />
       </div>
 
       <div className="grid lg:grid-cols-2 gap-4 pb-4">
-        <FormField
-          label="Current Year Level"
-          name="current_year_level"
-          type="select"
-          //   value={formData.current_year_level}
-          onChange={handleChange}
-          //   onFocus={() =>
-          //     clearError(errors, setErrors, "education.current_year_level")
-          //   }
-          //   required
-          //   error={errors?.["education.current_year_level"]}
-          options={
-            enums?.year_level?.map((opt) => ({
-              value: opt.value,
-              label: opt.label,
-            })) || []
-          }
-        />
+        <div>
+          <FormField
+            label="Current Year Level"
+            name="refer_student_year"
+            type="select"
+            value={formData.refer_student_details.refer_student_year || ""}
+            onChange={handleChange}
+            onFocus={() => clearError(errors, setErrors, "refer_student_year")}
+            required
+            error={errors?.["refer_student_year"]}
+            options={
+              enums?.year_level?.map((opt) => ({
+                value: opt.value,
+                label: opt.label,
+              })) || []
+            }
+          />
+        </div>
 
         <FormField
           label="Degree Program"
-          name="degree_program"
+          name="refer_student_degree_program"
           type="select"
-          //   value={formData.degree_program}
+          value={formData.refer_student_details.refer_student_degree_program}
           onChange={handleChange}
-          //   onFocus={() =>
-          //     clearError(errors, setErrors, "education.degree_program")
-          //   }
-          //   required
-          //   error={errors?.["education.degree_program"]}
+          onFocus={() => clearError(errors, setErrors, "refer_student_degree_program")}
+          required
+          error={errors?.["refer_student_degree_program"]}
           options={allDegreeOptions.map((opt) => ({
             value: opt.value,
             label: opt.label,
@@ -79,34 +99,31 @@ const RSStudentDetails = ({ formData, setFormData, errors, setErrors }) => {
         />
       </div>
 
-      <div className="grid gap-4 pb-4">
+      <div className="grid lg:grid-cols-2 gap-4 pb-4">
         <FormField
           label="Gender"
-          name="gender"
-          //   value={formData.gender}
+          type="text"
+          name="refer_student_gender"
+          value={formData.refer_student_details.refer_student_gender}
           onChange={handleChange}
-          //   onFocus={() => clearError(errors, setErrors, "personal_info.gender")}
-          //   error={errors?.["personal_info.gender"]}
+          onFocus={() => clearError(errors, setErrors, "refer_student_gender")}
           required
+          error={errors?.["refer_student_gender"]}
         />
-
-        <div className="grid gap-4 pb-4">
           <FormField
             label="Mobile Number"
-            name="mobile_number"
-            // value={formData.mobile_number}
-            // onBlur={() =>
-            //   clearError(errors, setErrors, "personal_info.mobile_number")
-            // }
+            name="refer_student_contact_number"
+            value={formData.refer_student_details.refer_student_contact_number}
+            onBlur={() =>
+              clearError(errors, setErrors, "refer_student_contact_number")
+            }
             onChange={handleChange}
-            // error={errors?.["personal_info.mobile_number"]}
+            error={errors?.["refer_student_contact_number"]}
             required
           />
-        </div>
       </div>
     </div>
   );
 };
 
 export default RSStudentDetails;
-
