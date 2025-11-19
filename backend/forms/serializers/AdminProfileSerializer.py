@@ -16,6 +16,7 @@ class CounselorPhotoSerializer(serializers.ModelSerializer):
 
 
 class CounselorSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(source='user.email', read_only=True)
     licenses = CounselorLicenseSerializer(many=True, required=False)
     photo = CounselorPhotoSerializer(required=False)
     user_email = serializers.EmailField(source='user.email', read_only=True)
@@ -37,7 +38,8 @@ class CounselorSerializer(serializers.ModelSerializer):
             'position',
             'post_nominal',
             'licenses',
-            'photo'
+            'photo',
+            'email'
         ]
 
     def validate_user(self, value):

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import DisplayField from "../components/DisplayField";
 import Button from "../components/UIButton";
 import { ReadonlyField, EditableField } from "../components/EditableField";
 import FormField from "../components/FormField";
@@ -301,8 +300,12 @@ const StudentSideInfo = ({
   useEffect(() => {
     setFormData(profileData);
 
-    let photoUrl = profileData?.photo?.image;
+    let photoUrl = null;
+    const imagePath = profileData?.photo?.image;
 
+    if (imagePath && typeof imagePath === "string" && imagePath.trim() !== "") {
+      photoUrl = `${"http://localhost:8000/"}${imagePath}`;
+    }
     setPhotoPreview(photoUrl);
     setValidationErrors({});
   }, [profileData]);
