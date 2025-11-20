@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+﻿import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Loader from "../components/Loader";
 import { AuthContext } from "../context/AuthContext";
@@ -17,20 +17,21 @@ export const AdminProfile = () => {
   const handleUpdateProfile = async (updatedData) => {
     try {
       const formData = new FormData();
+
       for (const key in updatedData) {
         if (key === "photoFile") continue;
 
         const value = updatedData[key];
 
-        if (typeof value === "object" && value !== null) {
-          for (const subKey in value) {
-            formData.append(`${key}.${subKey}`, value[subKey]);
-          }
-        } else {
-          formData.append(key, value);
+        if (Array.isArray(value)) {
+          formData.append(key, JSON.stringify(value));
+          continue;
         }
+
+        formData.append(key, value);
       }
 
+      // 3ï¸âƒ£ Photo file
       if (updatedData.photoFile) {
         formData.append("photo", updatedData.photoFile);
       }
@@ -160,3 +161,6 @@ export const AdminProfile = () => {
     </div>
   );
 };
+
+
+
