@@ -7,8 +7,22 @@ const EditableField = ({
   readOnly = false,
   type = "text",
   options = [],
+  error = "",
 }) => {
   const selectedOptionLabel = options.find(opt => opt.value === value)?.label || "";
+  const isError = !readOnly && Boolean(error);
+  const baseInputStyle = {
+    fontSize: "1rem",
+    border: "none",
+    borderBottom: `1px solid ${isError ? "#DC2626" : "black"}`,
+    background: "transparent",
+    outline: "none",
+    width: "100%",
+    marginBottom: "4px",
+    paddingBottom: "10px",
+    textAlign: "center",
+    color: "black",
+  };
 
   return (
     <div className="font-normal p-0 bg-transparent text-center mt-6" style={{ textAlign: "center" }}>
@@ -37,16 +51,8 @@ const EditableField = ({
             onChange={onChange}
             disabled={readOnly}
             style={{
-              fontSize: "1rem",
-              border: "none",
-              borderBottom: "1px solid black",
-              background: "transparent",
-              outline: "none",
-              width: "100%",
-              marginBottom: "4px",
-              paddingBottom: "10px",
+              ...baseInputStyle,
               cursor: readOnly ? "default" : "pointer",
-              textAlign: "center",
               color: "black",
             }}
           >
@@ -66,21 +72,15 @@ const EditableField = ({
           readOnly={readOnly}
           className="font-normal p-0 bg-transparent text-center"
           style={{
-            fontSize: "1rem",
-            border: "none",
-            borderBottom: "1px solid black",
-            background: "transparent",
-            outline: "none",
-            width: "100%",
-            marginBottom: "4px",
-            paddingBottom: "10px",
+            ...baseInputStyle,
             cursor: readOnly ? "default" : "text",
-            textAlign: "center",
-            color: "black",
           }}
         />
       )}
 
+        {!readOnly && error && (
+          <p className="text-xs text-red-600 mt-1">{error}</p>
+        )}
         <p className="text-sm text-upmaroon">{label}:</p>
 
     </div>
