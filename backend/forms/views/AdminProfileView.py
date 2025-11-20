@@ -145,7 +145,7 @@ def update_counselor_profile(request, counselor_id=None):
     # Fields that can be updated
     updatable_fields = [
         "last_name", "first_name", "middle_name", "nickname",
-        "suffix", "sex", "birthdate", "contact_number", 
+        "suffix", "sex", "birthdate", "contact_number",
     ]
 
     changed_fields = {}
@@ -159,32 +159,29 @@ def update_counselor_profile(request, counselor_id=None):
             setattr(counselor, field, new_value)
 
     # Update position / post_nominal arrays
-    for field in ["position", "post_nominal"]:
-        if field in data:
-            value = data[field]
-            if isinstance(value, str):
-                value = json.loads(value)
-            setattr(counselor, field, value)
+    if "position" in data:
+        counselor.position = json.loads(data['position'])
+
+    if "post_nominal" in data:
+        counselor.post_nominal = json.loads(data['post_nominal'])
 
     # Update licenses
     if "licenses" in data:
-        licenses_input = data["licenses"]
-        
-        if isinstance(licenses_input, str):
-            try:
-                licenses_input = json.loads(licenses_input)
-            except json.JSONDecodeError:
-                return Response({"error": "licenses must be a JSON array"}, status=400)
+        try:
+            new_licenses = json.loads(data["licenses"])
+        except:
+            return Response(
+                {"error": "licenses must be a JSON array"},
+                status=400
+            )
 
-        # Clear old licenses and create new ones
         counselor.licenses.all().delete()
-        for lic in licenses_input:
+        for lic in new_licenses:
             CounselorLicense.objects.create(
                 counselor=counselor,
                 name=lic.get("name"),
                 number=lic.get("number")
             )
-
         changed_fields["licenses"] = "updated"
 
     # Update photo
