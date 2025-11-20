@@ -1,16 +1,32 @@
 from rest_framework import serializers
 from ..models.PARD import PARD
 from ..models.submission import Submission
+from datetime import date, datetime, time
 
 class PARDSerializer(serializers.ModelSerializer):
     class Meta:
         model = PARD
         fields = '__all__'
+    
+    def validate_preferred_date(self, value):
+        if value and value < date.today():
+            raise serializers.ValidationError("Preferred date must be today or in the future.")
+        return value
+    
+    def validate_date_diagnosed(self, value):
+        if value and value > date.today():
+            raise serializers.ValidationError("Date diagnosed cannot be in the future.")
+        return value
+    
+    def validate_preferred_time(self, value):
+        if value:
+            min_time = time(8, 0)  # 8:00 AM
+            max_time = time(16, 0)  # 4:00 PM
+            if value < min_time or value > max_time:
+                raise serializers.ValidationError("Time must be between 8:00 AM and 4:00 PM.")
+        return value
 
 class PARDSubmissionSerializer(serializers.Serializer):
-    # Demographic Profile
-    # pard_demographic_profile = serializers.DictField(required=False)
-    
     # Contact Info
     pard_contact_info = serializers.DictField(required=False)
     
