@@ -15,6 +15,7 @@ from forms.serializers import (
     SerializerPARD, ReferralSerializer
 )
 from forms.serializers.SerializerPARD import PARDSerializer
+from forms.serializers.SerializerPARD import PARDSerializer
 
 
 # These are the mappings only for the sections that are needed to be filled up upon the first submission of the student
