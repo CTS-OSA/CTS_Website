@@ -4,14 +4,15 @@ from forms.models import (
     FamilyData, HealthData, 
     SchoolAddress, School, PreviousSchoolRecord, 
     Scholarship, PersonalityTraits, FamilyRelationship, CounselingInformation, Support, GuidanceSpecialistNotes,
-    PARD
+    PARD, Referral
 )
 from forms.serializers import (
     PreferencesSerializer, StudentSupportSerializer, SocioEconomicStatusSerializer, PresentScholasticStatusSerializer, PrivacyConsentSerializer,
     ParentSerializer, SiblingSerializer, GuardianSerializer,
     FamilyDataSerializer, HealthDataSerializer, 
     SchoolAddressSerializer, SchoolSerializer, PreviousSchoolRecordSerializer, 
-    ScholarshipSerializer, PersonalityTraitsSerializer, FamilyRelationshipSerializer, CounselingInformationSerializer, GuidanceSpecialistNotesSerializer
+    ScholarshipSerializer, PersonalityTraitsSerializer, FamilyRelationshipSerializer, CounselingInformationSerializer, GuidanceSpecialistNotesSerializer,
+    SerializerPARD, ReferralSerializer
 )
 from forms.serializers.SerializerPARD import PARDSerializer
 
@@ -39,23 +40,29 @@ FORM_SECTIONS_MAP = {
     },
     'psychosocial-assistance-and-referral-desk' : {
         'pard_data': (PARD, PARDSerializer),
+    },
+    'counseling-referral-slip': {
+        'referral': (Referral, ReferralSerializer),
     }
 }
 
 OPTIONAL_SECTIONS = {
     'student-cumulative-information-file': ['siblings', 'scholarship', 'counseling_info', 'guidance_notes'],
     'basic-information-sheet': [],
-    'psychosocial-assistance-and-referral-desk': []
+    'psychosocial-assistance-and-referral-desk': [],
+    'counseling-referral-slip': []
 }
 
 FORM_TYPE_SLUG_MAP = {
     'basic-information-sheet': 'Basic Information Sheet',
     'student-cumulative-information-file': 'Student Cumulative Information File',
-    'psychosocial-assistance-and-referral-desk': 'Psychosocial Assistance and Referral Desk'
+    'psychosocial-assistance-and-referral-desk': 'Psychosocial Assistance and Referral Desk',
+    'counseling-referral-slip': 'Counseling Referral Slip'
 }
 
 FORM_TYPE_UNSLUG_MAP = {
     'Basic Information Sheet': 'basic-information-sheet',
     'Student Cumulative Information File': 'student-cumulative-information-file',
-    'Psychosocial Assistance and Referral Desk': 'psychosocial-assistance-and-referral-desk'
+    'Psychosocial Assistance and Referral Desk': 'psychosocial-assistance-and-referral-desk',
+    'Counseling Referral Slip': 'counseling-referral-slip'
 }

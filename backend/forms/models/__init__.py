@@ -15,3 +15,5 @@ from .scholarship import Scholarship
 from .schoolRecord import SchoolAddress, School, PreviousSchoolRecord
 from .submission import Submission
 from .PARD import PARD
+from .referral_slip import Referrer, Referral, AcknowledgementReceipt, ReferredPerson
+from .counselor import Counselor

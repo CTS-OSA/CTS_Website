@@ -265,6 +265,7 @@ from forms.serializers import SubmissionSerializer, PrivacyConsentSerializer
 from .BaseFormMixin import BaseFormMixin
 from forms.map import FORM_SECTIONS_MAP, FORM_TYPE_UNSLUG_MAP, OPTIONAL_SECTIONS, FORM_TYPE_SLUG_MAP
 from users.utils import log_action
+from django.http import HttpResponse
 
 
 class PrivacyConsentViewSet(viewsets.ModelViewSet):
@@ -423,7 +424,7 @@ class FormBundleView(APIView, BaseFormMixin):
                 data=section_data,
                 many=True,
                 partial=True,
-                context={'submission': submission, 'student': student}
+                context={'submission': submission, 'student': student, 'request': self.request}
             )
         else:
             instance = model.objects.filter(submission=submission).first()
@@ -432,7 +433,7 @@ class FormBundleView(APIView, BaseFormMixin):
                 data=section_data,
                 many=False,
                 partial=True,
-                context={'submission': submission, 'student': student}
+                context={'submission': submission, 'student': student,  'request': self.request}
             )
 
 class FinalizeSubmissionView(APIView):
@@ -564,7 +565,7 @@ class AdminFormEditView(APIView, BaseFormMixin):
                 data=section_data,
                 many=True,
                 partial=True,
-                context={'submission': submission, 'student': student}
+                context={'submission': submission, 'student': student,  'request': self.request}
             )
         else:
             instance = model.objects.filter(submission=submission).first()
@@ -573,5 +574,5 @@ class AdminFormEditView(APIView, BaseFormMixin):
                 data=section_data,
                 many=False,
                 partial=True,
-                context={'submission': submission, 'student': student}
+                context={'submission': submission, 'student': student,  'request': self.request}
             )
