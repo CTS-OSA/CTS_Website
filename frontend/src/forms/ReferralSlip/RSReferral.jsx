@@ -21,8 +21,8 @@ const RSRefferal = ({
 
     setFormData((prev) => ({
       ...prev,
-      referral_details: {
-        ...prev.referral_details,
+      referral: {
+        ...prev.referral,
         [fieldName]: filteredValue,
       },
     }));
@@ -44,7 +44,7 @@ const RSRefferal = ({
           <FormField
             type="textarea"
             name="reason_for_referral"
-            value={formData.referral_details.reason_for_referral || ""}
+            value={formData.referral.reason_for_referral || ""}
             onChange={handleChange}
             onFocus={() => clearError(errors, setErrors, "reason_for_referral")}
             error={errors?.["reason_for_referral"]}
@@ -56,7 +56,7 @@ const RSRefferal = ({
           <FormField
             type="textarea"
             name="initial_actions_taken"
-            value={formData.referral_details.initial_actions_taken || ""}
+            value={formData.referral.initial_actions_taken || ""}
             onChange={handleChange}
             onFocus={() =>
               clearError(errors, setErrors, "initial_actions_taken")

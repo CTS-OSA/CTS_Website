@@ -46,7 +46,7 @@ export const FormPublicPage = () => {
   };
 
   const handleCardClick = (form) => {
-    if (form === "referral-slip") {
+    if (form === "counseling-referral-slip") {
       navigate(`/forms/${form}`);
       return;
     }
@@ -127,7 +127,7 @@ export const FormPublicPage = () => {
     {
       title: "Counseling Referral Slip",
       desc: "Refers a student for counseling services to address personal, academic, or behavioral concerns",
-      id: "referral-slip",
+      id: "counseling-referral-slip",
       bg: "maroon",
     },
     {

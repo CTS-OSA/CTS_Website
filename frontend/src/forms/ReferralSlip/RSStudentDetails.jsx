@@ -17,9 +17,12 @@ const RSStudentDetails = ({
 
     setFormData((prev) => ({
       ...prev,
-      refer_student_details: {
-        ...prev.refer_student_details,
-        [fieldName]: value,
+      referral: {
+        ...prev.referral,
+        referred_person: {
+          ...prev.referral.referred_person,
+          [fieldName]: value,
+        },
       },
     }));
     if (errors[fieldName]) {
@@ -42,24 +45,22 @@ const RSStudentDetails = ({
         <FormField
           label="Last Name"
           type="text"
-          name="refer_student_last_name"
-          value={formData.refer_student_details.refer_student_last_name || ""}
+          name="last_name"
+          value={formData.referral.referred_person?.last_name || ""}
           onChange={handleChange}
-          onFocus={() => clearError(errors, setErrors, "refer_student_last_name")}
+          onFocus={() => clearError(errors, setErrors, "last_name")}
           required
-          error={errors?.["refer_student_last_name"]}
+          error={errors?.["last_name"]}
         />
         <FormField
           label="First Name"
           type="text"
-          name="refer_student_first_name"
-          value={formData.refer_student_details.refer_student_first_name || ""}
+          name="first_name"
+          value={formData.referral.referred_person?.first_name || ""}
           onChange={handleChange}
-          onFocus={() =>
-            clearError(errors, setErrors, "refer_student_first_name")
-          }
+          onFocus={() => clearError(errors, setErrors, "first_name")}
           required
-          error={errors?.["refer_student_first_name"]}
+          error={errors?.["first_name"]}
         />
       </div>
 
@@ -67,13 +68,13 @@ const RSStudentDetails = ({
         <div>
           <FormField
             label="Current Year Level"
-            name="refer_student_year"
+            name="year_level"
             type="select"
-            value={formData.refer_student_details.refer_student_year || ""}
+            value={formData.referral.referred_person?.year_level || ""}
             onChange={handleChange}
-            onFocus={() => clearError(errors, setErrors, "refer_student_year")}
+            onFocus={() => clearError(errors, setErrors, "year_level")}
             required
-            error={errors?.["refer_student_year"]}
+            error={errors?.["year_level"]}
             options={
               enums?.year_level?.map((opt) => ({
                 value: opt.value,
@@ -85,13 +86,13 @@ const RSStudentDetails = ({
 
         <FormField
           label="Degree Program"
-          name="refer_student_degree_program"
+          name="degree_program"
           type="select"
-          value={formData.refer_student_details.refer_student_degree_program}
+          value={formData.referral.referred_person?.degree_program}
           onChange={handleChange}
-          onFocus={() => clearError(errors, setErrors, "refer_student_degree_program")}
+          onFocus={() => clearError(errors, setErrors, "degree_program")}
           required
-          error={errors?.["refer_student_degree_program"]}
+          error={errors?.["degree_program"]}
           options={allDegreeOptions.map((opt) => ({
             value: opt.value,
             label: opt.label,
@@ -103,24 +104,22 @@ const RSStudentDetails = ({
         <FormField
           label="Gender"
           type="text"
-          name="refer_student_gender"
-          value={formData.refer_student_details.refer_student_gender}
+          name="gender"
+          value={formData.referral.referred_person?.gender}
           onChange={handleChange}
-          onFocus={() => clearError(errors, setErrors, "refer_student_gender")}
+          onFocus={() => clearError(errors, setErrors, "gender")}
           required
-          error={errors?.["refer_student_gender"]}
+          error={errors?.["gender"]}
         />
-          <FormField
-            label="Mobile Number"
-            name="refer_student_contact_number"
-            value={formData.refer_student_details.refer_student_contact_number}
-            onBlur={() =>
-              clearError(errors, setErrors, "refer_student_contact_number")
-            }
-            onChange={handleChange}
-            error={errors?.["refer_student_contact_number"]}
-            required
-          />
+        <FormField
+          label="Mobile Number"
+          name="contact_number"
+          value={formData.referral.referred_person?.contact_number}
+          onBlur={() => clearError(errors, setErrors, "contact_number")}
+          onChange={handleChange}
+          error={errors?.["contact_number"]}
+          required
+        />
       </div>
     </div>
   );

@@ -291,7 +291,9 @@ function App() {
         />
 
         {/* Fallback for unauthorized access */}
-        <Route path="/forms/referral-slip" element={<ReferralSlip />} />
+        <Route path="/forms/counseling-referral-slip" element={<ProtectedRoute requireAdmin={false} requireUser={true}>
+              <ReferralSlip />
+            </ProtectedRoute>} />
         <Route
           path="/forms/pard"
           element={
