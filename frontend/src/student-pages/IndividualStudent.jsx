@@ -304,7 +304,7 @@ const StudentSideInfo = ({
     const imagePath = profileData?.photo?.image;
 
     if (imagePath && typeof imagePath === "string" && imagePath.trim() !== "") {
-      photoUrl = `${"http://localhost:8000/"}${imagePath}`;
+      photoUrl = imagePath;
     }
     setPhotoPreview(photoUrl);
     setValidationErrors({});

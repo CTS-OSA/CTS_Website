@@ -309,8 +309,15 @@ class FormBundleView(APIView, BaseFormMixin):
 
         for key, (model, serializer_class) in sections.items():
             many = model._meta.model_name in ['sibling', 'previousschoolrecord']
-            filter_field = 'submission' if 'submission' in [f.name for f in model._meta.fields] else 'student'
-            filter_value = submission if filter_field == 'submission' else student
+            if model._meta.model_name == 'pard':
+                filter_field = 'submission_id'
+                filter_value = submission
+            elif 'submission' in [f.name for f in model._meta.fields]:
+                filter_field = 'submission'
+                filter_value = submission
+            else:
+                filter_field = 'student'
+                filter_value = student
             queryset = model.objects.filter(**{filter_field: filter_value})
 
             if many:

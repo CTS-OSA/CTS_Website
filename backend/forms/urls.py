@@ -37,8 +37,8 @@ urlpatterns = [
     path('admin-edit/<int:submission_id>/', AdminFormEditView.as_view(), name='admin-form-edit'),
     
     # PARD 
-    path('pard/submit/<int:submission_id>/', PARDSubmitView.as_view(), name='pard-submit'),
-    path('pard/student-data/<str:student_number>/', PARDSubmitView.as_view(), name='pard-student-data'),
+    path('psychosocial-assistance-and-referral-desk/submit/<int:submission_id>/', PARDSubmitView.as_view(), name='pard-submit'),
+    path('psychosocial-assistance-and-referral-desk/student-data/<str:student_number>/', PARDSubmitView.as_view(), name='pard-student-data'),
     path('edit/pard/<str:student_number>', PARDSubmitView.as_view(), name='pard-edit'),
     
     path('display/', include(router.urls)), 
