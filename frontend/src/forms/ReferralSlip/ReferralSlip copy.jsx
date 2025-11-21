@@ -39,12 +39,12 @@ const ReferralSlip = () => {
   const navigate = useNavigate();
 
   // Change to Referral Slip APIs
-  const {
-    createDraftSubmission,
-    getFormBundle,
-    saveDraft,
-    finalizeSubmission,
-  } = useFormApi();
+    const {
+      createDraftSubmission,
+      getFormBundle,
+      saveDraft,
+      finalizeSubmission,
+    } = useFormApi();
   const [formData, setFormData] = useState({
     refer_student_details: {
       refer_student_last_name: "",
@@ -135,31 +135,27 @@ const ReferralSlip = () => {
   };
 
   const buildPayload = () => {
-    return {
-      submission: {
-        id: submissionId, // or whatever ID you get from the backend
+  return {
+    submission: {
+      id: submissionId, // or whatever ID you get from the backend
+    },
+    referral: {
+      referred_person: {
+        first_name: formData.refer_student_details.refer_student_first_name,
+        last_name: formData.refer_student_details.refer_student_last_name,
+        email: profileData?.email || "",
+        contact_number: formData.refer_student_details.refer_student_contact_number,
+        degree_program: formData.refer_student_details.refer_student_degree_program,
+        year_level: parseInt(formData.refer_student_details.refer_student_year, 10),
+        gender: formData.refer_student_details.refer_student_gender,
       },
-      referral: {
-        referred_person: {
-          first_name: formData.refer_student_details.refer_student_first_name,
-          last_name: formData.refer_student_details.refer_student_last_name,
-          email: profileData?.email || "",
-          contact_number:
-            formData.refer_student_details.refer_student_contact_number,
-          degree_program:
-            formData.refer_student_details.refer_student_degree_program,
-          year_level: parseInt(
-            formData.refer_student_details.refer_student_year,
-            10
-          ),
-          gender: formData.refer_student_details.refer_student_gender,
-        },
-        reason_for_referral: formData.referral_details.reason_for_referral,
-        initial_actions_taken: formData.referral_details.initial_actions_taken,
-        referral_status: "pending",
-      },
-    };
+      reason_for_referral: formData.referral_details.reason_for_referral,
+      initial_actions_taken: formData.referral_details.initial_actions_taken,
+      referral_status: "pending",
+    },
   };
+};
+
 
   const validateStep = (stepNumber) => {
     // NOTE: UNCOMMENT THIS TO VIEW VALIDATION
@@ -190,48 +186,48 @@ const ReferralSlip = () => {
     return newErrors;
   };
 
-  useEffect(() => {
-    if (profileData?.is_complete !== true) {
-      navigate("/myprofile");
-    }
-  }, [profileData, navigate]);
-
-  useEffect(() => {
-    const fetchFormData = async () => {
-      setLoading(true);
-      try {
-        let response = await getFormBundle(studentNumber);
-
-        if (!response) {
-          response = await createDraftSubmission(studentNumber);
-          response = await getFormBundle(studentNumber);
-        }
-
-        if (response) {
-          setFormData({
-            socio_economic_status: response.socio_economic_status || {},
-            scholastic_status: response.scholastic_status || {},
-            preferences: response.preferences || {},
-            student_support: response.student_support || {},
-            privacy_consent: response.privacy_consent || false,
-          });
-          setSubmissionId(response.submission.id);
-
-          if (response.submission.status === "submitted") {
-            setReadOnly(true);
-          }
-        } else {
-          setError("Failed to create or fetch the form.");
-        }
-      } catch (err) {
-        setError("Error fetching or creating form.");
-      } finally {
-        setLoading(false);
+    useEffect(() => {
+      if (profileData?.is_complete !== true) {
+        navigate("/myprofile");
       }
-    };
+    }, [profileData, navigate]);
 
-    if (studentNumber) fetchFormData();
-  }, [studentNumber]);
+    useEffect(() => {
+      const fetchFormData = async () => {
+        setLoading(true);
+        try {
+          let response = await getFormBundle(studentNumber);
+  
+          if (!response) {
+            response = await createDraftSubmission(studentNumber);
+            response = await getFormBundle(studentNumber);
+          }
+  
+          if (response) {
+            setFormData({
+              socio_economic_status: response.socio_economic_status || {},
+              scholastic_status: response.scholastic_status || {},
+              preferences: response.preferences || {},
+              student_support: response.student_support || {},
+              privacy_consent: response.privacy_consent || false,
+            });
+            setSubmissionId(response.submission.id);
+  
+            if (response.submission.status === "submitted") {
+              setReadOnly(true);
+            }
+          } else {
+            setError("Failed to create or fetch the form.");
+          }
+        } catch (err) {
+          setError("Error fetching or creating form.");
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      if (studentNumber) fetchFormData();
+    }, [studentNumber]);
 
   const handleNextStep = () => {
     const stepErrors = validateStep(step);
@@ -264,7 +260,7 @@ const ReferralSlip = () => {
     handleSubmit();
   };
 
-  const handleSaveDraft = async () => {
+   const handleSaveDraft = async () => {
     if (!submissionId) {
       alert("Submission ID is missing. Try reloading the page.");
       return;
@@ -291,7 +287,10 @@ const ReferralSlip = () => {
     setLoading(true);
     try {
       const formData = buildPayload();
-      const result = await finalizeSubmission(submissionId, formData);
+      const result = await finalizeSubmission(
+        submissionId,
+        formData
+      );
 
       if (result.success) {
         setShowSuccessToast(true);
@@ -337,11 +336,7 @@ const ReferralSlip = () => {
               <h1 className="left-1/2 text-center font-bold text-[2rem] text-white">
                 Counseling Referral Slip
               </h1>
-              <p className="text-center text-white my-5 text-base w-full max-w-2xl mx-auto whitespace-normal">
-                {" "}
-                Refers a student for counseling services to address personal,
-                academic, or behavioral concerns
-              </p>
+              <p className="text-center text-white my-5 text-base w-full max-w-2xl mx-auto whitespace-normal">  Refers a student for counseling services to address personal, academic, or behavioral concerns</p>
             </div>
 
             {/* Main Form - Steps and Fields */}
@@ -354,33 +349,9 @@ const ReferralSlip = () => {
                   <div className="flex-1">
                     {!showConfirmation ? (
                       <>
-                        {step === 1 && (
-                          <RSStudentDetails
-                            formData={formData}
-                            setFormData={setFormData}
-                            step={step}
-                            errors={errors}
-                            setErrors={setErrors}
-                          />
-                        )}
-                        {step === 2 && (
-                          <RSRefferal
-                            formData={formData}
-                            setFormData={setFormData}
-                            step={step}
-                            errors={errors}
-                            setErrors={setErrors}
-                          />
-                        )}
-                        {step === 3 && (
-                          <RSReferrer
-                            formData={formData}
-                            setFormData={setFormData}
-                            step={step}
-                            errors={errors}
-                            setErrors={setErrors}
-                          />
-                        )}
+                        {step === 1 && (<RSStudentDetails formData={formData} setFormData={setFormData} step={step} errors={errors} setErrors={setErrors} />)}
+                        {step === 2 && (<RSRefferal  formData={formData}  setFormData={setFormData}  step={step}  errors={errors}  setErrors={setErrors} />)}
+                        {step === 3 && (<RSReferrer formData={formData} setFormData={setFormData} step={step} errors={errors} setErrors={setErrors}/> )}
                         {step === 4 && <RSSubmit />}
                       </>
                     ) : (
@@ -399,12 +370,10 @@ const ReferralSlip = () => {
                     <div className="main-form-buttons">
                       {/* Step 1: 'Next' button */}
                       {step === 1 && !loading && (
+
                         <>
-                          <Button variant="primary" onClick={handleNextStep}>
-                            {" "}
-                            Next{" "}
-                          </Button>
-                          {!readOnly && (
+                          <Button variant="primary" onClick={handleNextStep}> Next </Button>
+                        {!readOnly && (
                             <Button
                               variant="tertiary"
                               onClick={handleSaveDraft}
@@ -419,13 +388,7 @@ const ReferralSlip = () => {
 
                       {step >= 2 && step <= 3 && !loading && (
                         <>
-                          <Button
-                            variant="secondary"
-                            onClick={handlePreviousStep}
-                          >
-                            {" "}
-                            Back{" "}
-                          </Button>
+                          <Button variant="secondary" onClick={handlePreviousStep}> Back </Button>
                           {!readOnly && (
                             <Button
                               variant="tertiary"
@@ -436,35 +399,15 @@ const ReferralSlip = () => {
                               {loading ? "Saving Draft..." : "Save Draft"}
                             </Button>
                           )}
-                          <Button
-                            variant="primary"
-                            onClick={handleNextStep}
-                            style={{ marginLeft: "0.5rem" }}
-                          >
-                            {" "}
-                            Next{" "}
-                          </Button>
+                          <Button variant="primary" onClick={handleNextStep} style={{ marginLeft: "0.5rem" }}> Next </Button>
                         </>
                       )}
 
                       {/* Step 4: 'Back', 'Save Draft', 'Preview', and 'Submit' buttons */}
                       {step === 4 && !loading && (
                         <>
-                          <Button
-                            variant="secondary"
-                            onClick={handlePreviousStep}
-                          >
-                            {" "}
-                            Back{" "}
-                          </Button>
-                          <Button
-                            variant="tertiary"
-                            onClick={handlePreview}
-                            style={{ marginLeft: "0.5rem" }}
-                          >
-                            {" "}
-                            Preview{" "}
-                          </Button>
+                          <Button variant="secondary" onClick={handlePreviousStep}> Back </Button>
+                          <Button variant="tertiary" onClick={handlePreview} style={{ marginLeft: "0.5rem" }} > Preview </Button>
                           {!readOnly && (
                             <Button
                               variant="tertiary"
