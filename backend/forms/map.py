@@ -11,9 +11,9 @@ from forms.serializers import (
     ParentSerializer, SiblingSerializer, GuardianSerializer,
     FamilyDataSerializer, HealthDataSerializer, 
     SchoolAddressSerializer, SchoolSerializer, PreviousSchoolRecordSerializer, 
-    ScholarshipSerializer, PersonalityTraitsSerializer, FamilyRelationshipSerializer, CounselingInformationSerializer, GuidanceSpecialistNotesSerializer,
-    SerializerPARD
+    ScholarshipSerializer, PersonalityTraitsSerializer, FamilyRelationshipSerializer, CounselingInformationSerializer, GuidanceSpecialistNotesSerializer
 )
+from forms.serializers.SerializerPARD import PARDSerializer
 
 
 # These are the mappings only for the sections that are needed to be filled up upon the first submission of the student
@@ -38,14 +38,7 @@ FORM_SECTIONS_MAP = {
         'privacy_consent': (PrivacyConsent, PrivacyConsentSerializer)
     },
     'psychosocial-assistance-and-referral-desk' : {
-        'preferred_date': (PARD, SerializerPARD),
-        'preferred_time': (PARD, SerializerPARD),
-        'date_started': (PARD, SerializerPARD),
-        'is_currently_on_medication': (PARD, SerializerPARD),
-        'symptoms_observed': (PARD, SerializerPARD),
-        'date_diagnosed': (PARD, SerializerPARD),
-        'communication_platform': (PARD, SerializerPARD),
-        'diagnosed_by': (PARD, SerializerPARD),
+        'pard_data': (PARD, PARDSerializer),
     }
 }
 
@@ -58,11 +51,11 @@ OPTIONAL_SECTIONS = {
 FORM_TYPE_SLUG_MAP = {
     'basic-information-sheet': 'Basic Information Sheet',
     'student-cumulative-information-file': 'Student Cumulative Information File',
-    'pard': 'Psychosocial Assistance and Referral Desk'
+    'psychosocial-assistance-and-referral-desk': 'Psychosocial Assistance and Referral Desk'
 }
 
 FORM_TYPE_UNSLUG_MAP = {
     'Basic Information Sheet': 'basic-information-sheet',
     'Student Cumulative Information File': 'student-cumulative-information-file',
-    'Psychosocial Assistand and Referral Desk': 'psychosocial-assistance-and-referral-desk'
+    'Psychosocial Assistance and Referral Desk': 'psychosocial-assistance-and-referral-desk'
 }

@@ -46,6 +46,7 @@ import PARD from "./forms/PARD/PARD";
 import { AdminStudentView } from "./admin-pages/AdminStudentView";
 import BISProfilePage from "./student-pages/BISProfilePage";
 import SCIFProfilePage from "./student-pages/SCIFProfilePage";
+import PARDProfilePage from "./student-pages/PARDProfilePage";
 
 function App() {
   return (
@@ -138,6 +139,14 @@ function App() {
           element={
             <ProtectedRoute requireAdmin={false}>
               <SCIFProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/submitted-forms/psychosocial-assistance-and-referral-desk"
+          element={
+            <ProtectedRoute requireAdmin={false}>
+              <PARDProfilePage />
             </ProtectedRoute>
           }
         />
