@@ -73,18 +73,24 @@ class PARDSubmitView(APIView):
     def get(self, request, student_number):
         try:
             student = get_object_or_404(Student, student_number=student_number)
-            submission = Submission.objects.get(
-                student=student,
-                form_type="Psychosocial Assistance and Referral Desk"
-            )
             
             # Retrieve student data
             response_data = self.get_student_data(student, request)
-            response_data["submission"]["id"] = submission.id
-
-            # Get pard data only for admin
-            if request.user.is_staff:
-                response_data["pard_data"] = self.get_pard_data(student, submission)
+            
+            # Try to get existing submission
+            try:
+                submission = Submission.objects.get(
+                    student=student,
+                    form_type="Psychosocial Assistance and Referral Desk"
+                )
+                response_data["submission"]["id"] = submission.id
+                
+                # Get pard data only for admin
+                if request.user.is_staff:
+                    response_data["pard_data"] = self.get_pard_data(student, submission)
+                    
+            except Submission.DoesNotExist:
+                response_data["submission"]["id"] = None
             
             return Response(response_data, status=status.HTTP_200_OK)
             
