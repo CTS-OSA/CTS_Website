@@ -35,6 +35,8 @@ export const useFormApi = () => {
 
   const submitForm = async (submissionId, formData) => {
     try {
+      console.log("SUBMISSION ID", submissionId);
+      
       const response = await request(
         `${BASE_URL}/submit/${submissionId}/`,
         {
@@ -43,6 +45,8 @@ export const useFormApi = () => {
           body: JSON.stringify(formData)
         }
       );
+
+      console.log("RESPONSE: ", response)
       return { success: true, data: response };
     } catch (error) {
       return {
