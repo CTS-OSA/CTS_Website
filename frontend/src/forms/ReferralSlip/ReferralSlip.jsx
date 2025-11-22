@@ -267,7 +267,7 @@ const ReferralSlip = () => {
         setShowConfirmation(true);
         setShowSuccessToast(true);
         setTimeout(() => {
-          navigate("/submitted-forms/referral-slip");
+          navigate("/submitted-forms/counseling-referral-slip");
         }, 3000);
       } else {
         if (result.status === 400 && result.data.errors) {

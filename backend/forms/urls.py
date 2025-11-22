@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views.profilesetup import create_student_profile, get_student_profile, update_student_profile, check_student_number
 from .views.GeneralSubmissionViewSet import FormBundleView, FinalizeSubmissionView, AdminFormEditView
-from .views.adminDisplay import AdminStudentListView, get_student_profile_by_id, AdminBISList, AdminStudentFormsView, AdminSCIFList, AdminStudentFormView
+from .views.adminDisplay import AdminStudentListView, get_student_profile_by_id, AdminBISList, AdminStudentFormsView, AdminSCIFList, AdminStudentFormView, AdminReferralListView, get_referral_detail
 from .views.display import SubmissionViewSet 
 from .views.getEnums import EnumChoicesView
 from .views.BISEditView import BISEditView
@@ -23,6 +23,7 @@ urlpatterns = [
     path('admin/students/<str:student_id>/update/', update_student_profile, name='admin-update-student'),
     path('admin/basic-information-sheet-submissions', AdminBISList.as_view(), name='get_bis_students'),
     path('admin/student-cumulative-information-file-submissions', AdminSCIFList.as_view(), name='get_scif_students'),
+    path('admin/counseling-referral-slip-submissions/', AdminReferralListView.as_view(), name='admin-referral-list'),
     path('<str:form_type>/', FormBundleView.as_view(), name='form-bundle'),
     path('finalize/<int:submission_id>/', FinalizeSubmissionView.as_view(), name='finalize-submission'),
     path('admin/students/', AdminStudentListView.as_view(), name='admin-student-list'),
@@ -54,5 +55,9 @@ urlpatterns = [
     # - Counselor can update their own profile
     path("counselors/update/", update_counselor_profile, name="update-counselor-self"),
     path("counselors/update/<int:counselor_id>/", update_counselor_profile, name="update-counselor-admin"),
+
+    # Referral ViewSet
+    path("admin/referrals/<int:referral_id>/", get_referral_detail, name="admin-referral-detail")
+
 ]
 

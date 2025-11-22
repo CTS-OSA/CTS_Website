@@ -21,6 +21,7 @@ import {
   AdminAuditLog,
   AdminProfile,
   AdminPard,
+  AdminReferralView,
 } from "./admin-pages";
 import {
   UserDashboard,
@@ -47,6 +48,7 @@ import { AdminStudentView } from "./admin-pages/AdminStudentView";
 import BISProfilePage from "./student-pages/BISProfilePage";
 import SCIFProfilePage from "./student-pages/SCIFProfilePage";
 import PARDProfilePage from "./student-pages/PARDProfilePage";
+import ReferralSlipProfilePage from "./student-pages/ReferralSlipProfilePage";
 
 function App() {
   return (
@@ -151,6 +153,14 @@ function App() {
           }
         />
         <Route
+          path="/submitted-forms/counseling-referral-slip"
+          element={
+            <ProtectedRoute requireAdmin={false}>
+              <ReferralSlipProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/submitted-forms"
           element={
             <ProtectedRoute requireAdmin={false} requireUser={true}>
@@ -206,6 +216,14 @@ function App() {
           element={
             <ProtectedRoute requireAdmin={true} requireUser={false}>
               <AdminSCIFView />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/counseling-referral-slip/:referralId"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <AdminReferralView />
             </ProtectedRoute>
           }
         />
