@@ -146,28 +146,6 @@ const ReferralSlipProfileView = ({
       navigate("/myprofile");
     }
   };
-
-  const handleFieldChange = (field, value) => {
-    if (role === "admin") {
-      setFormState((prev) => ({ ...prev, [field]: value }));
-      // Clear error when user starts typing
-      if (errors[field]) {
-        setErrors((prev) => ({ ...prev, [field]: null }));
-      }
-    }
-  };
-
-  const handleSupportChange = (key, checked) => {
-    if (role === "admin") {
-      setFormState((prev) => ({
-        ...prev,
-        support: checked
-          ? [...prev.support, key]
-          : prev.support.filter((item) => item !== key),
-      }));
-    }
-  };
-
   const handleSubmit = async () => {
     // Clear previous errors
     const newErrors = {};
@@ -259,7 +237,7 @@ const ReferralSlipProfileView = ({
               <img
                 src={upLogo}
                 alt="UP Logo"
-                className="w-[1.27in] h-[auto] object-contain"
+                className="w-[1.27in] h-auto object-contain"
               />
               <p className="text-[8px]">
                 OSA-CTS Form No. 03D
@@ -317,7 +295,7 @@ const ReferralSlipProfileView = ({
 
             {/* YEAR/COURSE / GENDER / REFERRAL DATE */}
             <div className="flex flex-wrap gap-4">
-              <div className="flex items-center gap-2 flex-grow">
+              <div className="flex items-center gap-2 grow">
                 <span className="font-semibold">Year/Course:</span>
                 <span className="border-b border-black flex-1 pb-0.5">
                   {formState.referred_person_year_level} /{" "}
@@ -345,7 +323,7 @@ const ReferralSlipProfileView = ({
               <span className="font-semibold">Reason(s) for Referral:</span>
             </div>
             <div>
-              <p className="border border-black min-h-[80px] p-2 whitespace-pre-wrap">
+              <p className="border border-black min-h-20 p-2 whitespace-pre-wrap">
                 {formState.reason_for_referral}
               </p>
             </div>
@@ -355,7 +333,7 @@ const ReferralSlipProfileView = ({
               <span className="font-semibold">Initial Actions Taken:</span>
             </div>
             <div>
-              <p className="border border-black min-h-[80px] p-2 whitespace-pre-wrap">
+              <p className="border border-black min-h-20 p-2 whitespace-pre-wrap">
                 {formState.initial_actions_taken}
               </p>
             </div>
