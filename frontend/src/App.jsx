@@ -20,7 +20,8 @@ import {
   AdminBISView,
   AdminAuditLog,
   AdminProfile,
-  AdminPard,
+  AdminPardView,
+  AdminPARDList,
 } from "./admin-pages";
 import {
   UserDashboard,
@@ -226,6 +227,14 @@ function App() {
           }
         />
         <Route
+          path="/admin/student-forms/:studentId/psychosocial-assistance-and-referral-desk"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <AdminPardView />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/admin-scif-list"
           element={
             <ProtectedRoute requireAdmin={true} requireUser={false}>
@@ -245,7 +254,7 @@ function App() {
           path="/admin-pard-list"
           element={
             <ProtectedRoute requireAdmin={true} requireUser={false}>
-              <AdminPard />
+              <AdminPARDList />
             </ProtectedRoute>
           }
         />
