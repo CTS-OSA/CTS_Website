@@ -36,6 +36,8 @@ from .SerializerSCIF import (
 
 from .AdminSerializers import (
     AdminSubmissionDetailSerializer,
+    AdminReferralListSerializer,
+    AdminReferralDetailSerializer
 )
 
 from .SerializerPARD import (

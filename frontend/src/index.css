@@ -15,7 +15,6 @@
   --font-condensed: "Roboto Condensed";
   --font-spartan: "League Spartan";
 }
-
 input[type="checkbox"] {
   accent-color: #7b1113;
 }
@@ -54,3 +53,10 @@ input[type="date"]:focus {
   box-shadow: none;
   outline: none;
 }
+
+/* PDF-only heavy borders */
+
+.pdf-mode .pb-0\.5 {
+  padding-bottom: 8px !important;
+}
+

@@ -39,6 +39,21 @@ export function calculateAge(birthdate) {
   return age;
 }
 
+export const formatDateOnly = (isoDate, locale = 'en-US', options = {}) => {
+  const date = new Date(isoDate);
+
+  const defaultOptions = {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  };
+
+  const formatOptions = { ...defaultOptions, ...options };
+
+  return date.toLocaleString(locale, formatOptions);
+};
+
+
 export const clearError = (errors, setErrors, key) => {
   if (errors?.[key]) {
     setErrors((prev) => {

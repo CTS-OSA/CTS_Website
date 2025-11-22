@@ -1,10 +1,10 @@
 # students/views.py
 from rest_framework.permissions import IsAdminUser
 from rest_framework.generics import ListAPIView
-from forms.models import Student, Submission
-from forms.serializers import StudentSerializer, AdminSubmissionDetailSerializer, SubmissionSerializer
+from forms.models import Student, Submission, Referral
+from forms.serializers import StudentSerializer, AdminSubmissionDetailSerializer, SubmissionSerializer, AdminReferralListSerializer, AdminReferralDetailSerializer
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
@@ -25,7 +25,22 @@ def get_student_profile_by_id(request, student_id):
     except Student.DoesNotExist:
         return Response({'error': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
     
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_referral_detail(request, referral_id):
+    try:
+        referral = Referral.objects.get(id=referral_id)
+    except Referral.DoesNotExist:
+        return Response({"error": "Referral not found"}, status=status.HTTP_404_NOT_FOUND)
 
+    user = request.user
+    if user.is_staff or (hasattr(user, "student") and referral.referrer.student == user.student):
+        serializer = AdminReferralDetailSerializer(referral)
+        return Response(serializer.data)
+    else:
+        return Response({"error": "Access denied"}, status=status.HTTP_403_FORBIDDEN)
+    
+    
 class AdminBISList(APIView):
     permission_classes = [IsAdminUser]
 
@@ -56,6 +71,16 @@ class AdminSCIFList(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=500)
     
+class AdminReferralListView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        try:
+            referrals = Referral.objects.filter(submission__status="submitted").order_by('-referral_date')
+            serializer = AdminReferralListSerializer(referrals, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class AdminStudentFormsView(APIView):
     def get(self, request, student_id):
