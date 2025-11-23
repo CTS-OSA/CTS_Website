@@ -25,9 +25,7 @@ const PARDProfileView = ({ profileData, formData }) => {
     name: `${profileData.last_name}, ${profileData.first_name} ${profileData.middle_name}`,
     year_course: `${profileData.current_year_level} - ${profileData.degree_program}`,
   });
-  
 
-  
   const handleDownloadClick = () => {
     setShowDownloadConfirm(true);
   };
@@ -57,13 +55,15 @@ const PARDProfileView = ({ profileData, formData }) => {
   };
 
   const handleReturn = () => {
-    if (role === "student" && profileData.student_number) {
+    if (role === "admin" && profileData.student_number) {
+      navigate(`/admin/students/${profileData.student_number}`);
+    } else {
       navigate("/myprofile");
     }
   };
 
   if (!formData) return <Loader />;
-  
+
   const { pard_data, submission } = formData;
 
   return (
@@ -77,7 +77,11 @@ const PARDProfileView = ({ profileData, formData }) => {
         >
           Return to Profile
         </Button>
-        <Button variant="primary" onClick={handleDownloadClick} className="pdf-button">
+        <Button
+          variant="primary"
+          onClick={handleDownloadClick}
+          className="pdf-button"
+        >
           Download as PDF
         </Button>
       </div>
@@ -106,62 +110,126 @@ const PARDProfileView = ({ profileData, formData }) => {
         <div className="section-title">I. DEMOGRAPHIC PROFILE</div>
         <div className="flex indented-section gap-5">
           <label>
-            Last Name: <input type="text" value={profileData?.last_name || ""} readOnly />
+            Last Name:{" "}
+            <input type="text" value={profileData?.last_name || ""} readOnly />
           </label>
           <label>
-            First Name: <input type="text" value={profileData?.first_name || ""} readOnly />
+            First Name:{" "}
+            <input type="text" value={profileData?.first_name || ""} readOnly />
           </label>
           <label>
-            Middle Name: <input type="text" value={profileData?.middle_name || ""} readOnly />
+            Middle Name:{" "}
+            <input
+              type="text"
+              value={profileData?.middle_name || ""}
+              readOnly
+            />
           </label>
         </div>
         <div className="flex gap-5 indented-section">
           <label>
-            Year Level: <input type="text" value={profileData?.current_year_level || ""} readOnly />
+            Year Level:{" "}
+            <input
+              type="text"
+              value={profileData?.current_year_level || ""}
+              readOnly
+            />
           </label>
           <label>
-            Degree Program: <input type="text" value={profileData?.degree_program || ""} readOnly />
+            Degree Program:{" "}
+            <input
+              type="text"
+              value={profileData?.degree_program || ""}
+              readOnly
+            />
           </label>
         </div>
 
         <div className="section-title">II. CONTACT INFORMATION</div>
         <div className="indented-section flex gap-5">
           <label>
-            Contact Number: <input type="text" value={profileData?.contact_number || ""} readOnly />
+            Contact Number:{" "}
+            <input
+              type="text"
+              value={profileData?.contact_number || ""}
+              readOnly
+            />
           </label>
           <label>
-            Preferred Appointment Date: <input type="text" value={pard_data?.preferred_date || ""} readOnly />
+            Preferred Appointment Date:{" "}
+            <input
+              type="text"
+              value={pard_data?.preferred_date || ""}
+              readOnly
+            />
           </label>
           <label>
-            Preferred Appointment Time: <input type="text" value={pard_data?.preferred_time || ""} readOnly />
+            Preferred Appointment Time:{" "}
+            <input
+              type="text"
+              value={pard_data?.preferred_time || ""}
+              readOnly
+            />
           </label>
         </div>
 
         <div className="section-title">III. PSYCHOSOCIAL ASSESSMENT</div>
         <div className="indented-section grid grid-cols-2 gap-5">
           <label>
-            Date Started: <input type="date" value={pard_data?.date_started || ""} readOnly />
+            Date Started:{" "}
+            <input type="date" value={pard_data?.date_started || ""} readOnly />
           </label>
           <label>
-            Currently on Medication: <input type="text" value={pard_data?.is_currently_on_medication ? "Yes" : "No"} readOnly />
+            Currently on Medication:{" "}
+            <input
+              type="text"
+              value={pard_data?.is_currently_on_medication ? "Yes" : "No"}
+              readOnly
+            />
           </label>
           <label>
-            Symptoms Observed: <AutoResizeTextarea value={pard_data?.symptoms_observed || ""} readOnly />
+            Symptoms Observed:{" "}
+            <AutoResizeTextarea
+              value={pard_data?.symptoms_observed || ""}
+              readOnly
+            />
           </label>
           <label>
-            Communication Platform: <input type="text" value={pard_data?.communication_platform || ""} readOnly />
+            Communication Platform:{" "}
+            <input
+              type="text"
+              value={pard_data?.communication_platform || ""}
+              readOnly
+            />
           </label>
           <label>
-            Date Diagnosed: <input type="date" value={pard_data?.date_diagnosed || ""} readOnly />
+            Date Diagnosed:{" "}
+            <input
+              type="date"
+              value={pard_data?.date_diagnosed || ""}
+              readOnly
+            />
           </label>
           <label>
-            Diagnosed By: <input type="text" value={pard_data?.diagnosed_by || ""} readOnly />
+            Diagnosed By:{" "}
+            <input type="text" value={pard_data?.diagnosed_by || ""} readOnly />
           </label>
         </div>
 
         <div className="signature">
           <label>
-            Date Filed: <input type="date" value={submission?.submitted_on ? new Date(submission.submitted_on).toLocaleDateString("en-CA") : ""} readOnly />
+            Date Filed:{" "}
+            <input
+              type="date"
+              value={
+                submission?.submitted_on
+                  ? new Date(submission.submitted_on).toLocaleDateString(
+                      "en-CA"
+                    )
+                  : ""
+              }
+              readOnly
+            />
           </label>
         </div>
       </div>
@@ -188,4 +256,3 @@ const PARDProfileView = ({ profileData, formData }) => {
 };
 
 export default PARDProfileView;
-        
