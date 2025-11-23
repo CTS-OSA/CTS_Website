@@ -9,5 +9,7 @@ export * from "./AdminBISList";
 export * from "./AdminBISView";
 export * from "./AdminAuditLog";
 export * from "./AdminProfile";
+export * from "./AdminPard";
+export * from "./AdminReferralView";
 export * from "./AdminPARDList";
 export * from "./AdminPardView";

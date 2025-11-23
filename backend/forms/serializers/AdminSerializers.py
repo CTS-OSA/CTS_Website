@@ -1,6 +1,7 @@
-from rest_framework import serializers
-from forms.models import Submission
-from .ProfileSetupSerializers import StudentSummarySerializer  
+from rest_framework import serializers, generics
+from forms.models import Submission, Referral
+from .ProfileSetupSerializers import StudentSummarySerializer
+from .SerializerReferral import StudentReferrerSerializer, ReferredPersonSerializer
 
 class AdminSubmissionDetailSerializer(serializers.ModelSerializer):
     student = StudentSummarySerializer(read_only=True)
@@ -8,3 +9,59 @@ class AdminSubmissionDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Submission
         fields = ['id', 'form_type', 'status', 'saved_on', 'submitted_on', 'student']
+        
+class AdminReferralListSerializer(serializers.ModelSerializer):
+    referrer = serializers.SerializerMethodField()
+    referred_person = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Referral
+        fields = [
+            "id",
+            "referral_date",
+            "referral_status",
+            "referrer",
+            "referred_person",
+        ]
+
+    def get_referrer(self, obj):
+        if obj.referrer:
+            if obj.referrer.is_registered():
+                return {
+                    "name": f"{obj.referrer.student.first_name} {obj.referrer.student.last_name}",
+                }
+            else:
+                return {
+                    "name": f"{obj.referrer.first_name} {obj.referrer.last_name}",
+                }
+        return None
+
+    def get_referred_person(self, obj):
+        if obj.referred_person:
+            return {
+                "name": f"{obj.referred_person.first_name} {obj.referred_person.last_name}",
+                "year_level": obj.referred_person.year_level,
+                "degree_program": obj.referred_person.degree_program
+            }
+        return None
+    
+class AdminReferralDetailSerializer(serializers.ModelSerializer):
+    referrer = StudentReferrerSerializer(read_only=True)
+    referred_person = ReferredPersonSerializer(read_only=True)
+
+    class Meta:
+        model = Referral
+        fields = [
+            "id",
+            "submission",
+            "referrer",
+            "referred_person",
+            "reason_for_referral",
+            "initial_actions_taken",
+            "referral_status",
+            "referral_date",
+        ]
+        
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        return {"referral": data} 

@@ -36,6 +36,8 @@ from .SerializerSCIF import (
 
 from .AdminSerializers import (
     AdminSubmissionDetailSerializer,
+    AdminReferralListSerializer,
+    AdminReferralDetailSerializer
 )
 
 from .SerializerPARD import (
@@ -44,4 +46,11 @@ from .SerializerPARD import (
 
 from .AdminProfileSerializer import (
     CounselorSerializer
+)
+
+from .SerializerReferral import (
+    ReferredPersonSerializer,
+    GuestReferrerSerializer,
+    ReferralSerializer,
+    StudentReferrerSerializer
 )

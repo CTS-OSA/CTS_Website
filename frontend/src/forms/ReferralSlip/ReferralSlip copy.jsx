@@ -1,10 +1,13 @@
 import React, { useContext, useState, useEffect } from "react";
 import { useApiRequest } from "../../context/ApiRequestContext";
 import { AuthContext } from "../../context/AuthContext";
+
+// Sections
+// Sections to be updated
 import RSStudentDetails from "./RSStudentDetails";
 import RSRefferal from "./RSReferral";
 import RSReferrer from "./RSReferrer";
-import ReferralSubmissionConfirmation from "./ReferralSubmissionConfirmation";
+// Add Referral Slip API here
 import { useFormApi } from "./RSApi";
 import Button from "../../components/UIButton";
 import ToastMessage from "../../components/ToastMessage";
@@ -14,7 +17,6 @@ import DefaultLayout from "../../components/DefaultLayout";
 import StepIndicator from "../../components/StepIndicator";
 import RSPreview from "./RSPreview";
 import RSSubmit from "./RSSubmit";
-import ConfirmDialog from "../../components/ConfirmDialog";
 
 const ReferralSlip = () => {
   const { request } = useApiRequest();
@@ -44,50 +46,57 @@ const ReferralSlip = () => {
     finalizeSubmission,
   } = useFormApi();
   const [formData, setFormData] = useState({
-    referral: {
-      referred_person: {
-        first_name: "",
-        last_name: "",
-        contact_number: "",
-        degree_program: "",
-        year_level: "",
-        gender: "",
-      },
+    refer_student_details: {
+      refer_student_last_name: "",
+      refer_student_first_name: "",
+      refer_student_year: "",
+      refer_student_degree_program: "",
+      refer_student_gender: "",
+      refer_student_contact_number: "",
+    },
+    referral_details: {
       reason_for_referral: "",
       initial_actions_taken: "",
     },
+    // referrer_details: {
+    //   referrer_last_name: "",
+    //   referrer_first_name: "",
+    //   referrer_department: "",
+    //   referrer_email: "",
+    //   referrer_contact_number: "",
+    // },
   });
 
   const rules = {
-    referral: {
-      referred_person: {
-        last_name: {
-          required: true,
-          message: "This field is required.",
-        },
-        first_name: {
-          required: true,
-          message: "This field is required.",
-        },
-        year_level: {
-          required: true,
-          message: "This field is required.",
-        },
-        degree_program: {
-          required: true,
-          message: "This field is required.",
-        },
-        gender: {
-          required: true,
-          message: "This field is required.",
-        },
-        contact_number: {
-          required: true,
-          message: "This field is required.",
-          pattern: /^(\+63|0)\d{9,10}$/,
-          patternMessage: "Please enter a valid phone number.",
-        },
+    refer_student_details: {
+      refer_student_last_name: {
+        required: true,
+        message: "This field is required.",
       },
+      refer_student_first_name: {
+        required: true,
+        message: "This field is required.",
+      },
+      refer_student_year: {
+        required: true,
+        message: "This field is required.",
+      },
+      refer_student_degree_program: {
+        required: true,
+        message: "This field is required.",
+      },
+      refer_student_gender: {
+        required: true,
+        message: "This field is required.",
+      },
+      refer_student_contact_number: {
+        required: true,
+        message: "This field is required.",
+        pattern: /^(\+63|0)\d{9,10}$/,
+        patternMessage: "Please enter a valid phone number.",
+      },
+    },
+    referral_details: {
       reason_for_referral: {
         required: true,
         message: "This field is required.",
@@ -98,25 +107,25 @@ const ReferralSlip = () => {
       },
     },
     referrer_details: {
-      last_name: {
+      referrer_last_name: {
         required: true,
         message: "This field is required.",
       },
-      first_name: {
+      referrer_first_name: {
         required: true,
         message: "This field is required.",
       },
-      department: {
+      referrer_department: {
         required: true,
         message: "This field is required.",
       },
-      email: {
+      referrer_email: {
         required: true,
         message: "This field is required.",
         pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
         patternMessage: "Please enter a valid email address.",
       },
-      contact_number: {
+      referrer_contact_number: {
         required: true,
         message: "This field is required.",
         pattern: /^(\+63|0)\d{9,10}$/,
@@ -125,40 +134,60 @@ const ReferralSlip = () => {
     },
   };
 
-  const validateStep = (stepNumber) => {
-    const errors = {};
+  const buildPayload = () => {
+    return {
+      submission: {
+        id: submissionId, // or whatever ID you get from the backend
+      },
+      referral: {
+        referred_person: {
+          first_name: formData.refer_student_details.refer_student_first_name,
+          last_name: formData.refer_student_details.refer_student_last_name,
+          email: profileData?.email || "",
+          contact_number:
+            formData.refer_student_details.refer_student_contact_number,
+          degree_program:
+            formData.refer_student_details.refer_student_degree_program,
+          year_level: parseInt(
+            formData.refer_student_details.refer_student_year,
+            10
+          ),
+          gender: formData.refer_student_details.refer_student_gender,
+        },
+        reason_for_referral: formData.referral_details.reason_for_referral,
+        initial_actions_taken: formData.referral_details.initial_actions_taken,
+        referral_status: "pending",
+      },
+    };
+  };
 
+  const validateStep = (stepNumber) => {
+    // NOTE: UNCOMMENT THIS TO VIEW VALIDATION
     const stepMap = {
-      1: ["referral", "referred_person"],
-      2: ["referral"],
+      1: "refer_student_details",
+      2: "referral_details",
+      // 3: "referrer_details",
     };
 
-    const path = stepMap[stepNumber];
-    if (!path) return {};
+    const sectionKey = stepMap[stepNumber];
+    if (!sectionKey) return {};
 
-    let currentData = formData;
-    let currentRules = rules;
+    const sectionRules = rules[sectionKey];
+    const sectionData = formData[sectionKey];
+    const newErrors = {};
 
-    for (const key of path) {
-      currentData = currentData[key] || {};
-      currentRules = currentRules[key] || {};
-    }
+    Object.keys(sectionRules).forEach((fieldKey) => {
+      const rule = sectionRules[fieldKey];
+      const value = sectionData[fieldKey];
 
-    for (const field in currentRules) {
-      const rule = currentRules[field];
-      const value = currentData[field];
-
-      if (rule.required && !value?.toString().trim()) {
-        errors[field] = rule.message;
-        continue;
+      if (rule.required && (!value || value.trim() === "")) {
+        newErrors[fieldKey] = rule.message;
+      } else if (rule.pattern && value && !rule.pattern.test(value)) {
+        newErrors[fieldKey] = rule.patternMessage || "Invalid format.";
       }
+    });
 
-      if (rule.pattern && value && !rule.pattern.test(value)) {
-        errors[field] = rule.patternMessage;
-      }
-    }
-
-    return errors;
+    return newErrors;
   };
 
   useEffect(() => {
@@ -172,21 +201,21 @@ const ReferralSlip = () => {
       setLoading(true);
       try {
         let response = await getFormBundle(studentNumber);
-        console.log("Fetched response:", response);
 
         if (!response) {
           response = await createDraftSubmission(studentNumber);
           response = await getFormBundle(studentNumber);
         }
-        console.log(response);
-        console.log("ID", response.submission.id);
 
         if (response) {
           setFormData({
-            referral: response.referral || {},
+            socio_economic_status: response.socio_economic_status || {},
+            scholastic_status: response.scholastic_status || {},
+            preferences: response.preferences || {},
+            student_support: response.student_support || {},
+            privacy_consent: response.privacy_consent || false,
           });
           setSubmissionId(response.submission.id);
-          console.log(submissionId);
 
           if (response.submission.status === "submitted") {
             setReadOnly(true);
@@ -243,9 +272,9 @@ const ReferralSlip = () => {
 
     setLoading(true);
     try {
-      const response = await saveDraft(submissionId, formData);
-      console.log("New Id:", submissionId);
-      console.log("form:", formData);
+      const formData = buildPayload();
+      const response = await saveDraft(submissionId, studentNumber, formData);
+
       if (response?.ok) {
         setShowDraftSuccessToast(true);
       } else {
@@ -261,13 +290,13 @@ const ReferralSlip = () => {
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      const formData = buildPayload();
       const result = await finalizeSubmission(submissionId, formData);
 
       if (result.success) {
-        setShowConfirmation(true);
         setShowSuccessToast(true);
         setTimeout(() => {
-          navigate("/submitted-forms/counseling-referral-slip");
+          navigate("/submitted-forms/referral-slip");
         }, 3000);
       } else {
         if (result.status === 400 && result.data.errors) {
@@ -343,11 +372,19 @@ const ReferralSlip = () => {
                             setErrors={setErrors}
                           />
                         )}
-                        {step === 3 && <RSReferrer profileData={profileData} />}
+                        {step === 3 && (
+                          <RSReferrer
+                            formData={formData}
+                            setFormData={setFormData}
+                            step={step}
+                            errors={errors}
+                            setErrors={setErrors}
+                          />
+                        )}
                         {step === 4 && <RSSubmit />}
                       </>
                     ) : (
-                      <ReferralSubmissionConfirmation />
+                      <ReferralSubssionConfirmation />
                     )}
                     {/* Error Message */}
                     {error && (
@@ -363,6 +400,10 @@ const ReferralSlip = () => {
                       {/* Step 1: 'Next' button */}
                       {step === 1 && !loading && (
                         <>
+                          <Button variant="primary" onClick={handleNextStep}>
+                            {" "}
+                            Next{" "}
+                          </Button>
                           {!readOnly && (
                             <Button
                               variant="tertiary"
@@ -373,10 +414,6 @@ const ReferralSlip = () => {
                               {loading ? "Saving Draft..." : "Save Draft"}
                             </Button>
                           )}
-                          <Button variant="primary" onClick={handleNextStep}>
-                            {" "}
-                            Next{" "}
-                          </Button>
                         </>
                       )}
 
@@ -463,7 +500,6 @@ const ReferralSlip = () => {
         {isPreviewOpen && (
           <RSPreview
             formData={formData}
-            profileData={profileData}
             onClose={() => setIsPreviewOpen(false)}
           />
         )}
