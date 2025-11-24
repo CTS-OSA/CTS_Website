@@ -3,12 +3,6 @@ import submitcheck from "../../assets/submit-check.svg";
 
 const PARDSubmissionConfirmation = () => {
     
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
-    };
-
-    
     return (
         <div className="flex flex-col justify-center h-[90%]">
             <img src={submitcheck} alt="Submission successful" className="mx-auto mb-4 w-24 h-24" />

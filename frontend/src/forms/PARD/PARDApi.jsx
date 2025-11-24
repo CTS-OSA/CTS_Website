@@ -46,7 +46,8 @@ export const useFormApi = () => {
         }
       );
 
-      console.log("RESPONSE: ", response)
+      console.log("response", response);
+
       return { success: true, data: response };
     } catch (error) {
       return {

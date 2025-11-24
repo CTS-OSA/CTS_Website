@@ -46,8 +46,8 @@ class PARDSubmissionSerializer(serializers.Serializer):
         contact_data = validated_data.get('pard_contact_info', {})
         
         pard_data = {
-            'student_number_id': student_number,
-            'submission_id_id': submission_id,
+            'student_number': student_number,
+            'submission_id': submission_id,
             'preferred_date': contact_data.get('preferred_date'),
             'preferred_time': contact_data.get('preferred_time'),
             'date_started': psych_data.get('date_started'),
@@ -62,8 +62,8 @@ class PARDSubmissionSerializer(serializers.Serializer):
         pard_data = {k: v for k, v in pard_data.items() if v is not None}
         
         pard_instance, created = PARD.objects.update_or_create(
-            student_number_id=student_number,
-            submission_id_id=submission_id,
+            student_number=student_number,
+            submission_id=submission_id,
             defaults=pard_data
         )
         

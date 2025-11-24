@@ -7,7 +7,7 @@ from ..models.submission import Submission
 from ..models.PARD import PARD
 from ..serializers.SerializerPARD import PARDSubmissionSerializer, PARDSerializer
 from ..models.student import Student
-
+from django.utils import timezone
 
 class PARDSubmitView(APIView):
     permission_classes = [IsAuthenticated]
@@ -127,8 +127,9 @@ class PARDSubmitView(APIView):
                 # Save the PARD data
                 pard_instance = serializer.save()
                 
-                # Update submission status
+                # Update submission status and timestamp
                 submission.status = 'submitted'
+                submission.submitted_on = timezone.now()
                 submission.save()
                 
                 return Response({
