@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useApiRequest } from "../context/ApiRequestContext";
 import Button from "../components/UIButton";
 import DefaultLayout from "../components/DefaultLayout";
 import "./css/studentList.css";
@@ -11,88 +12,10 @@ import PaginationButtons from "../components/PaginationControls";
 import SortableTableHeader from "../components/SortableTableHeader";
 import Loader from "../components/Loader";
 
-const DUMMY_PARD_SUBMISSIONS = [
-  {
-    id: 301,
-    form_type: "Psychosocial Assistance and Referral Desk",
-    status: "submitted",
-    saved_on: "2025-11-20T08:10:00Z",
-    submitted_on: "2025-11-20T08:15:00Z",
-    student: {
-      student_number: "2023-14283",
-      first_name: "Roslyn",
-      last_name: "Guillermo",
-      current_year_level: "3rd Year",
-      degree_program: "BS Computer Science",
-    },
-    pard_data: {
-      preferred_date: "2025-11-25",
-      preferred_time: "09:00:00",
-      date_started: "2025-10-01",
-      is_currently_on_medication: false,
-      symptoms_observed:
-        "Difficulty focusing, heightened anxiety during exams.",
-      date_diagnosed: "2024-08-15",
-      communication_platform: "Google Meet",
-      diagnosed_by: "Dr. Felicia Ramos",
-      status: "pending",
-    },
-  },
-  {
-    id: 302,
-    form_type: "Psychosocial Assistance and Referral Desk",
-    status: "submitted",
-    saved_on: "2025-11-21T04:45:00Z",
-    submitted_on: "2025-11-21T04:55:00Z",
-    student: {
-      student_number: "2019-55678",
-      first_name: "John Paul",
-      last_name: "Garcia",
-      current_year_level: "4th Year",
-      degree_program: "BS Data Science",
-    },
-    pard_data: {
-      preferred_date: "2025-11-28",
-      preferred_time: "13:30:00",
-      date_started: "2025-09-20",
-      is_currently_on_medication: true,
-      symptoms_observed: "Recurring panic attacks, trouble sleeping.",
-      date_diagnosed: "2023-06-05",
-      communication_platform: "Zoom",
-      diagnosed_by: "Dr. Lim, Dr. Natividad",
-      status: "read",
-    },
-  },
-  {
-    id: 303,
-    form_type: "Psychosocial Assistance and Referral Desk",
-    status: "submitted",
-    saved_on: "2025-11-22T01:30:00Z",
-    submitted_on: "2025-11-22T02:05:00Z",
-    student: {
-      student_number: "2021-77889",
-      first_name: "Aisha",
-      last_name: "Del Rosario",
-      current_year_level: "2nd Year",
-      degree_program: "BA Communication and Media Arts",
-    },
-    pard_data: {
-      preferred_date: "2025-12-01",
-      preferred_time: "10:15:00",
-      date_started: "2025-07-18",
-      is_currently_on_medication: false,
-      symptoms_observed: "Mood swings, withdrawal from peers.",
-      date_diagnosed: "2022-11-30",
-      communication_platform: "Microsoft Teams",
-      diagnosed_by: "Dr. Irene Tan",
-      status: "unread",
-    },
-  },
-];
-
 export const AdminPARDList = () => {
   const navigate = useNavigate();
   const { role, loading } = useAuth();
+  const { request } = useApiRequest();
 
   // raw and filtered submissions
   const [submissions, setSubmissions] = useState([]);
@@ -106,13 +29,41 @@ export const AdminPARDList = () => {
   const [programs, setPrograms] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
 
-  // Apply filters
+  // Fetch PARD submissions
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await request(
+          "/api/forms/admin/psychosocial-assistance-and-referral-desk"
+        );
+        
+        if (!res.ok) throw new Error("Failed to fetch PARD submissions");
+        
+        const data = await res.json();
+        data.sort(
+          (a, b) => new Date(b.submitted_on) - new Date(a.submitted_on)
+        );
+
+
+        setSubmissions(data);
+        setFiltered(data);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      } finally {
+        setLoadingData(false);
+      }
+    };
+    if (!loading && role === "admin") fetchData();
+  }, [loading, role, request]);
+
+  // Apply filters: Search for full name, student id
   useEffect(() => {
     let temp = submissions.filter(({ student, submitted_on }) => {
       const fullName =
         `${student.first_name} ${student.last_name}`.toLowerCase();
       const studentId = student.student_number.toLowerCase();
       const searchText = filterText.toLowerCase();
+
       if (
         filterText &&
         !(fullName.includes(searchText) || studentId.includes(searchText))
@@ -211,18 +162,6 @@ export const AdminPARDList = () => {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = sorted.slice(indexOfFirstItem, indexOfLastItem);
-
-  // Fetch placeholder PARD submissions (dummy data for now)
-  useEffect(() => {
-    if (!loading && role === "admin") {
-      const sortedData = [...DUMMY_PARD_SUBMISSIONS].sort(
-        (a, b) => new Date(b.submitted_on) - new Date(a.submitted_on)
-      );
-      setSubmissions(sortedData);
-      setFiltered(sortedData);
-      setLoadingData(false);
-    }
-  }, [loading, role]);
 
   if (loading || loadingData) return <Loader />;
   if (role !== "admin") return <div>Access denied. Admins only.</div>;

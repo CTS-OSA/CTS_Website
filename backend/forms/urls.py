@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views.profilesetup import create_student_profile, get_student_profile, update_student_profile, check_student_number
 from .views.GeneralSubmissionViewSet import FormBundleView, FinalizeSubmissionView, AdminFormEditView
-from .views.adminDisplay import AdminStudentListView, get_student_profile_by_id, AdminBISList, AdminStudentFormsView, AdminSCIFList, AdminStudentFormView, AdminReferralListView, get_referral_detail
+from .views.adminDisplay import AdminStudentListView, get_student_profile_by_id, AdminBISList, AdminStudentFormsView, AdminSCIFList, AdminPARDList, AdminStudentFormView, AdminReferralListView, get_referral_detail
 from .views.display import SubmissionViewSet 
 from .views.getEnums import EnumChoicesView
 from .views.BISEditView import BISEditView
@@ -42,6 +42,9 @@ urlpatterns = [
     path('psychosocial-assistance-and-referral-desk/student-data/<str:student_number>/', PARDSubmitView.as_view(), name='pard-student-data'),
     path('edit/pard/<str:student_number>', PARDSubmitView.as_view(), name='pard-edit'),
     
+    # PARD ADMIN
+    path('admin/psychosocial-assistance-and-referral-desk', AdminPARDList.as_view(), name='get_pard_students'),
+
     path('display/', include(router.urls)), 
     
     # Create a new counselor profile (POST)

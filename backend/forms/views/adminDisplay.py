@@ -1,8 +1,8 @@
 # students/views.py
 from rest_framework.permissions import IsAdminUser
 from rest_framework.generics import ListAPIView
-from forms.models import Student, Submission, Referral
-from forms.serializers import StudentSerializer, AdminSubmissionDetailSerializer, SubmissionSerializer, AdminReferralListSerializer, AdminReferralDetailSerializer
+from forms.models import Student, Submission, Referral, PARD
+from forms.serializers import StudentSerializer, AdminSubmissionDetailSerializer, SubmissionSerializer, AdminReferralListSerializer, AdminReferralDetailSerializer, PARDSerializer
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -81,6 +81,23 @@ class AdminReferralListView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class AdminPARDList(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        if not request.user.is_staff:
+            return Response({'error': 'Permission denied, admins only.'}, status=403)
+
+        try:
+            submissions = Submission.objects.filter(
+                form_type="Psychosocial Assistance and Referral Desk", 
+                status="submitted"
+            ).select_related('student')
+            serializer = AdminSubmissionDetailSerializer(submissions, many=True)
+            return Response(serializer.data, status=200)
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
 
 class AdminStudentFormsView(APIView):
     def get(self, request, student_id):
@@ -109,13 +126,27 @@ class AdminStudentFormView(APIView):
         except Submission.DoesNotExist:
             return Response({'error': 'No submission found for this student and form type.'}, status=status.HTTP_404_NOT_FOUND)
 
-        sections = FORM_SECTIONS_MAP.get(form_type)
-        if not sections:
-            return Response({'error': 'Invalid form type sections.'}, status=status.HTTP_400_BAD_REQUEST)
-
         data = {
             'submission': SubmissionSerializer(submission).data,
         }
+
+        # Special handling for PARD
+        if form_type == 'psychosocial-assistance-and-referral-desk':
+            from forms.models.PARD import PARD
+            from forms.serializers.SerializerPARD import PARDSerializer
+            
+            try:
+                pard = PARD.objects.get(submission_id=submission)
+                data['pard_data'] = PARDSerializer(pard).data
+            except PARD.DoesNotExist:
+                data['pard_data'] = None
+                
+            return Response(data, status=status.HTTP_200_OK)
+
+        # Regular form handling
+        sections = FORM_SECTIONS_MAP.get(form_type)
+        if not sections:
+            return Response({'error': 'Invalid form type sections.'}, status=status.HTTP_400_BAD_REQUEST)
 
         for key, (model, serializer) in sections.items():
             many = model._meta.model_name in ['sibling', 'previousschoolrecord'] 
