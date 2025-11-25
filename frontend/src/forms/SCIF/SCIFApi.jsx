@@ -17,7 +17,7 @@ const sectionKeys = [
 
 export const useFormApi = () => {
   const { request } = useApiRequest();
-  const arraySections = ["siblings", "previous_school_record"];
+  const arraySections = ["siblings"];
 
   const createDraftSubmission = async (studentNumber) => {
     const response = await request(`${BASE_URL}/`, {
@@ -56,20 +56,30 @@ export const useFormApi = () => {
   const saveDraft = async (submissionId, studentNumber, formData) => {
     const payload = {};
     sectionKeys.forEach((key) => {
-      if (formData[key]) {
-        if (arraySections.includes(key) && Array.isArray(formData[key])) {
-          payload[key] = formData[key].map((item) => ({
-            ...item,
-            submission: submissionId,
-            students: item.students?.length ? item.students : [studentNumber], // Fallback if empty
-          }));
-        } else {
-          payload[key] = {
-            ...formData[key],
-            submission: submissionId,
-            student_number: studentNumber,
-          };
-        }
+      const value = formData[key];
+      if (!value) return;
+
+      if (key === "previous_school_record") {
+        const records = Array.isArray(value.records) ? value.records : [];
+        payload[key] = records.map((record) => ({
+          ...record,
+          submission: submissionId,
+        }));
+        return;
+      }
+
+      if (arraySections.includes(key) && Array.isArray(value)) {
+        payload[key] = value.map((item) => ({
+          ...item,
+          submission: submissionId,
+          students: item.students?.length ? item.students : [studentNumber],
+        }));
+      } else {
+        payload[key] = {
+          ...value,
+          submission: submissionId,
+          student_number: studentNumber,
+        };
       }
     });
     const response = await request(`${BASE_URL}/`, {
