@@ -6,7 +6,7 @@ class Submission(models.Model):
     FORM_CHOICES = [
         ('Basic Information Sheet', 'Basic Information Sheet'),
         ('Student Cumulative Information File', 'Student Cumulative Information File'),
-        ('Psychosocial Assistand and Referral Desk', 'Psychosocial Assistand and Referral Desk'),
+        ('Psychosocial Assistance and Referral Desk', 'Psychosocial Assistance and Referral Desk'),
         ('Counseling Referral Slip', 'Counseling Referral Slip')
     ]
 

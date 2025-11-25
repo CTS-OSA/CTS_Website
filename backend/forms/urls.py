@@ -40,6 +40,7 @@ urlpatterns = [
     # PARD 
     path('psychosocial-assistance-and-referral-desk/submit/<int:submission_id>/', PARDSubmitView.as_view(), name='pard-submit'),
     path('psychosocial-assistance-and-referral-desk/student-data/<str:student_number>/', PARDSubmitView.as_view(), name='pard-student-data'),
+    path('psychosocial-assistance-and-referral-desk/delete/<str:student_number>/', PARDSubmitView.as_view(), name='pard-delete'),
     path('edit/pard/<str:student_number>', PARDSubmitView.as_view(), name='pard-edit'),
     
     # PARD ADMIN

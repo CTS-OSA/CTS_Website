@@ -14,6 +14,7 @@ export const useFormApi = () => {
       }
     );
 
+
     if (response?.status === 404) return null;
     return response?.ok ? await response.json() : null;
   };
@@ -26,6 +27,8 @@ export const useFormApi = () => {
           'Content-Type': 'application/json',
         },
       });
+      console.log("Response", response);
+
       return await response.json();
     } catch (error) {
       console.error("Error fetching student data:", error);
@@ -35,7 +38,6 @@ export const useFormApi = () => {
 
   const submitForm = async (submissionId, formData) => {
     try {
-      console.log("SUBMISSION ID", submissionId);
       
       const response = await request(
         `${BASE_URL}/submit/${submissionId}/`,
@@ -46,8 +48,20 @@ export const useFormApi = () => {
         }
       );
 
+<<<<<<< Updated upstream
       console.log("RESPONSE: ", response)
       return { success: true, data: response };
+=======
+      if (response.success){
+        return { 
+          success: true 
+        };
+      } else {
+        return {
+          success: false,
+        };
+      }
+>>>>>>> Stashed changes
     } catch (error) {
       return {
         success: false,

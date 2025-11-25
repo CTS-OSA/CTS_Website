@@ -79,6 +79,7 @@ export const UserDashboard = () => {
 
   const confirmDelete = async () => {
     const form = confirmDialog.form;
+    
     const slugify = (text) =>
       text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
 
