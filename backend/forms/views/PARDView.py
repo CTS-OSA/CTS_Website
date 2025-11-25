@@ -81,10 +81,18 @@ class PARDSubmitView(APIView):
             submission, created = Submission.objects.get_or_create(
                 student=student,
                 form_type="Psychosocial Assistance and Referral Desk",
-                defaults={'status': 'draft'}
+                defaults={'status': 'draft', 'saved_on': timezone.now()}
             )
             
+            # Update saved_on for existing submissions
+            if not created:
+                submission.saved_on = timezone.now()
+                submission.form_type = "Psychosocial Assistance and Referral Desk"
+                submission.save()
+            
+            
             response_data["submission"]["id"] = submission.id
+            response_data["submission"]["form_type"] = submission.form_type
             
             # Get pard data only for admin
             if request.user.is_staff:
@@ -127,16 +135,13 @@ class PARDSubmitView(APIView):
                 # Save the PARD data
                 pard_instance = serializer.save()
                 
-                # Update submission status and timestamp
+                # Update submission status and timestamps
                 submission.status = 'submitted'
+                submission.saved_on = timezone.now()
                 submission.submitted_on = timezone.now()
                 submission.save()
                 
-                return Response({
-                    "message": "PARD form submitted successfully!",
-                    "submission_id": submission_id,
-                    "pard_id": pard_instance.id
-                }, status=status.HTTP_201_CREATED)
+                return Response({"success": True}, status=status.HTTP_200_OK)
             else:
                 return Response({
                     "Error saving data": serializer.errors
@@ -147,6 +152,48 @@ class PARDSubmitView(APIView):
                 "error": f"An error occurred: {str(e)}"
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    def delete(self, request, student_number):
+        try:
+            if request.user.is_staff: 
+                student = get_object_or_404(Student, student_number=student_number)
+                
+                # Get the submission
+                submission = get_object_or_404(
+                    Submission,
+                    student=student,
+                    form_type="Psychosocial Assistance and Referral Desk"
+                )
+
+                # Verify the submission belongs to the authenticated user
+                if submission.student.user != request.user:
+                    return Response(
+                        {"error": "You don't have permission to delete this form."},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+                
+                # Update PARD status if it exists
+                try:
+                    pard = PARD.objects.get(student_number=student)
+                    pard.status = 'deleted'
+                    pard.save()
+                except PARD.DoesNotExist:
+                    pass
+                
+                return Response(
+                    {"message": "PARD draft deleted successfully."},
+                    status=status.HTTP_204_NO_CONTENT
+                )
+            else:
+                return Response(
+                        {"error": "You don't have permission to delete this form."},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+        except Exception as e:
+            return Response(
+                {"error": f"An error occurred: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
     # Updates data from the admin side  
     def patch(self, request,student_number):
         try: 
