@@ -91,6 +91,17 @@ const normalizeScholarshipEntries = (value) => {
   return value.map((entry) => safeTrim(entry)).filter(Boolean);
 };
 
+const getProfilePhotoUrl = (profile) =>
+  profile?.photo?.image || profile?.photo?.url || "";
+
+const getProfileInitials = (profile) => {
+  if (!profile) return "ID";
+  const first = profile.first_name?.charAt(0) || "";
+  const last = profile.last_name?.charAt(0) || "";
+  const initials = `${first}${last}`.trim();
+  return initials.toUpperCase() || "ID";
+};
+
 const toBoolean = (value) => {
   if (typeof value === "boolean") return value;
   if (typeof value === "string") {
@@ -273,6 +284,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       submission: "",
     },
   });
+  const photoUrl = getProfilePhotoUrl(profileData);
+  const photoInitials = getProfileInitials(profileData);
 
   useEffect(() => {
     if (!formData || !profileData) return;
@@ -869,17 +882,68 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     const element = pdfRef.current;
+    if (!element) {
+      setDownloadToast("Unable to prepare the file. Please reload the page.");
+      return false;
+    }
+
+    const clone = element.cloneNode(true);
+    const normalizeColor = (() => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      return (value) => {
+        if (!ctx || !value) return value;
+        try {
+          ctx.fillStyle = value;
+          return ctx.fillStyle;
+        } catch {
+          return value;
+        }
+      };
+    })();
+
+    const container = document.createElement("div");
+    container.style.position = "fixed";
+    container.style.left = "-10000px";
+    container.style.top = "0";
+    container.style.zIndex = "-1";
+    container.appendChild(clone);
+    document.body.appendChild(container);
+
+    const sourceNodes = [element, ...element.querySelectorAll("*")];
+    const targetNodes = [clone, ...clone.querySelectorAll("*")];
+
+    sourceNodes.forEach((sourceEl, idx) => {
+      const targetEl = targetNodes[idx];
+      if (!targetEl) return;
+      const computed = window.getComputedStyle(sourceEl);
+      targetEl.style.color = normalizeColor(computed.color);
+      targetEl.style.backgroundColor = normalizeColor(
+        computed.backgroundColor
+      );
+      targetEl.style.borderColor = normalizeColor(computed.borderColor);
+    });
+
     const opt = {
       margin: 0.5,
-      filename: "SCIF_Profile.pdf",
+      filename: "SCIF_file.pdf",
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
     };
 
-    html2pdf().set(opt).from(element).save();
+    try {
+      await html2pdf().set(opt).from(clone).save();
+      return true;
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+      setDownloadToast("Unable to generate the PDF. Please try again.");
+      return false;
+    } finally {
+      document.body.removeChild(container);
+    }
   };
 
   if (!profileData || !formData) return <div>Loading...</div>;
@@ -1060,41 +1124,46 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     errorSpecify,
   }) => {
     return (
-      <div className="my-2.5">
-        <label>Closest to:</label>
-        <div className="flex gap-6 mt-2">
-          {closestOptions.map((option) => (
-            <label key={option.value} className="flex items-center gap-1 w-fit">
-              <input
-                type="radio"
-                name="closest_to"
-                value={option.value}
-                checked={selectedValue === option.value}
-                onChange={() => handleClosestOptionChange(option.value)}
-                disabled={!canEdit}
-              />
-              {option.label}
-            </label>
-          ))}
+      <div className="">
+        <div className="flex">
+          <div className="flex items-center gap-2 mb-0">
+            <label className="whitespace-nowrap">Closest to:</label>
+
+            {closestOptions.map((option) => (
+              <label key={option.value} className="flex items-center gap-1">
+                <input
+                  type="radio"
+                  name="closest_to"
+                  value={option.value}
+                  checked={selectedValue === option.value}
+                  onChange={() => handleClosestOptionChange(option.value)}
+                  disabled={!canEdit}
+                />
+                {option.label}
+              </label>
+            ))}
+          </div>
           {selectedValue === "Other" && (
-            <input
-              type="text"
-              value={specifyOther || ""}
-              readOnly={!canEdit}
-              placeholder="Specify other"
-              onChange={(e) =>
-                handleFieldChange("specify_other", e.target.value)
-              }
-              className="ml-4 px-1 py-0.5 border border-gray-300 rounded"
-            />
+            <div className="-mt-2">
+              <input
+                type="text"
+                value={specifyOther || ""}
+                readOnly={!canEdit}
+                placeholder="Specify other"
+                onChange={(e) =>
+                  handleClosestOptionChange("specify_other", e.target.value)
+                }
+                className="ml-4"
+              />
+            </div>
+          )}
+          {errorClosest && (
+            <div className="error-state-message">{errorClosest}</div>
+          )}
+          {selectedValue === "Other" && errorSpecify && (
+            <div className="error-state-message">{errorSpecify}</div>
           )}
         </div>
-        {errorClosest && (
-          <div className="error-state-message">{errorClosest}</div>
-        )}
-        {selectedValue === "Other" && errorSpecify && (
-          <div className="error-state-message">{errorSpecify}</div>
-        )}
       </div>
     );
   };
@@ -1131,7 +1200,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
 
       <div className="pdf" ref={pdfRef}>
         <FormHeader />
-
         <div className="sub-info">
           <div className="right">
             <p>
@@ -1147,7 +1215,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             </p>
           </div>
         </div>
-
         <h3>STUDENT CUMULATIVE INFORMATION FILE (SCIF)</h3>
         <div className="SCIF-section-1 SCIF-section">
           <div className="SCIF-left">
@@ -1179,7 +1246,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   readOnly={!canEdit}
                 />
               </div>
-              <div className="SCIF-name-label">
+              <div className="flex gap-10 ml-15">
                 <label>FAMILY NAME</label>
                 <label>FIRST NAME</label>
                 <label>MIDDLE NAME</label>
@@ -1191,22 +1258,24 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               )}
             </div>
             <div className="SCIF-inline flex-row">
-              <label>
-                NICKNAME:{" "}
-                <input
-                  type="text"
-                  value={formState.nickname}
-                  onChange={(e) =>
-                    handleFieldChange("nickname", e.target.value)
-                  }
-                  readOnly={!canEdit}
-                />
-                <div className="error-state-message text-center">
-                  {errors.nickname}
-                </div>
-              </label>
-              <div>
+              <div className="">
                 <label>
+                  NICKNAME:
+                  <input
+                    type="text"
+                    value={formState.nickname}
+                    onChange={(e) =>
+                      handleFieldChange("nickname", e.target.value)
+                    }
+                    readOnly={!canEdit}
+                  />
+                  <div className="error-state-message text-center">
+                    {errors.nickname}
+                  </div>
+                </label>
+              </div>
+              <div className="">
+                <label className="field-sm">
                   SEX:
                   <select
                     value={formState.sex}
@@ -1222,23 +1291,25 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   <div className="error-state-message">{errors.sex}</div>
                 )}
               </div>
-              <label>
-                AGE:{" "}
-                <input
-                  type="text"
-                  value={
-                    isNaN(calculateAge(formState.birthdate))
-                      ? ""
-                      : calculateAge(formState.birthdate).toString()
-                  }
-                  onChange={(e) => handleFieldChange("age", e.target.value)}
-                  readOnly={!canEdit}
-                />
-              </label>
+              <div className="">
+                <label className="field-sm">
+                  AGE:{" "}
+                  <input
+                    type="text"
+                    value={
+                      isNaN(calculateAge(formState.birthdate))
+                        ? ""
+                        : calculateAge(formState.birthdate).toString()
+                    }
+                    onChange={(e) => handleFieldChange("age", e.target.value)}
+                    readOnly={!canEdit}
+                  />
+                </label>
+              </div>
             </div>
             <div className="SCIF-inline flex-row">
-              <div>
-                <label>
+              <div className="-mt-2">
+                <label className="field-lg">
                   RELIGION:{" "}
                   <input
                     type="text"
@@ -1253,184 +1324,209 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   <div className="error-state-message">{errors.religion}</div>
                 )}
               </div>
-              <label>
-                BIRTH RANK:{" "}
-                <input
-                  type="text"
-                  value={formState.birth_rank}
-                  onChange={(e) =>
-                    handleFieldChange("birth_rank", e.target.value)
-                  }
-                  readOnly={!canEdit}
-                />
-              </label>
-            </div>
-            <div className="SCIF-inline flex-row">
-              <label>
-                BIRTH DATE
-                <input
-                  type="text"
-                  value={formState.birthdate}
-                  onChange={(e) =>
-                    handleFieldChange("birthdate", e.target.value)
-                  }
-                  readOnly={!canEdit}
-                />
-              </label>
-              <label>
-                BIRTH PLACE
-                <input
-                  type="text"
-                  value={formState.birthplace}
-                  onChange={(e) =>
-                    handleFieldChange("birthplace", e.target.value)
-                  }
-                  readOnly={!canEdit}
-                />
-              </label>
-            </div>
-            <div className="SCIF-inline">
-              <label className="span-2">
-                Address Line 1:
-                <input
-                  type="text"
-                  value={formState.permanent_address_line_1}
-                  onChange={(e) =>
-                    handleFieldChange(
-                      "permanent_address_line_1",
-                      e.target.value
-                    )
-                  }
-                  readOnly={!canEdit}
-                />
-              </label>
-              {errors["permanent_address.address_line_1"] && (
-                <div className="error-state-message text-center">
-                  {errors["permanent_address.address_line_1"]}
-                </div>
-              )}
-            </div>
-            <div className="SCIF-inline">
-              <label className="span-2">
-                Address Line 2:
-                <input
-                  type="text"
-                  value={formState.permanent_address_line_2}
-                  onChange={(e) =>
-                    handleFieldChange(
-                      "permanent_address_line_2",
-                      e.target.value
-                    )
-                  }
-                  readOnly={!canEdit}
-                />
-              </label>
-            </div>
-            <div className="SCIF-inline flex-row">
-              <label>
-                Barangay:
-                <input
-                  type="text"
-                  value={formState.permanent_address_barangay}
-                  onChange={(e) =>
-                    handleFieldChange(
-                      "permanent_address_barangay",
-                      e.target.value
-                    )
-                  }
-                  readOnly={!canEdit}
-                />
-              </label>
-              <label>
-                City/Municipality:
-                <input
-                  type="text"
-                  value={formState.permanent_address_city}
-                  onChange={(e) =>
-                    handleFieldChange("permanent_address_city", e.target.value)
-                  }
-                  readOnly={!canEdit}
-                />
-              </label>
-            </div>
-            <div className="SCIF-inline flex-row">
-              <label>
-                Province:
-                <input
-                  type="text"
-                  value={formState.permanent_address_province}
-                  onChange={(e) =>
-                    handleFieldChange(
-                      "permanent_address_province",
-                      e.target.value
-                    )
-                  }
-                  readOnly={!canEdit}
-                />
-              </label>
-              <label>
-                Region:
-                {shouldUseRegionDropdown ? (
-                  <select
-                    value={formState.permanent_address_region}
-                    onChange={(e) =>
-                      handleFieldChange(
-                        "permanent_address_region",
-                        e.target.value
-                      )
-                    }
-                    disabled={!canEdit || enumsLoading}
-                  >
-                    <option value="">
-                      {enumsLoading ? "Loading regions..." : "Select a region"}
-                    </option>
-                    {regionOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
+              <div className="-mt-2">
+                <label className="field-sm">
+                  BIRTH RANK:
                   <input
                     type="text"
-                    value={formState.permanent_address_region}
+                    value={formState.birth_rank}
+                    onChange={(e) =>
+                      handleFieldChange("birth_rank", e.target.value)
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+              </div>
+            </div>
+            <div className="SCIF-inline flex-row">
+              <div className="-mt-2">
+                <label>
+                  BIRTH DATE
+                  <input
+                    type="text"
+                    value={formState.birthdate}
+                    onChange={(e) =>
+                      handleFieldChange("birthdate", e.target.value)
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+              </div>
+              <div className="-mt-2">
+                <label className="field-lg">
+                  BIRTH PLACE
+                  <input
+                    type="text"
+                    value={formState.birthplace}
+                    onChange={(e) =>
+                      handleFieldChange("birthplace", e.target.value)
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+              </div>
+            </div>
+            <div className="">
+              <div className="-mt-8">
+                <label>
+                  Address Line 1:
+                  <input
+                    type="text"
+                    value={formState.permanent_address_line_1}
                     onChange={(e) =>
                       handleFieldChange(
-                        "permanent_address_region",
+                        "permanent_address_line_1",
                         e.target.value
                       )
                     }
                     readOnly={!canEdit}
                   />
+                </label>
+                {errors["permanent_address.address_line_1"] && (
+                  <div className="error-state-message text-center">
+                    {errors["permanent_address.address_line_1"]}
+                  </div>
                 )}
-              </label>
-              {errors["permanent_address.region"] && (
-                <div className="error-state-message text-center">
-                  {errors["permanent_address.region"]}
-                </div>
-              )}
-              {enumsError && (
-                <div className="error-state-message text-center">
-                  Unable to load region options. Please enter the region
-                  manually.
-                </div>
-              )}
-              <label>
-                ZIP Code:
-                <input
-                  type="text"
-                  value={formState.permanent_address_zip_code}
-                  onChange={(e) =>
-                    handleFieldChange(
-                      "permanent_address_zip_code",
-                      e.target.value
-                    )
-                  }
-                  readOnly={!canEdit}
-                />
-              </label>
+              </div>
             </div>
             <div className="SCIF-inline">
+              <div className="">
+                <label className="field-lg">
+                  Address Line 2:
+                  <input
+                    type="text"
+                    value={formState.permanent_address_line_2}
+                    onChange={(e) =>
+                      handleFieldChange(
+                        "permanent_address_line_2",
+                        e.target.value
+                      )
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+              </div>
+              <div className="">
+                <label>
+                  Barangay:
+                  <input
+                    type="text"
+                    value={formState.permanent_address_barangay}
+                    onChange={(e) =>
+                      handleFieldChange(
+                        "permanent_address_barangay",
+                        e.target.value
+                      )
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+              </div>
+            </div>
+            <div className="SCIF-inline flex-row">
+              <div className="-mt-2">
+                <label>
+                  City/Municipality:
+                  <input
+                    type="text"
+                    value={formState.permanent_address_city}
+                    onChange={(e) =>
+                      handleFieldChange(
+                        "permanent_address_city",
+                        e.target.value
+                      )
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+              </div>
+              <div className="-mt-2">
+                <label className="field-lg">
+                  Province:
+                  <input
+                    type="text"
+                    value={formState.permanent_address_province}
+                    onChange={(e) =>
+                      handleFieldChange(
+                        "permanent_address_province",
+                        e.target.value
+                      )
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+              </div>
+            </div>
+            <div className="SCIF-inline flex-row">
+              <div className="-mt-2">
+                <label className="field-xl">
+                  Region:
+                  {shouldUseRegionDropdown ? (
+                    <select
+                      value={formState.permanent_address_region}
+                      onChange={(e) =>
+                        handleFieldChange(
+                          "permanent_address_region",
+                          e.target.value
+                        )
+                      }
+                      disabled={!canEdit || enumsLoading}
+                    >
+                      <option value="">
+                        {enumsLoading
+                          ? "Loading regions..."
+                          : "Select a region"}
+                      </option>
+                      {regionOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      value={formState.permanent_address_region}
+                      onChange={(e) =>
+                        handleFieldChange(
+                          "permanent_address_region",
+                          e.target.value
+                        )
+                      }
+                      readOnly={!canEdit}
+                    />
+                  )}
+                </label>
+                {errors["permanent_address.region"] && (
+                  <div className="error-state-message text-center">
+                    {errors["permanent_address.region"]}
+                  </div>
+                )}
+                {enumsError && (
+                  <div className="error-state-message text-center">
+                    Unable to load region options. Please enter the region
+                    manually.
+                  </div>
+                )}
+              </div>
+              <div className="-mt-2">
+                <label className="field-xs">
+                  ZIP Code:
+                  <input
+                    type="text"
+                    value={formState.permanent_address_zip_code}
+                    onChange={(e) =>
+                      handleFieldChange(
+                        "permanent_address_zip_code",
+                        e.target.value
+                      )
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+              </div>
+            </div>
+            <div className="-mt-10">
               <label>
                 LANDLINE/CONTACT NO.:{" "}
                 <input
@@ -1443,7 +1539,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 />
               </label>
             </div>
-            <div className="SCIF-inline">
+            <div className="-mt-6">
               <label>
                 EMAIL:
                 <input
@@ -1454,7 +1550,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 />
               </label>
             </div>
-            <div className="SCIF-inline">
+            <div className="-mt-6">
               <label>
                 CELLPHONE/MOBILE NO.:{" "}
                 <input
@@ -1470,15 +1566,238 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 </div>
               </label>
             </div>
+            <div className="">
+              <div className="mb-5 font-bold">FAMILY DATA:</div>
+              <div className="SCIF-inline flex-row">
+                <label className="field-lg">
+                  Father’s Name:{" "}
+                  <input
+                    type="text"
+                    value={formState.father_name}
+                    readOnly={!canEdit}
+                    onChange={(e) =>
+                      handleFieldChange("father_name", e.target.value)
+                    }
+                  />
+                </label>
+                <div className="error-state-message text-center">
+                  {errors.father_name}
+                </div>
+                <label>
+                  Age:
+                  <input
+                    type="text"
+                    value={formState.father_age}
+                    onChange={(e) =>
+                      handleFieldChange("father_age", e.target.value)
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+                <div className="error-state-message text-center">
+                  {errors.father_age}
+                </div>
+              </div>
+              <div className="-mt-8">
+                <label className="">
+                  Occupation:{" "}
+                  <input
+                    type="text"
+                    value={formState.father_job_occupation}
+                    onChange={(e) =>
+                      handleFieldChange("father_job_occupation", e.target.value)
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+                <div className="error-state-message text-center">
+                  {errors.father_job_occupation}
+                </div>
+              </div>
+              <div className="-mt-6">
+                <label>
+                  Company:{" "}
+                  <input
+                    type="text"
+                    value={formState.father_company_agency}
+                    onChange={(e) =>
+                      handleFieldChange("father_company_agency", e.target.value)
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+              </div>
+              <div className="-mt-6">
+                <label>
+                  <span className="label" style={{ width: "30%" }}>
+                    Company Address:{" "}
+                  </span>
+                  <input
+                    type="text"
+                    value={formState.father_company_address}
+                    onChange={(e) =>
+                      handleFieldChange(
+                        "father_company_address",
+                        e.target.value
+                      )
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+              </div>
+              <div className="SCIF-inline flex-row">
+                <label className="field-xm">
+                  <span>Highest Educ'l Attainment:</span>
+                  <input
+                    type="text"
+                    value={formState.father_highest_educational_attainment}
+                    onChange={(e) =>
+                      handleFieldChange(
+                        "father_highest_educational_attainment",
+                        e.target.value
+                      )
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+                <label className="field-sm">
+                  <span>Contact No.: </span>
+                  <input
+                    type="text"
+                    value={formState.father_contact_number}
+                    onChange={(e) =>
+                      handleFieldChange("father_contact_number", e.target.value)
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+              </div>
+              <div className="SCIF-inline flex-row">
+                <div className="-mt-2">
+                  <label className="field-xl">
+                    Mother’s Name:{" "}
+                    <input
+                      type="text"
+                      value={formState.mother_name}
+                      readOnly={!canEdit}
+                      onChange={(e) =>
+                        handleFieldChange("mother_name", e.target.value)
+                      }
+                    />
+                  </label>
+                  <div className="error-state-message text-center">
+                    {errors.mother_name}
+                  </div>
+                </div>
+                <div className="-mt-2">
+                  <label>
+                    Age:
+                    <input
+                      type="text"
+                      value={formState.mother_age}
+                      onChange={(e) =>
+                        handleFieldChange("mother_age", e.target.value)
+                      }
+                      readOnly={!canEdit}
+                    />
+                  </label>
+                  <div className="error-state-message text-center">
+                    {errors.mother_age}
+                  </div>
+                </div>
+              </div>
+              <div className="-mt-8">
+                <label className="">
+                  Occupation:{" "}
+                  <input
+                    type="text"
+                    value={formState.mother_job_occupation}
+                    onChange={(e) =>
+                      handleFieldChange("mother_job_occupation", e.target.value)
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+                <div className="error-state-message text-center">
+                  {errors.mother_job_occupation}
+                </div>
+              </div>
+              <div className="-mt-6">
+                <label>
+                  Company:{" "}
+                  <input
+                    type="text"
+                    value={formState.mother_company_agency}
+                    onChange={(e) =>
+                      handleFieldChange("mother_company_agency", e.target.value)
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+              </div>
+              <div className="-mt-6">
+                <label>
+                  <span className="label" style={{ width: "30%" }}>
+                    Company Address:{" "}
+                  </span>
+                  <input
+                    type="text"
+                    value={formState.mother_company_address}
+                    onChange={(e) =>
+                      handleFieldChange(
+                        "mother_company_address",
+                        e.target.value
+                      )
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+              </div>
+              <div className="SCIF-inline flex-row">
+                <label className="field-xm">
+                  <span>Highest Educ'l Attainment:</span>
+                  <input
+                    type="text"
+                    value={formState.mother_highest_educational_attainment}
+                    onChange={(e) =>
+                      handleFieldChange(
+                        "mother_highest_educational_attainment",
+                        e.target.value
+                      )
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+                <label className="field-sm">
+                  <span>Contact No.: </span>
+                  <input
+                    type="text"
+                    value={formState.mother_contact_number}
+                    onChange={(e) =>
+                      handleFieldChange("mother_contact_number", e.target.value)
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+              </div>
+            </div>
           </div>
           <div className="SCIF-right">
             <div
               className="bigger_avatar"
               style={{ borderRadius: "0", width: "200px", height: "200px" }}
             >
-              {`${formState.first_name?.[0] || ""}${
-                formState.last_name?.[0] || ""
-              }`}
+              {photoUrl ? (
+                <img
+                  src={photoUrl}
+                  alt={`${profileData?.first_name || ""} ${
+                    profileData?.last_name || ""
+                  } ID`}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              ) : (
+                `${photoInitials}`
+              )}
             </div>
 
             <input
@@ -1518,326 +1837,149 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               {errors.date_initial_entry}
             </div>
             <label>DATE OF INITIAL ENTRY</label>
+
+            <div className="graduation">
+              <label
+                style={{ textAlign: "center", textDecoration: "underline" }}
+              >
+                Do not fill-out this portion
+              </label>
+              <input type="text" readOnly value=" Sem. AY 20    -20     " />
+              <input type="text" readOnly value=""></input>
+              <label>DATE OF GRADUATION</label>
+              <input type="text" readOnly value=""></input>
+              <label>DEGREE PROGRAM</label>
+              <input type="text" readOnly value=""></input>
+              <label>HONORS RECEIVED</label>
+            </div>
           </div>
         </div>
-
-        <div className="SCIF-section-2 SCIF-section">
-          <div className="SCIF-left">
-            <div className="mb-15 -mt-5 font-bold">FAMILY DATA:</div>
-            <div className="SCIF-inline">
-              <div className="flex-row SCIF-inline">
-                <label className="span-2">
-                  Father’s Name:{" "}
-                  <input
-                    type="text"
-                    value={formState.father_name}
-                    readOnly={!canEdit}
-                    onChange={(e) =>
-                      handleFieldChange("father_name", e.target.value)
-                    }
-                  />
-                </label>
-                <div className="error-state-message text-center">
-                  {errors.father_name}
-                </div>
-                <label>
-                  Age:
-                  <input
-                    type="text"
-                    value={formState.father_age}
-                    onChange={(e) =>
-                      handleFieldChange("father_age", e.target.value)
-                    }
-                    readOnly={!canEdit}
-                  />
-                </label>
-                <div className="error-state-message text-center">
-                  {errors.father_age}
-                </div>
-              </div>
-              <label>
-                Occupation:{" "}
+        <div className="SCIF-section">
+          <div className="-mt-10">
+            <SiblingsTable siblings={siblings} />
+          </div>
+        </div>
+        <div className="SCIF-section">
+          <div className="-mt-8">
+            <div className="SCIF-inline flex-row">
+              <label className="field-xl">
+                Guardian while in UP:
                 <input
                   type="text"
-                  value={formState.father_job_occupation}
+                  value={formState.guardian_name || "N/A"}
                   onChange={(e) =>
-                    handleFieldChange("father_job_occupation", e.target.value)
-                  }
-                  readOnly={!canEdit}
-                />
-              </label>
-              <div className="error-state-message text-center">
-                {errors.father_job_occupation}
-              </div>
-              <label>
-                Company:{" "}
-                <input
-                  type="text"
-                  value={formState.father_company_agency}
-                  onChange={(e) =>
-                    handleFieldChange("father_company_agency", e.target.value)
+                    handleFieldChange("guardian_name", e.target.value)
                   }
                   readOnly={!canEdit}
                 />
               </label>
               <label>
-                <span className="label" style={{ width: "30%" }}>
-                  Company Address:{" "}
-                </span>
+                Contact No.:{" "}
                 <input
                   type="text"
-                  value={formState.father_company_address}
+                  value={formState.guardian_contact_number || "N/A"}
                   onChange={(e) =>
-                    handleFieldChange("father_company_address", e.target.value)
-                  }
-                  readOnly={!canEdit}
-                />
-              </label>
-              <label>
-                <span className="label" style={{ width: "35%" }}>
-                  Educational Attainment:{" "}
-                </span>
-                <input
-                  type="text"
-                  value={formState.father_highest_educational_attainment}
-                  onChange={(e) =>
-                    handleFieldChange(
-                      "father_highest_educational_attainment",
-                      e.target.value
-                    )
-                  }
-                  readOnly={!canEdit}
-                />
-              </label>
-              <label>
-                <span className="label" style={{ width: "15%" }}>
-                  Contact No.:{" "}
-                </span>
-                <input
-                  type="text"
-                  value={formState.father_contact_number}
-                  onChange={(e) =>
-                    handleFieldChange("father_contact_number", e.target.value)
-                  }
-                  readOnly={!canEdit}
-                />
-              </label>
-              <label className="span-2">
-                Mother’s Name:{" "}
-                <input
-                  type="text"
-                  value={formState.mother_name}
-                  readOnly={!canEdit}
-                  onChange={(e) =>
-                    handleFieldChange("mother_name", e.target.value)
-                  }
-                />
-              </label>
-              <label>
-                Age:
-                <input
-                  type="text"
-                  value={formState.mother_age}
-                  onChange={(e) =>
-                    handleFieldChange("mother_age", e.target.value)
-                  }
-                  readOnly={!canEdit}
-                />
-              </label>
-
-              <label>
-                Occupation:{" "}
-                <input
-                  type="text"
-                  value={formState.mother_job_occupation}
-                  onChange={(e) =>
-                    handleFieldChange("mother_job_occupation", e.target.value)
-                  }
-                  readOnly={!canEdit}
-                />
-              </label>
-              <label>
-                Company:{" "}
-                <input
-                  type="text"
-                  value={formState.mother_company_agency}
-                  onChange={(e) =>
-                    handleFieldChange("mother_company_agency", e.target.value)
-                  }
-                  readOnly={!canEdit}
-                />
-              </label>
-              <label>
-                <span className="label" style={{ width: "30%" }}>
-                  Company Address:{" "}
-                </span>
-                <input
-                  type="text"
-                  value={formState.mother_company_address}
-                  onChange={(e) =>
-                    handleFieldChange("mother_company_address", e.target.value)
-                  }
-                  readOnly={!canEdit}
-                />
-              </label>
-              <label>
-                <span className="label" style={{ width: "35%" }}>
-                  Educational Attainment:{" "}
-                </span>
-                <input
-                  type="text"
-                  value={formState.mother_highest_educational_attainment}
-                  onChange={(e) =>
-                    handleFieldChange(
-                      "mother_highest_educational_attainment",
-                      e.target.value
-                    )
-                  }
-                  readOnly={!canEdit}
-                />
-              </label>
-              <label>
-                <span className="label" style={{ width: "15%" }}>
-                  Contact No.:{" "}
-                </span>
-                <input
-                  type="text"
-                  value={formState.mother_contact_number}
-                  onChange={(e) =>
-                    handleFieldChange("mother_contact_number", e.target.value)
+                    handleFieldChange("guardian_contact_number", e.target.value)
                   }
                   readOnly={!canEdit}
                 />
               </label>
             </div>
-          </div>
-          <div className="SCIF-right graduation">
-            <label style={{ textAlign: "center", textDecoration: "underline" }}>
-              Do not fill-out this portion
-            </label>
-            <input type="text" readOnly value=" Sem. AY 20    -20     " />
-            <input type="text" readOnly value=""></input>
-            <label>DATE OF GRADUATION</label>
-            <input type="text" readOnly value=""></input>
-            <label>DEGREE PROGRAM</label>
-            <input type="text" readOnly value=""></input>
-            <label>HONORS RECEIVED</label>
+            <div className="-mt-10">
+              <label>
+                Address:{" "}
+                <input
+                  type="text"
+                  value={formState.guardian_address || "N/A"}
+                  onChange={(e) =>
+                    handleFieldChange("guardian_address", e.target.value)
+                  }
+                  readOnly={!canEdit}
+                />
+              </label>
+            </div>
+            <div className="SCIF-inline flex-row">
+              <div className="">
+                <label className="field-xm">
+                  Relationship: to guardian{" "}
+                  <input
+                    type="text"
+                    value={formState.guardian_relationship_to_guardian || "N/A"}
+                    onChange={(e) =>
+                      handleFieldChange(
+                        "guardian_relationship_to_guardian",
+                        e.target.value
+                      )
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+              </div>
+              <div className="-mt-2">
+                <label className="field-lg">
+                  Languages/Dialects Spoken at Home:{" "}
+                  <input
+                    type="text"
+                    value={
+                      formState.guardian_language_dialect ||
+                      (!canEdit ? "N/A" : "")
+                    }
+                    onChange={(e) =>
+                      handleFieldChange(
+                        "guardian_language_dialect",
+                        e.target.value
+                      )
+                    }
+                    readOnly={!canEdit}
+                  />
+                </label>
+              </div>
+            </div>
           </div>
         </div>
-
         <div className="SCIF-section">
-          <SiblingsTable siblings={siblings} />
-        </div>
-        <div className="SCIF-section SCIF-inline">
-          <div className="mb-8 font-bold">GUARDIAN:</div>
+          <div className="mb-5 font-bold">HEALTH DATA:</div>
+          <div className="-mt-5">
+            <HealthConditionRadio
+              selectedValue={formState.health_condition}
+              onChange={handleConditionChange}
+            />
+          </div>
           <div className="SCIF-inline flex-row">
-            <label>
-              Guardian while in UP:{" "}
-              <input
-                type="text"
-                value={formState.guardian_name || "N/A"}
-                onChange={(e) =>
-                  handleFieldChange("guardian_name", e.target.value)
-                }
-                readOnly={!canEdit}
-              />
-            </label>
-            <label>
-              Contact No.:{" "}
-              <input
-                type="text"
-                value={formState.guardian_contact_number || "N/A"}
-                onChange={(e) =>
-                  handleFieldChange("guardian_contact_number", e.target.value)
-                }
-                readOnly={!canEdit}
-              />
-            </label>
-
-            <label>
-              Address:{" "}
-              <input
-                type="text"
-                value={formState.guardian_address || "N/A"}
-                onChange={(e) =>
-                  handleFieldChange("guardian_address", e.target.value)
-                }
-                readOnly={!canEdit}
-              />
-            </label>
-            <label>
-              Relationship: to guardian{" "}
-              <input
-                type="text"
-                value={formState.guardian_relationship_to_guardian || "N/A"}
-                onChange={(e) =>
-                  handleFieldChange(
-                    "guardian_relationship_to_guardian",
-                    e.target.value
-                  )
-                }
-                readOnly={!canEdit}
-              />
-            </label>
+            <div className="flex justify-between gap-4 mt-4">
+              <label className="">
+                Height (m):
+                <input
+                  type="text"
+                  value={formState.height}
+                  onChange={(e) => handleFieldChange("height", e.target.value)}
+                  readOnly={!canEdit}
+                />
+              </label>
+              <label className="">
+                Weight (kg):
+                <input
+                  type="text"
+                  value={formState.weight}
+                  onChange={(e) => handleFieldChange("weight", e.target.value)}
+                  readOnly={!canEdit}
+                />
+              </label>
+              <label className="field-md">
+                Eyesight [Good, Medium, Poor]:{" "}
+                <input
+                  type="text"
+                  value={formState.eyesight}
+                  readOnly={!canEdit}
+                  onChange={(e) =>
+                    handleFieldChange("eyesight", e.target.value)
+                  }
+                />
+              </label>
+            </div>
           </div>
 
-          <div className="SCIF-inline">
-            <label>
-              <span className="label" style={{ width: "38%" }}>
-                Languages/Dialects Spoken at Home:{" "}
-              </span>
-              <input
-                type="text"
-                value={
-                  formState.guardian_language_dialect || (!canEdit ? "N/A" : "")
-                }
-                onChange={(e) =>
-                  handleFieldChange("guardian_language_dialect", e.target.value)
-                }
-                readOnly={!canEdit}
-              />
-            </label>
-          </div>
-        </div>
-
-        <div className="SCIF-section SCIF-inline">
-          <div className="section-title">HEALTH DATA</div>
-          <HealthConditionRadio
-            selectedValue={formState.health_condition}
-            onChange={handleConditionChange}
-          />
-
-          <div className="flex justify-between -mt-5 gap-4">
-            <label>
-              Height (m):
-              <input
-                type="text"
-                value={formState.height}
-                onChange={(e) => handleFieldChange("height", e.target.value)}
-                readOnly={!canEdit}
-              />
-            </label>
-            <label>
-              Weight (kg):
-              <input
-                type="text"
-                value={formState.weight}
-                onChange={(e) => handleFieldChange("weight", e.target.value)}
-                readOnly={!canEdit}
-              />
-            </label>
-            <label>
-              Eyesight [Good, Medium, Poor]:{" "}
-              <input
-                type="text"
-                value={formState.eyesight}
-                readOnly={!canEdit}
-                onChange={(e) => handleFieldChange("eyesight", e.target.value)}
-              />
-            </label>
-          </div>
-
-          <div className="flex justify-between -mt-5 gap-4">
+          <div className="flex justify-between gap-4 -mt-8">
             <label>
               Hearing [Good, Medium, Poor]:{" "}
               <input
@@ -1864,7 +2006,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             </label>
           </div>
 
-          <div className="flex justify-between -mt-5 gap-4">
+          <div className="flex justify-between -mt-6 gap-4">
             <label>
               Frequent Ailments:{" "}
               <input
@@ -1889,10 +2031,10 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             </label>
           </div>
 
-          <div className="SCIF-inline">
+          <div className="-mt-6">
             <label>
               Reason:{" "}
-              <AutoResizeTextarea
+              <textarea
                 value={formState.reason_of_hospitalization || "Not Applicable"}
                 onChange={(e) =>
                   handleFieldChange("reason_of_hospitalization", e.target.value)
@@ -1902,37 +2044,27 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             </label>
           </div>
         </div>
-
         <div className="SCIF-section school">
-          <div className="section-title">PREVIOUS SCHOOL RECORD</div>
+          <div className="mb-5 font-bold">PREVIOUS SCHOOL RECORD</div>
           <PreviousSchoolRecordsTable records={previous_school_record} />
-          <div className="SCIF-inline">
-            <label>
-              <div className="flex justify-between mt-5 gap-4">
-                <span
-                  className="label"
-                  style={{ width: "80%", textAlign: "right" }}
-                >
-                  SR. HIGH GEN. AVE:{" "}
-                </span>{" "}
-                <span className="-mt-3" style={{ width: "20%" }}>
-                  {" "}
-                  <input
-                    type="text"
-                    value={formState.senior_high_gpa}
-                    onChange={(e) =>
-                      handleFieldChange("senior_high_gpa", e.target.value)
-                    }
-                    readOnly={!canEdit}
-                  />{" "}
-                </span>
-              </div>
-            </label>
+          <div className="-mt-4 flex justify-end gap-4">
+            <div className="flex">
+              <label className="field-xs">
+                SR. HIGH GEN. AVE:
+                <input
+                  type="text"
+                  value={formState.senior_high_gpa}
+                  onChange={(e) =>
+                    handleFieldChange("senior_high_gpa", e.target.value)
+                  }
+                  readOnly={!canEdit}
+                />
+              </label>
+            </div>
           </div>
         </div>
-
-        <div className="SCIF-section">
-          <div className="section-title">
+        <div className="-mt-2">
+          <div className="mb-5 font-bold">
             LIST OF SCHOLARSHIPS & FINANCIAL ASSISTANCE WHILE IN COLLEGE :
           </div>
           {Array.isArray(formState.scholarships_and_assistance) &&
@@ -1952,9 +2084,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             <label>No scholarships listed.</label>
           )}
         </div>
-
         <div className="SCIF-section">
-          <div className="section-title">
+          <div className="mb-5 font-bold">
             MEMBERSHIP TO ORGANIZATION IN COLLEGE (Do not fill out this yet)
           </div>
 
@@ -1981,9 +2112,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             <label>No organization data available.</label>
           )}
         </div>
-
         <div className="SCIF-section">
-          <div className="section-title">
+          <div className="mb-5 font-bold">
             AWARDS RECEIVED WHILE IN COLLEGE (leave this portion blank)
           </div>
 
@@ -2010,15 +2140,12 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             <label>No awards data available.</label>
           )}
         </div>
-
-        <div className="SCIF-section SCIF-inline">
-          <div className="section-title">OTHER PERSONAL INFORMATION</div>
-          <div className="SCIF-inline">
+        <div className="SCIF-section">
+          <div className="mb-5 font-bold">OTHER PERSONAL INFORMATION</div>
+          <div className="-mt-6">
             <label>
-              <span className="label" style={{ width: "38%" }}>
-                Why did you enroll in UP Mindanao?{" "}
-              </span>
-              <AutoResizeTextarea
+              <span className="label">Why did you enroll in UP Mindanao? </span>
+              <textarea
                 value={formState.enrollment_reason || ""}
                 onChange={(e) =>
                   handleFieldChange("enrollment_reason", e.target.value)
@@ -2027,58 +2154,57 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               />
             </label>
           </div>
-          <div className="flex justify-between -mt-5 gap-4">
-            <label>
-              <span className="label" style={{ width: "55%" }}>
-                Does your program match your goal?
-              </span>
-            </label>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-1">
-                <input
-                  type="radio"
-                  name="degree_program_aspiration"
-                  checked={formState.degree_program_aspiration === true}
-                  onChange={() =>
-                    handleFieldChange("degree_program_aspiration", true)
-                  }
-                  disabled={!canEdit}
-                />
-                Yes
+          <div className="SCIF-inline flex-row">
+            <div className="flex justify-between gap-4 mt-6">
+              <label>
+                <span className="label">
+                  Does your program match your goal?
+                </span>
               </label>
-              <label className="flex items-center gap-1">
+              <div className="flex gap-10">
+                <label className="">
+                  <input
+                    type="radio"
+                    name="degree_program_aspiration"
+                    checked={formState.degree_program_aspiration === true}
+                    onChange={() =>
+                      handleFieldChange("degree_program_aspiration", true)
+                    }
+                    disabled={!canEdit}
+                  />
+                  Yes
+                </label>
+                <label className="">
+                  <input
+                    type="radio"
+                    name="degree_program_aspiration"
+                    checked={formState.degree_program_aspiration === false}
+                    onChange={() =>
+                      handleFieldChange("degree_program_aspiration", false)
+                    }
+                    disabled={!canEdit}
+                  />
+                  No
+                </label>
+              </div>
+              <label className="field-xl">
+                If not, why?
                 <input
-                  type="radio"
-                  name="degree_program_aspiration"
-                  checked={formState.degree_program_aspiration === false}
-                  onChange={() =>
-                    handleFieldChange("degree_program_aspiration", false)
+                  type="text"
+                  value={formState.aspiration_explanation || ""}
+                  onChange={(e) =>
+                    handleFieldChange("aspiration_explanation", e.target.value)
                   }
-                  disabled={!canEdit}
+                  readOnly={!canEdit}
                 />
-                No
               </label>
             </div>
-
-            <label>
-              <span className="label" style={{ width: "20%" }}>
-                If not, why?
-              </span>{" "}
-              <AutoResizeTextarea
-                value={formState.aspiration_explanation || ""}
-                onChange={(e) =>
-                  handleFieldChange("aspiration_explanation", e.target.value)
-                }
-                readOnly={!canEdit}
-              />
-            </label>
           </div>
           <div className="SCIF-inline">
             <label>
-              <span className="label" style={{ width: "15%" }}>
-                Special Talents:
-              </span>{" "}
-              <AutoResizeTextarea
+              <span className="label">Special Talents:</span>{" "}
+              <input
+                type="text"
                 value={formState.special_talents || ""}
                 onChange={(e) =>
                   handleFieldChange("special_talents", e.target.value)
@@ -2089,10 +2215,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           </div>
           <div className="SCIF-inline">
             <label>
-              <span className="label" style={{ width: "20%" }}>
-                Musical Instruments:{" "}
-              </span>
-              <AutoResizeTextarea
+              <span>Musical Instruments: </span>
+              <input
+                type="text"
                 value={formState.musical_instruments || ""}
                 onChange={(e) =>
                   handleFieldChange("musical_instruments", e.target.value)
@@ -2104,7 +2229,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           <div className="SCIF-inline">
             <label>
               Hobbies:{" "}
-              <AutoResizeTextarea
+              <input
+                type="text"
                 value={formState.hobbies || ""}
                 onChange={(e) => handleFieldChange("hobbies", e.target.value)}
                 readOnly={!canEdit}
@@ -2116,7 +2242,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               <span className="label" style={{ width: "15%" }}>
                 Likes in People:{" "}
               </span>
-              <AutoResizeTextarea
+              <input
+                type="text"
                 value={formState.likes_in_people || ""}
                 onChange={(e) =>
                   handleFieldChange("likes_in_people", e.target.value)
@@ -2131,7 +2258,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               <span className="label" style={{ width: "18%" }}>
                 Dislikes in People:{" "}
               </span>
-              <AutoResizeTextarea
+              <input
+                type="text"
                 value={formState.dislikes_in_people || ""}
                 onChange={(e) =>
                   handleFieldChange("dislikes_in_people", e.target.value)
@@ -2153,13 +2281,10 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               }
             />
           </div>
-          <div className="SCIF-inline">
+          <div className="-mt-2">
             <label>
-              <span className="label" style={{ width: "30%" }}>
-                {" "}
-                Personal Characteristics:{" "}
-              </span>{" "}
-              <AutoResizeTextarea
+              Personal Characteristics:
+              <textarea
                 value={formState.personal_characteristics || ""}
                 onChange={(e) =>
                   handleFieldChange("personal_characteristics", e.target.value)
@@ -2168,37 +2293,35 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               />
             </label>
           </div>
-          <div className="flex justify-between -mt-5 gap-4">
-            <label>
-              <span className="label" style={{ width: "40%" }}>
-                Who do you open up to?{" "}
-              </span>
-              <input
-                type="text"
-                value={formState.problem_confidant}
-                onChange={(e) =>
-                  handleFieldChange("problem_confidant", e.target.value)
-                }
-                readOnly={!canEdit}
-              />
-            </label>
-            <label>
-              Why?{" "}
-              <AutoResizeTextarea
-                value={formState.confidant_reason || ""}
-                onChange={(e) =>
-                  handleFieldChange("confidant_reason", e.target.value)
-                }
-                readOnly={!canEdit}
-              />
-            </label>
+          <div className="SCIF-inline flex-row">
+            <div className="flex justify-between gap-4 mt-6">
+              <label className="field-md">
+                <span>Who do you open up to? </span>
+                <input
+                  type="text"
+                  value={formState.problem_confidant}
+                  onChange={(e) =>
+                    handleFieldChange("problem_confidant", e.target.value)
+                  }
+                  readOnly={!canEdit}
+                />
+              </label>
+              <label>
+                <span>Why?</span>
+                <textarea
+                  value={formState.confidant_reason}
+                  onChange={(e) =>
+                    handleFieldChange("confidant_reason", e.target.value)
+                  }
+                  readOnly={!canEdit}
+                />
+              </label>
+            </div>
           </div>
-          <div className="SCIF-inline">
+          <div className="-mt-6">
             <label>
-              <span className="label" style={{ width: "18%" }}>
-                Potential Problems:
-              </span>{" "}
-              <AutoResizeTextarea
+              <span className="label">Potential Problems:</span>{" "}
+              <textarea
                 value={formState.anticipated_problems || ""}
                 onChange={(e) =>
                   handleFieldChange("anticipated_problems", e.target.value)
@@ -2207,69 +2330,74 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               />
             </label>
           </div>
-          <div className="flex justify-between -mt-5 gap-4">
-            <label>
-              <span className="label" style={{ width: "40%" }}>
-                Any previous counseling?
-              </span>
-            </label>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-1">
-                <input
-                  type="radio"
-                  name="previous_counseling"
-                  checked={formState.previous_counseling === true}
-                  onChange={() =>
-                    handleFieldChange("previous_counseling", true)
-                  }
-                  disabled={!canEdit}
-                />
-                Yes
+          <div className="SCIF-inline flex row">
+            <div className="flex justify-between gap-4 mt-10">
+              <label>
+                <span>Any previous counseling?</span>
               </label>
-              <label className="flex items-center gap-1">
-                <input
-                  type="radio"
-                  name="previous_counseling"
-                  checked={formState.previous_counseling === false}
-                  onChange={() =>
-                    handleFieldChange("previous_counseling", false)
-                  }
-                  disabled={!canEdit}
-                />
-                No
-              </label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-1">
+                  <input
+                    type="radio"
+                    name="previous_counseling"
+                    checked={formState.previous_counseling === true}
+                    onChange={() =>
+                      handleFieldChange("previous_counseling", true)
+                    }
+                    disabled={!canEdit}
+                  />
+                  Yes
+                </label>
+                <label className="flex items-center gap-1">
+                  <input
+                    type="radio"
+                    name="previous_counseling"
+                    checked={formState.previous_counseling === false}
+                    onChange={() =>
+                      handleFieldChange("previous_counseling", false)
+                    }
+                    disabled={!canEdit}
+                  />
+                  No
+                </label>
+              </div>
             </div>
           </div>
           {formState.previous_counseling && (
             <>
-              <div className="flex justify-between -mt-5 gap-4">
-                <label>
-                  If yes, where:{" "}
-                  <input
-                    type="text"
-                    value={formState.counseling_location || ""}
-                    onChange={(e) =>
-                      handleFieldChange("counseling_location", e.target.value)
-                    }
-                    readOnly={!canEdit}
-                  />
-                </label>
-                <label>
-                  To whom?{" "}
-                  <input
-                    type="text"
-                    value={formState.counseling_counselor || ""}
-                    onChange={(e) =>
-                      handleFieldChange("counseling_counselor", e.target.value)
-                    }
-                    readOnly={!canEdit}
-                  />
-                </label>
+              <div className="SCIF-inline flex-row">
+                <div className="flex justify-between mt-2 gap-4">
+                  <label className="field-xl">
+                    If yes, where:{" "}
+                    <input
+                      type="text"
+                      value={formState.counseling_location || ""}
+                      onChange={(e) =>
+                        handleFieldChange("counseling_location", e.target.value)
+                      }
+                      readOnly={!canEdit}
+                    />
+                  </label>
+                  <label className="field-lg">
+                    To whom?{" "}
+                    <input
+                      type="text"
+                      value={formState.counseling_counselor || ""}
+                      onChange={(e) =>
+                        handleFieldChange(
+                          "counseling_counselor",
+                          e.target.value
+                        )
+                      }
+                      readOnly={!canEdit}
+                    />
+                  </label>
+                </div>
               </div>
               <div className="SCIF-inline flex-row">
                 <label>
-                  Why?{" "}
-                  <AutoResizeTextarea
+                  Why?
+                  <textarea
                     value={formState.counseling_reason || ""}
                     onChange={(e) =>
                       handleFieldChange("counseling_reason", e.target.value)
@@ -2281,26 +2409,20 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             </>
           )}
         </div>
-
-        <div className="signature">
-          <div className="sign" style={{ textAlign: "right" }}>
-            <label style={{ textAlign: "right", paddingTop: "50px" }}>
-              ________________________________________
-            </label>
-            <label style={{ textAlign: "right", paddingRight: "30px" }}>
-              SIGNATURE OVER PRINTED NAME:{" "}
-            </label>
-          </div>
-          <div className="sign" style={{ textAlign: "right" }}>
-            <label style={{ textAlign: "right", paddingTop: "50px" }}>
-              ________________________________________
-            </label>
-            <label style={{ textAlign: "right", paddingRight: "88px" }}>
-              DATE SIGNED{" "}
-            </label>
+        <div className="flex justify-end mt-10">
+          <div className="flex flex-col gap-8">
+            <div>
+              <label>________________________________________</label>
+              <label className="justify-center">
+                SIGNATURE OVER PRINTED NAME:{" "}
+              </label>
+            </div>
+            <div>
+              <label>________________________________________</label>
+              <label className="flex justify-center">DATE SIGNED</label>
+            </div>
           </div>
         </div>
-
         <div className="SCIF-section">
           <div className="section-title">
             PSYCHOMETRIC DATA (Leave it blank)
@@ -2334,7 +2456,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             </tbody>
           </table>
         </div>
-
         <div className="SCIF-section">
           <div className="section-title">
             GUIDANCE SERVICES SPECIALIST’ NOTES: (Leave it blank)
@@ -2350,9 +2471,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             }
           />
         </div>
-
-        <h5>Privacy Statement: </h5>
-        <label className="privacy-description indented-section">
+        <div className="font-bold mb-5">Privacy Statement: </div>
+        <div className="font-bold text-upmaroon mt-5 text-justify">
           The University of the Philippines takes your privacy seriously and we
           are committed to protecting your personal information. For the UP
           Privacy Policy, please visit{" "}
@@ -2363,10 +2483,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           >
             https://privacy.up.edu.ph
           </a>
-        </label>
-
-        <div className="certify-agreement">
-          <label className="form-label">
+        </div>
+        <div className="mt-10 text-justify">
+          <div className="SCIF-inline">
             <input
               type="checkbox"
               name="has_consented"
@@ -2384,11 +2503,10 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               personal and sensitive personal information, pursuant to the UP
               Privacy Notice and applicable laws.
             </span>
-          </label>
+          </div>
         </div>
-
-        <div className="flex justify-between -mt-5 gap-4">
-          <label>
+        <div className="flex justify-between gap-4">
+          <label className="field-md">
             Name of Student:{" "}
             <input type="text" value={formState.name} readOnly />
           </label>
