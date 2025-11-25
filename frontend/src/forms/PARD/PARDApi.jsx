@@ -14,7 +14,6 @@ export const useFormApi = () => {
       }
     );
 
-
     if (response?.status === 404) return null;
     return response?.ok ? await response.json() : null;
   };
@@ -27,8 +26,6 @@ export const useFormApi = () => {
           'Content-Type': 'application/json',
         },
       });
-      console.log("Response", response);
-
       return await response.json();
     } catch (error) {
       console.error("Error fetching student data:", error);

@@ -135,7 +135,7 @@ class PARDSubmitView(APIView):
                 # Save the PARD data
                 pard_instance = serializer.save()
                 
-                # Update submission status and timestamps
+                # Update submission status
                 submission.status = 'submitted'
                 submission.saved_on = timezone.now()
                 submission.submitted_on = timezone.now()
