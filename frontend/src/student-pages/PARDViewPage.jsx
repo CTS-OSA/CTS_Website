@@ -198,7 +198,14 @@ const PARDProfileView = ({ profileData, formData }) => {
             Communication Platform:{" "}
             <input
               type="text"
-              value={pard_data?.communication_platform || ""}
+              value={
+                pard_data?.communication_platform
+                  ? pard_data.communication_platform
+                      .split("_")
+                      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                      .join(" ")
+                  : ""
+              }
               readOnly
             />
           </label>

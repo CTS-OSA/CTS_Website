@@ -84,6 +84,7 @@ class PARDStatus(models.TextChoices):
     UNREAD = 'unread', 'Unread'
     PENDING = 'pending', 'Pending'
     COMPLETED = 'completed', 'Completed'
+    DELETED = 'deleted', 'Deleted'
     
 class ReferralStatus(models.TextChoices):
     UNREAD = 'unread', 'Unread'

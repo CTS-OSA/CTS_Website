@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from ..models.PARD import PARD
 from ..models.submission import Submission
-from datetime import date, datetime, time
+from datetime import date, time
+from ..models.student import Student
 
 class PARDSerializer(serializers.ModelSerializer):
     class Meta:
@@ -41,13 +42,17 @@ class PARDSubmissionSerializer(serializers.Serializer):
         submission_id = self.context.get('submission_id')
         student_number = self.context.get('student_number')
         
+        # Get Student and Submission instances
+        student = Student.objects.get(student_number=student_number)
+        submission = Submission.objects.get(id=submission_id)
+        
         # Extract psych assessment data
         psych_data = validated_data.get('pard_psych_assessment', {})
         contact_data = validated_data.get('pard_contact_info', {})
         
         pard_data = {
-            'student_number': student_number,
-            'submission_id': submission_id,
+            'student_number': student,
+            'submission_id': submission,
             'preferred_date': contact_data.get('preferred_date'),
             'preferred_time': contact_data.get('preferred_time'),
             'date_started': psych_data.get('date_started'),
@@ -61,10 +66,6 @@ class PARDSubmissionSerializer(serializers.Serializer):
         # Remove None values
         pard_data = {k: v for k, v in pard_data.items() if v is not None}
         
-        pard_instance, created = PARD.objects.update_or_create(
-            student_number=student_number,
-            submission_id=submission_id,
-            defaults=pard_data
-        )
+        pard_instance = PARD.objects.create(**pard_data)
         
         return pard_instance

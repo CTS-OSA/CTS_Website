@@ -39,12 +39,10 @@ const PARD = () => {
     const fetchStudentData = async () => {
       if (studentNumber) {
         try {
-          // PROBLEM: CANNOT RETURN SUBMISSION ID
           const data = await getStudentData(studentNumber);
 
           if (data && data.student_profile) {
             // Set submission ID from the response
-
             if (data.submission && data.submission.id) {
               setSubmissionId(data.submission.id);
               if (data.submission.status === "submitted") {
@@ -322,12 +320,13 @@ const PARD = () => {
 
     try {
       const result = await submitForm(submissionId, formData);
-
+      console.log("submission", result);
       if (result.success) {
         setShowConfirmation(true);
-        setTimeout(() => {
-          navigate("/student");
-        }, 3000);
+        // navigate("/student");
+        // setTimeout(() => {
+        //   navigate("/student");
+        // }, 3000);
       } else {
         if (result.status === 400 && result.data.errors) {
           setError(
