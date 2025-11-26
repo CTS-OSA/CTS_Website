@@ -13,7 +13,7 @@ from .privacy_statement import PrivacyConsent
 from .psychometric import PsychometricData
 from .scholarship import Scholarship
 from .schoolRecord import SchoolAddress, School, PreviousSchoolRecord
-from .submission import Submission
+from .submission import Submission, PendingSubmission
 from .PARD import PARD
 from .referral_slip import Referrer, Referral, AcknowledgementReceipt, ReferredPerson
 from .counselor import Counselor

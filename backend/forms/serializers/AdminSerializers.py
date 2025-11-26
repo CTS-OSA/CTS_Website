@@ -46,7 +46,6 @@ class AdminReferralListSerializer(serializers.ModelSerializer):
         return None
     
 class AdminReferralDetailSerializer(serializers.ModelSerializer):
-    referrer = StudentReferrerSerializer(read_only=True)
     referred_person = ReferredPersonSerializer(read_only=True)
 
     class Meta:
@@ -61,7 +60,17 @@ class AdminReferralDetailSerializer(serializers.ModelSerializer):
             "referral_status",
             "referral_date",
         ]
-        
+
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        return {"referral": data} 
+
+        # Dynamically choose referrer serializer
+        if instance.referrer.student is None:
+            from forms.serializers import GuestReferrerSerializer
+            data['referrer'] = GuestReferrerSerializer(instance.referrer).data
+        else:
+            from forms.serializers import StudentReferrerSerializer
+            data['referrer'] = StudentReferrerSerializer(instance.referrer).data
+
+        return {"referral": data}
+

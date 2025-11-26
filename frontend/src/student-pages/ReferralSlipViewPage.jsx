@@ -45,27 +45,43 @@ const ReferralSlipProfileView = ({
   });
 
   useEffect(() => {
-    if (formData && profileData) {
+    if (formData) {
       setFormState({
-        referrer_last_name: profileData.last_name || "",
-        referrer_first_name: profileData.first_name || "",
-        referrer_department: profileData.degree_program || "",
-        referrer_email: profileData.email || "",
-        referrer_contact_number: profileData.contact_number || "",
+        referrer_last_name:
+          profileData?.last_name ||
+          formData?.referral?.referrer?.last_name ||
+          "",
+        referrer_first_name:
+          profileData?.first_name ||
+          formData?.referral?.referrer?.first_name ||
+          "",
+        referrer_department:
+          profileData?.degree_program ||
+          formData?.referral?.referrer?.department_unit ||
+          "",
+        referrer_email:
+          profileData?.email || formData?.referral?.referrer?.email || "",
+        referrer_contact_number:
+          profileData?.contact_number ||
+          formData?.referral?.referrer?.contact_number ||
+          "",
         referred_person_first_name:
-          formData.referral.referred_person.first_name || "",
+          formData?.referral?.referred_person?.first_name || "",
         referred_person_last_name:
-          formData.referral.referred_person.last_name || "",
+          formData?.referral?.referred_person?.last_name || "",
         referred_person_contact_number:
-          formData.referral.referred_person.contact_number || "",
+          formData?.referral?.referred_person?.contact_number || "",
         referred_person_degree_program:
-          formData.referral.referred_person.degree_program || "",
+          formData?.referral?.referred_person?.degree_program || "",
         referred_person_year_level:
-          formData.referral.referred_person.year_level || "",
-        referred_person_gender: formData.referral.referred_person.gender || "",
-        reason_for_referral: formData.referral.reason_for_referral || "",
-        initial_actions_taken: formData.referral.initial_actions_taken || "",
-        referral_date: formatDateOnly(formData.referral.referral_date) || "",
+          formData?.referral?.referred_person?.year_level || "",
+        referred_person_gender:
+          formData?.referral?.referred_person?.gender || "",
+        reason_for_referral: formData?.referral?.reason_for_referral || "",
+        initial_actions_taken: formData?.referral?.initial_actions_taken || "",
+        referral_date: formData?.referral?.referral_date
+          ? formatDateOnly(formData.referral.referral_date)
+          : "",
       });
     }
   }, [formData, profileData]);
@@ -84,7 +100,6 @@ const ReferralSlipProfileView = ({
     setShowDownloadConfirm(false);
     setDownloadToast("Download cancelled.");
   };
-
   // const handleDownload = () => {
   //   const element = pdfRef.current;
   //   const opt = {
@@ -139,13 +154,6 @@ const ReferralSlipProfileView = ({
     element.classList.remove("pdf-mode");
   };
 
-  const handleReturn = () => {
-    if (role === "admin" && profileData.student_number) {
-      navigate(`/admin/students/${profileData.student_number}`);
-    } else {
-      navigate("/myprofile");
-    }
-  };
   const handleSubmit = async () => {
     // Clear previous errors
     const newErrors = {};
@@ -198,23 +206,6 @@ const ReferralSlipProfileView = ({
   return (
     <>
       <div className="pdf-buttons">
-        <Button
-          variant="secondary"
-          onClick={handleReturn}
-          style={{ marginLeft: "10px" }}
-          className="pdf-button"
-        >
-          Return to Profile
-        </Button>
-        {role === "admin" && (
-          <Button
-            variant="secondary"
-            onClick={handleSubmit}
-            className="pdf-button"
-          >
-            Save Changes
-          </Button>
-        )}
         <Button
           variant="primary"
           onClick={handleDownloadClick}

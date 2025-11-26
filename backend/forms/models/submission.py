@@ -1,6 +1,8 @@
 from django.db import models
 from .student import Student
 from django.core.exceptions import ValidationError
+from django.utils import timezone
+from datetime import timedelta
 
 class Submission(models.Model):
     FORM_CHOICES = [
@@ -29,3 +31,23 @@ class Submission(models.Model):
             
     def __str__(self):
         return f"Submission for {self.student} - {self.form_type} - {self.status}"
+
+class PendingSubmission(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('verified', 'Verified'),
+        ('expired', 'Expired'),
+    ]
+
+    email = models.EmailField()
+    data = models.JSONField()
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_expired(self):
+        """Returns True if submission is pending and older than 1 day"""
+        return self.status == 'pending' and timezone.now() > self.created_at + timedelta(days=1)
+
+    def mark_expired(self):
+        self.status = 'expired'
+        self.save()
