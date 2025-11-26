@@ -14,7 +14,9 @@ from .ProfileSetupSerializers import (
 
 from .SerializerGeneralForm import (
     PrivacyConsentSerializer,
-    SubmissionSerializer
+    SubmissionSerializer,
+    PendingSubmissionSerializer,
+    VerifySubmissionSerializer
 )
 
 from .SerializerSCIF import (

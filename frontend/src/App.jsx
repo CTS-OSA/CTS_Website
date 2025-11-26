@@ -44,12 +44,14 @@ import AdminSetupProfile from "./forms/AdminSetupProfile/AdminSetupProfile";
 import BISForm from "./forms/BIS/BIS";
 import SCIF from "./forms/SCIF/SCIF";
 import ReferralSlip from "./forms/ReferralSlip/ReferralSlip";
+import GuestReferralSlip from "./forms/ReferralSlip/GuestReferralSlip";
 import PARD from "./forms/PARD/PARD";
 import { AdminStudentView } from "./admin-pages/AdminStudentView";
 import BISProfilePage from "./student-pages/BISProfilePage";
 import SCIFProfilePage from "./student-pages/SCIFProfilePage";
 import PARDProfilePage from "./student-pages/PARDProfilePage";
 import ReferralSlipProfilePage from "./student-pages/ReferralSlipProfilePage";
+import VerifyReferralPage from "./forms/ReferralSlip/VerifyGuestReferral";
 
 function App() {
   return (
@@ -328,6 +330,11 @@ function App() {
               <PARD />
             </ProtectedRoute>
           }
+        />
+        <Route path="/forms/guest/counseling-referral-slip" element={<GuestReferralSlip />} />
+        <Route
+          path="/verify"
+          element={<VerifyReferralPage />}
         />
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/public-forms" element={<FormPublicPage />} />

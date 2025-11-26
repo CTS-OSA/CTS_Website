@@ -9,6 +9,7 @@ from .views.BISEditView import BISEditView
 from .views.SCIFEditView import SCIFEditView
 from .views.PARDView import PARDSubmitView
 from .views.AdminProfileView import get_counselor_profile, update_counselor_profile, create_counselor_profile
+from .views.GuestSubmissionView import create_referral_submission, verify_referral_submission
 
 app_name= 'forms'
 
@@ -60,7 +61,10 @@ urlpatterns = [
     path("counselors/update/<int:counselor_id>/", update_counselor_profile, name="update-counselor-admin"),
 
     # Referral ViewSet
-    path("admin/referrals/<int:referral_id>/", get_referral_detail, name="admin-referral-detail")
+    path("admin/referrals/<int:referral_id>/", get_referral_detail, name="admin-referral-detail"),
 
+    # Guest Submissions
+    path("guest/create-referral-submission/", create_referral_submission, name="create_submission"),
+    path("guest/verify-referral-submission/", verify_referral_submission, name="verify_submission"),
 ]
 

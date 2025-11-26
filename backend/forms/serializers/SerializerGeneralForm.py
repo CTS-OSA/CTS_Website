@@ -26,3 +26,13 @@ class SubmissionSerializer(serializers.ModelSerializer):
         if data['form_type'] != 'CRS' and not data.get('student'):
             raise serializers.ValidationError("Student is required for this form type.")
         return data
+    
+    
+# For Guest Submissions
+class PendingSubmissionSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    data = serializers.DictField()
+
+class VerifySubmissionSerializer(serializers.Serializer):
+    pending_id = serializers.IntegerField()
+    token = serializers.CharField()

@@ -1,5 +1,4 @@
 import React, { useContext, useState, useEffect } from "react";
-import { useApiRequest } from "../../context/ApiRequestContext";
 import { AuthContext } from "../../context/AuthContext";
 import RSStudentDetails from "./RSStudentDetails";
 import RSRefferal from "./RSReferral";
@@ -17,7 +16,6 @@ import RSSubmit from "./RSSubmit";
 import ConfirmDialog from "../../components/ConfirmDialog";
 
 const ReferralSlip = () => {
-  const { request } = useApiRequest();
   const { profileData } = useContext(AuthContext);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [step, setStep] = useState(1);
@@ -178,8 +176,6 @@ const ReferralSlip = () => {
           response = await createDraftSubmission(studentNumber);
           response = await getFormBundle(studentNumber);
         }
-        console.log(response);
-        console.log("ID", response.submission.id);
 
         if (response) {
           setFormData({

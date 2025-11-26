@@ -72,9 +72,13 @@ class ReferralSerializer(serializers.ModelSerializer):
         fields = ["id", "submission", "referrer", "referred_person",
                   "reason_for_referral", "initial_actions_taken",
                   "referral_status", "referral_date"]
-        read_only_fields = ["referral_date"]
+        read_only_fields = ["referral_date", "submission"]
 
     def create(self, validated_data):
+        submission = self.context.get('submission') or self.initial_data.get('submission') or self.context.get('submission_instance')
+        if submission is None:
+            submission = self.context.get('submission') 
+            
         request = self.context["request"]
         user = request.user
         submission = validated_data.pop("submission", None)
@@ -119,3 +123,34 @@ class ReferralSerializer(serializers.ModelSerializer):
 
         return instance
     
+class ReferralSubmissionSerializer(serializers.Serializer):
+    referrer_data = GuestReferrerSerializer()
+    referred_person_data = ReferredPersonSerializer()
+    reason_for_referral = serializers.CharField()
+    initial_actions_taken = serializers.CharField()
+
+    def validate_referrer_data(self, value):
+        if value.get('student') and any([
+            value.get('first_name'),
+            value.get('last_name'),
+            value.get('email'),
+            value.get('department_unit'),
+            value.get('contact_number')
+        ]):
+            raise serializers.ValidationError("Guest fields must be empty for logged-in users.")
+        if not value.get('student') and not all([
+            value.get('first_name'),
+            value.get('last_name'),
+            value.get('email'),
+            value.get('department_unit'),
+            value.get('contact_number')
+        ]):
+            raise serializers.ValidationError("All guest fields are required for guest referrers.")
+        return value
+
+    def validate_referred_person_data(self, value):
+        required_fields = ['first_name','last_name','contact_number','degree_program','year_level','gender']
+        for field in required_fields:
+            if not value.get(field):
+                raise serializers.ValidationError({field: "This field is required."})
+        return value

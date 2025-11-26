@@ -2,6 +2,10 @@ import { getToken } from './cookieUtils';
 import { refreshToken } from './refreshUtils';
 
 export const apiRequest = async (url, options = {}) => {
+  if (options.skipAuth) {
+    const { skipAuth, ...restOptions } = options; 
+    return fetch(url, restOptions);
+  }
   let token = getToken();
   
   const fetchWithToken = async (token) => {

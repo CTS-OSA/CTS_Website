@@ -1,11 +1,10 @@
 import React from "react";
 import "./../SetupProfile/css/multistep.css";
-import "./../../components/css/modal.css"; 
+import "./../../components/css/modal.css";
 import DisplayField from "../../components/DisplayField";
 
-const RSPreview = ({formData, profileData, onClose }) => {
-  const { referral } =
-    formData;
+const RSPreview = ({ formData, profileData, onClose }) => {
+  const { referral } = formData;
 
   return (
     <div className="modal-overlay">
@@ -15,7 +14,9 @@ const RSPreview = ({formData, profileData, onClose }) => {
         </button>
 
         <div className="form-container">
-          <h1 className="text-upmaroon font-bold text-2xl mb-5 pb-1">Referral Slip (Preview)</h1>
+          <h1 className="text-upmaroon font-bold text-2xl mb-5 pb-1">
+            Referral Slip (Preview)
+          </h1>
 
           {/* STUDENT TO BE REFERRED DETAILS */}
           <div className="form-section">
@@ -71,29 +72,41 @@ const RSPreview = ({formData, profileData, onClose }) => {
             <div className="grid lg:grid-cols-2 gap-4">
               <DisplayField
                 label="Referrer's First Name"
-                value={profileData.first_name}
-              />
+                value={
+                  profileData?.first_name || referral?.referrer?.first_name
+                }
+              />{" "}
               <DisplayField
                 label="Referrer's Last Name"
-                value={profileData.last_name}
+                value={
+                  profileData?.last_name || referral?.referrer?.last_name || ""
+                }
               />
             </div>
             <div className="grid gap-4">
               <DisplayField
                 label="Referrer's Department"
-                value={profileData.degree_program}
+                value={
+                  profileData?.degree_program ||
+                  referral?.referrer?.department_unit ||
+                  ""
+                }
               />
             </div>
             <div className="grid gap-3">
-                <DisplayField
+              <DisplayField
                 label="Referrer's Email"
-                value={profileData.email}
+                value={profileData?.email || referral?.referrer?.email || ""}
               />
             </div>
             <div className="grid gap-4">
               <DisplayField
                 label="Referrer's Contact Number"
-                value={profileData.contact_number}
+                value={
+                  profileData?.contact_number ||
+                  referral?.referrer?.contact_number ||
+                  ""
+                }
               />
             </div>
           </div>

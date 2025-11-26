@@ -46,10 +46,14 @@ export const FormPublicPage = () => {
   };
 
   const handleCardClick = (form) => {
-    if (form === "counseling-referral-slip") {
+  if (form === "counseling-referral-slip") {
+    if (user) {
       navigate(`/forms/${form}`);
-      return;
+    } else {
+      navigate(`/forms/guest/${form}`);
     }
+    return;
+  }
 
     if (!user) {
       setModalConfig({

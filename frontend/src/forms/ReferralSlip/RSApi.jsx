@@ -110,10 +110,48 @@ export const useFormApi = () => {
     }
   };
 
+   const finalizeGuestSubmission = async (formData) => {
+    try {
+      const response = await request(
+        `http://localhost:8000/api/forms/guest/create-referral-submission/`,
+        {
+          method: "POST",
+          skipAuth: true,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        }
+
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          status: response.status,
+          data,
+        };
+      }
+
+      return {
+        success: true,
+        status: response.status,
+        data,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        status: 0,
+        data: { error: "Network error or unexpected issue occurred." },
+      };
+    }
+  };
+
   return {
     createDraftSubmission,
     getFormBundle,
     saveDraft,
     finalizeSubmission,
+    finalizeGuestSubmission,
   };
 };
