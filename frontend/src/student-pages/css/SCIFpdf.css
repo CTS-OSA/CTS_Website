@@ -16,7 +16,6 @@
 .SCIF-inline {
   display: flex;
   gap: 1rem;
-  flex-wrap: wrap;
   align-items: center;
   margin-bottom: 10px;
   width: 100%;
@@ -112,6 +111,12 @@
 .closest-to-inline label {
   width: fit-content;
   align-items: normal;
+}
+
+.closest-to-inline .closest-label {
+  font-weight: 600;
+  margin-right: 0.5rem;
+  white-space: nowrap;
 }
 .radio-group-inline {
   display: flex;
@@ -307,7 +312,6 @@
 }
 
 /* Input styles */
-.pdf label,
 .pdf textarea,
 .pdf input[type="text"],
 .pdf input[type="date"] {
@@ -319,13 +323,109 @@
   align-content: end;
 }
 
-input[readonly],
-textarea[readonly] {
-  border: 1px solid #ccc;
-  padding: 0.5rem;
-  margin-bottom: 1rem;
-  background-color: #f9f9f9;
-  align-content: end;
+.pdf label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  margin: 0.25rem 0;
+  font-weight: 600;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.pdf label input,
+.pdf label select,
+.pdf label textarea {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  margin: 0;
+}
+
+.pdf label.field-xs input,
+.pdf label.field-xs select {
+  flex: 0 0 80px;
+  max-width: 80px;
+}
+
+.pdf label.field-sm input,
+.pdf label.field-sm select {
+  flex: 0 0 140px;
+  max-width: 140px;
+}
+
+.pdf .field-lg-input {
+  flex: 2 1 260px;
+  min-width: 260px;
+  max-width: 100%;
+}
+
+.pdf label.field-xm input,
+.pdf label.field-xm select {
+  flex: 0 0 180px;
+  max-width: 180px;
+}
+
+.pdf label.field-md input,
+.pdf label.field-md select {
+  flex: 1 1 200px;
+  min-width: 200px;
+}
+
+.pdf label.field-lg input,
+.pdf label.field-lg select {
+  flex: 2 1 260px;
+  min-width: 260px;
+}
+
+.pdf label.field-xl input,
+.pdf label.field-xl select {
+  flex: 3 1 360px;
+  min-width: 360px;
+}
+
+.pdf .SCIF-inline label,
+.pdf .flex-row label {
+  gap: 0.35rem;
+}
+
+.pdf .nickname-field {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  gap: 0.25rem;
+}
+
+.pdf label.closest-radio {
+  gap: 0.75rem;
+}
+
+.pdf .closest-other {
+  flex: 1 1 320px;
+  min-width: 260px;
+}
+
+.pdf .closest-other input {
+  width: 100%;
+}
+
+.pdf label .error-state-message {
+  white-space: normal;
+}
+
+.SCIF-right label {
+  display: block;
+  text-align: center;
+  white-space: normal;
+}
+
+.graduation label {
+  display: block;
+  gap: 0;
+  margin: 0.4rem 0;
+  text-align: center;
+  white-space: normal;
 }
 
 textarea {
@@ -343,10 +443,9 @@ textarea {
   font-size: 12px;
   background-color: transparent;
   border-radius: 0;
-}
-
-.pdf label {
-  font-weight: 600;
+  padding: 0.35rem 0.45rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
 }
 
 .pdf .checkbox-list label {

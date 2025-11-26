@@ -9,6 +9,40 @@ import {
 } from "../../utils/inputFilters";
 
 const REQUIRED_LEVELS = ["Primary", "Junior High", "Senior High"];
+const DEFAULT_SAME_AS_PRIMARY = {
+  "Junior High": false,
+  "Senior High": false,
+};
+
+const createEmptyRecord = (level) => ({
+  student_number: "",
+  school: {
+    name: "",
+    school_address: {
+      address_line_1: "",
+      barangay: "",
+      city_municipality: "",
+      province: "",
+      region: "",
+      zip_code: "",
+    },
+  },
+  education_level: level,
+  start_year: "",
+  end_year: "",
+  honors_received: "",
+  senior_high_gpa: "",
+});
+
+const ensureRequiredRecords = (records) => {
+  let updated = [...records];
+  REQUIRED_LEVELS.forEach((level) => {
+    if (!updated.some((record) => record.education_level === level)) {
+      updated = [...updated, createEmptyRecord(level)];
+    }
+  });
+  return updated;
+};
 
 const SCIFPreviousSchoolRecord = ({
   data,
@@ -16,14 +50,35 @@ const SCIFPreviousSchoolRecord = ({
   readOnly = false,
   errors,
   setErrors,
+  sameAsPrimaryStorageKey,
 }) => {
-  const [schoolRecords, setSchoolRecords] = useState(data?.records || []);
-  const [sameAsPrimary, setSameAsPrimary] = useState(
-    data?.sameAsPrimary || {
-      "Junior High": false,
-      "Senior High": false,
-    }
+  const [schoolRecords, setSchoolRecords] = useState(() =>
+    ensureRequiredRecords(data?.records || [])
   );
+  const loadStoredSameAsPrimary = () => {
+    if (!sameAsPrimaryStorageKey) return null;
+    try {
+      const raw = localStorage.getItem(sameAsPrimaryStorageKey);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const persistSameAsPrimary = (value) => {
+    if (!sameAsPrimaryStorageKey) return;
+    try {
+      localStorage.setItem(sameAsPrimaryStorageKey, JSON.stringify(value));
+    } catch {
+      /* ignore persistence errors */
+    }
+  };
+
+  const [sameAsPrimary, setSameAsPrimary] = useState(() => ({
+    ...DEFAULT_SAME_AS_PRIMARY,
+    ...(loadStoredSameAsPrimary() || {}),
+    ...(data?.sameAsPrimary || {}),
+  }));
   const { enums, loading, error } = useEnumChoices();
 
   const handleErrorClear = (globalIndex, field) => {
@@ -37,12 +92,37 @@ const SCIFPreviousSchoolRecord = ({
     }
   };
 
-  // Initialize required levels
   useEffect(() => {
-    if (schoolRecords.length === 0) {
-      REQUIRED_LEVELS.forEach((level) => addRecord(level));
+    const incomingRecords = data?.records || [];
+    const ensuredRecords = ensureRequiredRecords(incomingRecords);
+    const storedSame = loadStoredSameAsPrimary();
+    const mergedSame = {
+      ...DEFAULT_SAME_AS_PRIMARY,
+      ...(storedSame || {}),
+      ...(data?.sameAsPrimary || {}),
+    };
+
+    setSchoolRecords(ensuredRecords);
+    setSameAsPrimary(mergedSame);
+    persistSameAsPrimary(mergedSame);
+
+    const recordsChanged =
+      JSON.stringify(ensuredRecords) !== JSON.stringify(incomingRecords);
+    const sameChanged =
+      JSON.stringify(mergedSame) !==
+      JSON.stringify(data?.sameAsPrimary || DEFAULT_SAME_AS_PRIMARY);
+
+    if (!readOnly && (recordsChanged || sameChanged)) {
+      updateData({
+        records: ensuredRecords,
+        sameAsPrimary: mergedSame,
+      });
     }
-  }, []);
+  }, [data?.records, data?.sameAsPrimary, readOnly]);
+
+  useEffect(() => {
+    persistSameAsPrimary(sameAsPrimary);
+  }, [sameAsPrimary]);
 
   const updateDataWithState = (records, same = sameAsPrimary) => {
     setSchoolRecords(records);
@@ -78,26 +158,7 @@ const SCIFPreviousSchoolRecord = ({
   };
 
   const addRecord = (level) => {
-    const newRecord = {
-      student_number: "",
-      school: {
-        name: "",
-        school_address: {
-          address_line_1: "",
-          barangay: "",
-          city_municipality: "",
-          province: "",
-          region: "",
-          zip_code: "",
-        },
-      },
-      education_level: level,
-      start_year: "",
-      end_year: "",
-      honors_received: "",
-      senior_high_gpa: "",
-    };
-    const updated = [...schoolRecords, newRecord];
+    const updated = [...schoolRecords, createEmptyRecord(level)];
     updateDataWithState(updated);
   };
 

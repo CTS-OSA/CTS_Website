@@ -562,6 +562,7 @@ const SCIF = () => {
                         {step === 5 && (
                           <SCIFPreviousSchoolRecord
                             data={formData.previous_school_record}
+                            sameAsPrimaryStorageKey={`scif-same-as-primary-${studentNumber}`}
                             updateData={(updatedData) =>
                               setFormData((prev) => ({
                                 ...prev,
