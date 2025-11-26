@@ -882,69 +882,160 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     }
   };
 
-  const handleDownload = async () => {
-    const element = pdfRef.current;
-    if (!element) {
-      setDownloadToast("Unable to prepare the file. Please reload the page.");
-      return false;
-    }
+  // const handleDownload = async () => {
+  //   const element = pdfRef.current;
+  //   if (!element) {
+  //     setDownloadToast("Unable to prepare the file. Please reload the page.");
+  //     return false;
+  //   }
 
-    const clone = element.cloneNode(true);
-    const normalizeColor = (() => {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      return (value) => {
-        if (!ctx || !value) return value;
-        try {
-          ctx.fillStyle = value;
-          return ctx.fillStyle;
-        } catch {
-          return value;
-        }
-      };
-    })();
+  //   const clone = element.cloneNode(true);
+  //   const normalizeColor = (() => {
+  //     const canvas = document.createElement("canvas");
+  //     const ctx = canvas.getContext("2d");
+  //     return (value) => {
+  //       if (!ctx || !value) return value;
+  //       try {
+  //         ctx.fillStyle = value;
+  //         return ctx.fillStyle;
+  //       } catch {
+  //         return value;
+  //       }
+  //     };
+  //   })();
 
-    const container = document.createElement("div");
-    container.style.position = "fixed";
-    container.style.left = "-10000px";
-    container.style.top = "0";
-    container.style.zIndex = "-1";
-    container.appendChild(clone);
-    document.body.appendChild(container);
+  //   const container = document.createElement("div");
+  //   container.style.position = "fixed";
+  //   container.style.left = "-10000px";
+  //   container.style.top = "0";
+  //   container.style.zIndex = "-1";
+  //   container.appendChild(clone);
+  //   document.body.appendChild(container);
 
-    const sourceNodes = [element, ...element.querySelectorAll("*")];
-    const targetNodes = [clone, ...clone.querySelectorAll("*")];
+  //   const sourceNodes = [element, ...element.querySelectorAll("*")];
+  //   const targetNodes = [clone, ...clone.querySelectorAll("*")];
 
-    sourceNodes.forEach((sourceEl, idx) => {
-      const targetEl = targetNodes[idx];
-      if (!targetEl) return;
-      const computed = window.getComputedStyle(sourceEl);
-      targetEl.style.color = normalizeColor(computed.color);
-      targetEl.style.backgroundColor = normalizeColor(
-        computed.backgroundColor
-      );
-      targetEl.style.borderColor = normalizeColor(computed.borderColor);
-    });
+  //   sourceNodes.forEach((sourceEl, idx) => {
+  //     const targetEl = targetNodes[idx];
+  //     if (!targetEl) return;
+  //     const computed = window.getComputedStyle(sourceEl);
+  //     targetEl.style.color = normalizeColor(computed.color);
+  //     targetEl.style.backgroundColor = normalizeColor(
+  //       computed.backgroundColor
+  //     );
+  //     targetEl.style.borderColor = normalizeColor(computed.borderColor);
+  //   });
 
-    const opt = {
-      margin: 0.5,
-      filename: "SCIF_file.pdf",
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
-    };
+  //   const opt = {
+  //     margin: 0.5,
+  //     filename: "SCIF_file.pdf",
+  //     image: { type: "jpeg", quality: 0.98 },
+  //     html2canvas: { scale: 2 },
+  //     jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+  //   };
 
+  //   try {
+  //     await html2pdf().set(opt).from(clone).save();
+  //     return true;
+  //   } catch (error) {
+  //     console.error("Failed to generate PDF:", error);
+  //     setDownloadToast("Unable to generate the PDF. Please try again.");
+  //     return false;
+  //   } finally {
+  //     document.body.removeChild(container);
+  //   }
+  // };
+
+const handleDownload = async () => {
+  const element = pdfRef.current;
+
+  // --- 1. Create clean clone ---
+  const clone = element.cloneNode(true);
+
+  // Prevent layout breaks
+  clone.style.maxWidth = element.offsetWidth + "px";
+  clone.style.width = element.offsetWidth + "px";
+
+  // --- 2. Replace all form fields in the clone with plain text ---
+  const originalFields = element.querySelectorAll("input, textarea, select");
+const cloneFields = clone.querySelectorAll("input, textarea, select");
+
+cloneFields.forEach((cloneEl, i) => {
+  const originalEl = originalFields[i];
+
+  const value = originalEl.value || "";
+
+  // Get computed styles from original input
+  const computed = window.getComputedStyle(originalEl);
+
+  // Create visual replacement
+  const textDiv = document.createElement("div");
+  textDiv.textContent = value;
+
+  // Copy key visual properties
+  textDiv.style.display = "block";
+  textDiv.style.fontSize = computed.fontSize;
+  textDiv.style.fontFamily = computed.fontFamily;
+  textDiv.style.fontWeight = computed.fontWeight;
+  textDiv.style.lineHeight = computed.lineHeight;
+  textDiv.style.padding = computed.padding;
+  textDiv.style.margin = computed.margin;
+
+  // match height
+  textDiv.style.height = computed.height;
+  textDiv.style.minHeight = computed.height;
+
+  // match width
+  textDiv.style.width = computed.width;
+
+  // border bottom only (like your form)
+  textDiv.style.borderBottom = computed.borderBottomWidth + " solid " + computed.borderBottomColor;
+
+  // ensure text aligns like input text
+  textDiv.style.whiteSpace = "pre-wrap";
+  textDiv.style.boxSizing = "border-box";
+
+  cloneEl.replaceWith(textDiv);
+});
+
+
+  // --- 3. Wait for fonts ---
+  if (document.fonts && document.fonts.ready) {
     try {
-      await html2pdf().set(opt).from(clone).save();
-      return true;
-    } catch (error) {
-      console.error("Failed to generate PDF:", error);
-      setDownloadToast("Unable to generate the PDF. Please try again.");
-      return false;
-    } finally {
-      document.body.removeChild(container);
-    }
+      await document.fonts.ready;
+    } catch {}
+  }
+
+  // --- 4. Wait for images ---
+  const imgs = clone.querySelectorAll("img");
+  await Promise.all(
+    Array.from(imgs).map(
+      (img) =>
+        new Promise((res) => {
+          if (img.complete) return res();
+          img.onload = img.onerror = res;
+        })
+    )
+  );
+
+  // --- 5. Render to PDF ---
+  const options = {
+    filename: "Referral_Slip.pdf",
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      allowTaint: false,
+    },
+    jsPDF: {
+      unit: "in",
+      format: "letter",
+      orientation: "portrait",
+    },
   };
+
+  await html2pdf().set(options).from(clone).save();
+};
+
 
   if (!profileData || !formData) return <div>Loading...</div>;
 
@@ -1009,19 +1100,19 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       <table className="w-full border-collapse mt-4 text-xs">
         <thead>
           <tr>
-            <th className="border border-gray-400 px-2.5 py-2 text-left bg-gray-100">
+            <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">
               Level
             </th>
-            <th className="border border-gray-400 px-2.5 py-2 text-left bg-gray-100">
+            <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">
               Name of School
             </th>
-            <th className="border border-gray-400 px-2.5 py-2 text-left bg-gray-100">
+            <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">
               Address
             </th>
-            <th className="border border-gray-400 px-2.5 py-2 text-left bg-gray-100">
+            <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">
               Inclusive Years
             </th>
-            <th className="border border-gray-400 px-2.5 py-2 text-left bg-gray-100">
+            <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">
               Honor/s
             </th>
           </tr>
@@ -1039,17 +1130,17 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
 
             return (
               <tr key={record.id || idx}>
-                <td className="border border-gray-400 px-2.5 py-2">
+                <td className="border border-[#9ca3af] px-2.5 py-2">
                   {record.education_level}
                 </td>
-                <td className="border border-gray-400 px-2.5 py-2">
+                <td className="border border-[#9ca3af] px-2.5 py-2">
                   {record.school.name}
                 </td>
-                <td className="border border-gray-400 px-2.5 py-2">
+                <td className="border border-[#9ca3af] px-2.5 py-2">
                   {address}
                 </td>
-                <td className="border border-gray-400 px-2.5 py-2">{`${record.start_year} - ${record.end_year}`}</td>
-                <td className="border border-gray-400 px-2.5 py-2">
+                <td className="border border-[#9ca3af] px-2.5 py-2">{`${record.start_year} - ${record.end_year}`}</td>
+                <td className="border border-[#9ca3af] px-2.5 py-2">
                   {record.honors_received}
                 </td>
               </tr>
@@ -1069,22 +1160,22 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       <table className="w-full border-collapse mt-12 text-xs">
         <thead>
           <tr>
-            <th className="border border-black px-4 py-3 text-left bg-gray-100 font-bold">
+            <th className="border border-black px-4 py-3 text-left bg-[#f3f4f6] font-bold">
               Brothers/Sisters
             </th>
-            <th className="border border-black px-4 py-3 text-left bg-gray-100 font-bold">
+            <th className="border border-black px-4 py-3 text-left bg-[#f3f4f6] font-bold">
               Sex
             </th>
-            <th className="border border-black px-4 py-3 text-left bg-gray-100 font-bold">
+            <th className="border border-black px-4 py-3 text-left bg-[#f3f4f6] font-bold">
               Age
             </th>
-            <th className="border border-black px-4 py-3 text-left bg-gray-100 font-bold">
+            <th className="border border-black px-4 py-3 text-left bg-[#f3f4f6] font-bold">
               Job/Occupation
             </th>
-            <th className="border border-black px-4 py-3 text-left bg-gray-100 font-bold">
+            <th className="border border-black px-4 py-3 text-left bg-[#f3f4f6] font-bold">
               Company/School
             </th>
-            <th className="border border-black px-4 py-3 text-left bg-gray-100 font-bold">
+            <th className="border border-black px-4 py-3 text-left bg-[#f3f4f6] font-bold">
               Educational Attainment
             </th>
           </tr>
@@ -1198,7 +1289,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
         </Button>
       </div>
 
-      <div className="pdf" ref={pdfRef}>
+      <div className="pdf w-[8.5in] bg-white p-8 leading-tight" ref={pdfRef}
+          style={{ fontSize: "11px", width: "816px" }}>
         <FormHeader />
         <div className="sub-info">
           <div className="right">
