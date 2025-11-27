@@ -256,16 +256,16 @@ class PARDFormView(APIView):
             pard_data = get_pard_data(student, submission)
             
             # Set PARD status to 'read' if admin opens the form
-            if request.user.is_staff:
-                try:
-                    pard_instance = PARD.objects.get(
-                        student_number=student,
-                        submission_id=submission
-                    )
-                    pard_instance.status = 'read'
-                    pard_instance.save()
-                except PARD.DoesNotExist:
-                    pass
+            # if request.user.is_staff:
+            #     try:
+            #         pard_instance = PARD.objects.get(
+            #             student_number=student,
+            #             submission_id=submission
+            #         )
+            #         pard_instance.status = 'read'
+            #         pard_instance.save()
+            #     except PARD.DoesNotExist:
+            #         pass
 
             response_data = {
                 "submission": {
@@ -288,7 +288,7 @@ class PARDFormView(APIView):
         """Update PARD appointment details (admin only)"""
         try:
             print(f"User: {request.user}, is_staff: {request.user.is_staff}, is_superuser: {request.user.is_superuser}")
-            if not request.user.is_superuser:
+            if not request.user.is_staff:
                 return Response(
                     {"error": "You don't have permission to edit this form."},
                     status=status.HTTP_403_FORBIDDEN
