@@ -46,7 +46,7 @@ urlpatterns = [
     path('psychosocial-assistance-and-referral-desk/<int:submission_id>/', PARDFormView.as_view(), name='get_pard_data'),
     
     # PARD ADMIN
-    path('edit/pard/<int:submission_id>', PARDSubmitView.as_view(), name='pard-edit'),
+    path('admin/psychosocial-assistance-and-referral-desk/edit/<int:submission_id>/', PARDSubmitView.as_view(), name='pard-edit'),
     path('admin/psychosocial-assistance-and-referral-desk', AdminPARDList.as_view(), name='get_pard_students'),
     path('admin/psychosocial-assistance-and-referral-desk/<int:submission_id>/', PARDFormView.as_view(), name='get_pard_data'),
 

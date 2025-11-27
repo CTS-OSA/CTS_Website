@@ -172,6 +172,10 @@ export const AdminPARDList = () => {
     );
   };
 
+  const handleDeleteForm = (submission_id) => {
+
+  };
+
   return (
     <DefaultLayout variant="admin">
       <Box className="admin-student-list" sx={{ p: 3 }} style={{ padding: 50 }}>
@@ -240,12 +244,18 @@ export const AdminPARDList = () => {
                   <td>
                     {submission.student.current_year_level} & {submission.student.degree_program}
                   </td>
-                  <td>
+                  <td class="flex gap-2">
                     <Button
                       variant="secondary"
                       onClick={() => handleViewStudent(submission.id)}
                     >
                       View
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => handleDeleteForm(submission.id)}
+                    >
+                      Delete
                     </Button>
                   </td>
                 </tr>
