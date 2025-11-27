@@ -148,7 +148,7 @@ function App() {
           }
         />
         <Route
-          path="/submitted-forms/psychosocial-assistance-and-referral-desk"
+          path="/submitted-forms/psychosocial-assistance-and-referral-desk/:submission_id"
           element={
             <ProtectedRoute requireAdmin={false}>
               <PARDProfilePage />
@@ -247,7 +247,7 @@ function App() {
           }
         />
         <Route
-          path="/admin/student-forms/:studentId/psychosocial-assistance-and-referral-desk"
+          path="/admin/psychosocial-assistance-and-referral-desk/:submission_id"
           element={
             <ProtectedRoute requireAdmin={true} requireUser={false}>
               <AdminPardView />

@@ -10,9 +10,10 @@ export const useFormApi = () => {
       `${BASE_URL}/?student_number=${studentNumber}`,
       {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }
       }
     );
+
 
     if (response?.status === 404) return null;
     return response?.ok ? await response.json() : null;
@@ -33,12 +34,11 @@ export const useFormApi = () => {
     }
   };
 
-  const submitForm = async (submissionId, formData) => {
+  const submitForm = async (studentNumber, formData) => {
     try {
-      console.log("SUBMISSION ID", submissionId);
       
       const response = await request(
-        `${BASE_URL}/submit/${submissionId}/`,
+        `${BASE_URL}/submit/${studentNumber}/`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -46,9 +46,11 @@ export const useFormApi = () => {
         }
       );
 
-      console.log("response", response);
+      await response.json();
 
-      return { success: true, data: response };
+      return {
+        success: response.ok,
+      };
     } catch (error) {
       return {
         success: false,
@@ -58,9 +60,23 @@ export const useFormApi = () => {
     }
   };
 
+  const getFormData = async(submission_id) => {
+    const response = await request(
+      `${BASE_URL}/${submission_id}/`,
+      {
+        method: "GET",
+        headers: { "Content-Type": "application/json" }
+      }
+    );
+
+    if (response?.status === 404) return null;
+    return response?.ok ? await response.json() : null;
+  }
+
   return {
     getFormBundle,
     getStudentData,
     submitForm,
+    getFormData
   };
 };

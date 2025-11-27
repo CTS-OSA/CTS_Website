@@ -8,7 +8,7 @@ class Submission(models.Model):
     FORM_CHOICES = [
         ('Basic Information Sheet', 'Basic Information Sheet'),
         ('Student Cumulative Information File', 'Student Cumulative Information File'),
-        ('Psychosocial Assistand and Referral Desk', 'Psychosocial Assistand and Referral Desk'),
+        ('Psychosocial Assistance and Referral Desk', 'Psychosocial Assistance and Referral Desk'),
         ('Counseling Referral Slip', 'Counseling Referral Slip')
     ]
 
@@ -21,7 +21,13 @@ class Submission(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('student', 'form_type')  
+        constraints = [
+            models.UniqueConstraint(
+                fields=['student', 'form_type'],
+                condition=~models.Q(form_type='Psychosocial Assistance and Referral Desk'),
+                name='unique_form_type'
+            )
+        ]  
 
     def clean(self):
         # Conditional validation for logged-in student submissions

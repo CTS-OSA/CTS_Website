@@ -24,7 +24,6 @@ const PARD = () => {
   const navigate = useNavigate();
   const { getStudentData, submitForm } = useFormApi();
   const [step, setStep] = useState(1);
-  const [submissionId, setSubmissionId] = useState(null);
   const [studentNumber, setStudentNumber] = useState(
     profileData?.student_number
   );
@@ -39,19 +38,9 @@ const PARD = () => {
     const fetchStudentData = async () => {
       if (studentNumber) {
         try {
-          // PROBLEM: CANNOT RETURN SUBMISSION ID
           const data = await getStudentData(studentNumber);
 
           if (data && data.student_profile) {
-            // Set submission ID from the response
-
-            if (data.submission && data.submission.id) {
-              setSubmissionId(data.submission.id);
-              if (data.submission.status === "submitted") {
-                setReadOnly(true);
-              }
-            }
-
             const student = data.student_profile;
             const permanentAddr = data.permanent_address;
             const upAddr = data.address_while_in_up;
@@ -90,7 +79,6 @@ const PARD = () => {
         }
       }
     };
-
     if (studentNumber) fetchStudentData();
   }, [studentNumber]);
 
@@ -321,13 +309,14 @@ const PARD = () => {
     setLoading(true);
 
     try {
-      const result = await submitForm(submissionId, formData);
-
+      const result = await submitForm(studentNumber, formData);
+      console.log("submission", result);
       if (result.success) {
         setShowConfirmation(true);
-        setTimeout(() => {
           navigate("/student");
-        }, 3000);
+          setTimeout(() => {
+            navigate("/student");
+          }, 5000);
       } else {
         if (result.status === 400 && result.data.errors) {
           setError(

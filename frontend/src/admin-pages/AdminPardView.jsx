@@ -6,7 +6,7 @@ import PardProfileView from "../student-pages/PARDViewPage";
 import Loader from "../components/Loader";
 
 export const AdminPardView = () => {
-  const { studentId } = useParams();
+  const { submission_id } = useParams();
   const { request } = useApiRequest();
 
   const [profileData, setProfileData] = useState(null);
@@ -17,19 +17,13 @@ export const AdminPardView = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const profileRes = await request(
-          `http://localhost:8000/api/forms/admin/students/${studentId}/`
-        );
-        if (!profileRes.ok) throw new Error("Failed to fetch student profile");
-        const profile = await profileRes.json();
-        setProfileData(profile);
-
         const formRes = await request(
-          `http://localhost:8000/api/forms/admin/student-forms/${studentId}/psychosocial-assistance-and-referral-desk/`
+          `http://localhost:8000/api/forms/admin/psychosocial-assistance-and-referral-desk/${submission_id}/`
         );
         if (!formRes.ok) throw new Error("Failed to fetch form data");
         const form = await formRes.json();
         setFormData(form);
+        setProfileData(form.student_data);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -38,7 +32,7 @@ export const AdminPardView = () => {
     };
 
     fetchData();
-  }, [studentId, request]);
+  }, [submission_id, request]);
 
   if (loading) return <Loader />;
   if (error) return <div>Error: {error}</div>;
