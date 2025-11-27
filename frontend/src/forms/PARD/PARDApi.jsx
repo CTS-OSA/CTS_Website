@@ -45,16 +45,11 @@ export const useFormApi = () => {
         }
       );
 
+      await response.json();
 
-      if (response.success){
-        return { 
-          success: true 
-        };
-      } else {
-        return {
-          success: false,
-        };
-      }
+      return {
+        success: response.ok,
+      };
     } catch (error) {
       return {
         success: false,
