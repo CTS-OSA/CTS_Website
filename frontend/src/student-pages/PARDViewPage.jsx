@@ -21,6 +21,8 @@ const PARDProfileView = ({ profileData, formData }) => {
   const [showDownloadConfirm, setShowDownloadConfirm] = useState(false);
   const [downloadToast, setDownloadToast] = useState(null);
   const [errors, setErrors] = useState({});
+  const [appointmentDate, setAppointmentDate] = useState("");
+  const [appointmentTime, setAppointmentTime] = useState("");
   const [formState, setFormState] = useState({
     name: `${profileData.last_name}, ${profileData.first_name} ${profileData.middle_name}`,
     year_course: `${profileData.current_year_level} - ${profileData.degree_program}`,
@@ -54,6 +56,30 @@ const PARDProfileView = ({ profileData, formData }) => {
     html2pdf().set(opt).from(element).save();
   };
 
+  const handleSaveAppointment = async () => {
+    try {
+      const response = await request(
+        `http://localhost:8000/api/forms/admin/psychosocial-assistance-and-referral-desk/edit/${formData.submission.id}/`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            preferred_date: appointmentDate,
+            preferred_time: appointmentTime,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        setDownloadToast("Appointment updated successfully!");
+      } else {
+        setDownloadToast("Failed to update appointment.");
+      }
+    } catch (error) {
+      setDownloadToast("Error updating appointment.");
+    }
+  };
+
   const handleReturn = () => {
     if (role === "admin" && profileData.student_number) {
       navigate(`/admin/students/${profileData.student_number}`);
@@ -61,6 +87,13 @@ const PARDProfileView = ({ profileData, formData }) => {
       navigate("/myprofile");
     }
   };
+
+  useEffect(() => {
+    if (formData?.pard_data) {
+      setAppointmentDate(formData.pard_data.preferred_date || "");
+      setAppointmentTime(formData.pard_data.preferred_time || "");
+    }
+  }, [formData]);
 
   if (!formData) return <Loader />;
 
@@ -83,6 +116,15 @@ const PARDProfileView = ({ profileData, formData }) => {
         >
           Download as PDF
         </Button>
+        {role === "admin" && (
+          <Button
+            variant="success"
+            onClick={handleSaveAppointment}
+            className="pdf-button"
+          >
+            Save
+          </Button>
+        )}
       </div>
 
       <div className="pdf" ref={pdfRef}>
@@ -155,19 +197,21 @@ const PARDProfileView = ({ profileData, formData }) => {
             />
           </label>
           <label>
-            Preferred Appointment Date:{" "}
+            Appointment Date:{" "}
             <input
-              type="text"
-              value={pard_data?.preferred_date || ""}
-              readOnly
+              type="date"
+              value={appointmentDate}
+              onChange={(e) => setAppointmentDate(e.target.value)}
+              readOnly={role !== "admin"}
             />
           </label>
           <label>
-            Preferred Appointment Time:{" "}
+            Appointment Time:{" "}
             <input
-              type="text"
-              value={pard_data?.preferred_time || ""}
-              readOnly
+              type="time"
+              value={appointmentTime}
+              onChange={(e) => setAppointmentTime(e.target.value)}
+              readOnly={role !== "admin"}
             />
           </label>
         </div>

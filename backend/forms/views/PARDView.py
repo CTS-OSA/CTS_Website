@@ -172,7 +172,6 @@ class PARDSubmitView(APIView):
 
         return submission_exists
 
-
     def head(self, request):
         """Check if logged-in user has submitted PARD form"""
         try:
@@ -190,12 +189,19 @@ class PARDSubmitView(APIView):
             )
     
     # Updates data from the admin side  
-    def patch(self, request,student_number):
+    def patch(self, request, submission_id):
         try: 
             if request.user.is_staff: 
+                submission = get_object_or_404(
+                    Submission,
+                    id=submission_id,
+                    form_type="Psychosocial Assistance and Referral Desk"
+                )
+                
                 pard_instance = get_object_or_404(
                     PARD,
-                    student_number__student_number=student_number,
+                    student_number=submission.student,
+                    submission_id=submission
                 )
                 
                 serializer = PARDSerializer(
@@ -206,10 +212,7 @@ class PARDSubmitView(APIView):
                 
                 if serializer.is_valid():
                     serializer.save()
-                    return Response({
-                        "message": "PARD schedule updated successfully!",
-                        "pard_id": pard_instance.id
-                    }, status=status.HTTP_200_OK)
+                    return Response(status=status.HTTP_200_OK)
                 else:
                     return Response({
                         "Error updating data": serializer.errors
@@ -253,25 +256,74 @@ class PARDFormView(APIView):
             pard_data = get_pard_data(student, submission)
             
             # Set PARD status to 'read' if admin opens the form
-            if request.user.is_staff:
-                try:
-                    pard_instance = PARD.objects.get(
-                        student_number=student,
-                        submission_id=submission
-                    )
-                    pard_instance.status = 'read'
-                    pard_instance.save()
-                except PARD.DoesNotExist:
-                    pass
+            # if request.user.is_staff:
+            #     try:
+            #         pard_instance = PARD.objects.get(
+            #             student_number=student,
+            #             submission_id=submission
+            #         )
+            #         pard_instance.status = 'read'
+            #         pard_instance.save()
+            #     except PARD.DoesNotExist:
+            #         pass
 
             response_data = {
-                "submission": {"id": submission.id},
+                "submission": {
+                    "id": submission.id,
+                    "submitted_on": submission.submitted_on
+                },
                 "pard_data": pard_data,
                 "student_data": student_data
             }
             
             return Response(response_data, status=status.HTTP_200_OK)
             
+        except Exception as e:
+            return Response(
+                {"error": f"An error occurred: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def patch(self, request, submission_id):
+        """Update PARD appointment details (admin only)"""
+        try:
+            print(f"User: {request.user}, is_staff: {request.user.is_staff}, is_superuser: {request.user.is_superuser}")
+            if not request.user.is_staff:
+                return Response(
+                    {"error": "You don't have permission to edit this form."},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            submission = get_object_or_404(
+                Submission,
+                id=submission_id,
+                form_type="Psychosocial Assistance and Referral Desk"
+            )
+            
+            pard_instance = get_object_or_404(
+                PARD,
+                student_number=submission.student,
+                submission_id=submission
+            )
+            
+            serializer = PARDSerializer(
+                pard_instance,
+                data=request.data,
+                partial=True
+            )
+            
+            if serializer.is_valid():
+                serializer.save()
+                return Response(
+                    {"message": "Appointment updated successfully!"},
+                    status=status.HTTP_200_OK
+                )
+            else:
+                return Response(
+                    {"Error updating data": serializer.errors},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+                
         except Exception as e:
             return Response(
                 {"error": f"An error occurred: {str(e)}"},

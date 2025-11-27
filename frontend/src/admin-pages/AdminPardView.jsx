@@ -22,7 +22,10 @@ export const AdminPardView = () => {
         );
         if (!formRes.ok) throw new Error("Failed to fetch form data");
         const form = await formRes.json();
-        setFormData(form);
+        setFormData({
+          pard_data: form.pard_data,
+          submission: form.submission
+        });
         setProfileData(form.student_data);
       } catch (err) {
         setError(err.message);
