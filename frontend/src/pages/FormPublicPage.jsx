@@ -9,6 +9,8 @@ import "./css_pages/FormPublicPage.css";
 import { AuthContext } from "../context/AuthContext";
 import Loader from "../components/Loader";
 import LoginModal from "../components/LoginModal";
+import { useApiRequest } from "../context/ApiRequestContext";
+
 
 export const FormPublicPage = () => {
   const [toastMessage, setToastMessage] = useState("");
@@ -19,6 +21,9 @@ export const FormPublicPage = () => {
   const [pageLoading, setPageLoading] = useState(false);
   const { user, profileData, loading } = useContext(AuthContext);
   const [cardsPerRow, setCardsPerRow] = useState(4);
+  const [hasSubmittedPard, setHasSubmittedPard] = useState(false);
+  const { request } = useApiRequest();
+
 
   // Number of cards per screen size
   useEffect(() => {
@@ -32,6 +37,15 @@ export const FormPublicPage = () => {
 
     window.addEventListener("resize", handleResize);
     handleResize();
+
+    if (user) {
+      checkPardSubmission().then((hasSubmitted) => {
+        if (hasSubmitted) {
+          setHasSubmittedPard(true);
+        }
+      });
+    }
+
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
@@ -115,6 +129,37 @@ export const FormPublicPage = () => {
     navigate(`/forms/${form}`);
   };
 
+  const checkPardSubmission = async () => {
+      const response = await request(
+        `http://localhost:8000/api/forms/psychosocial-assistance-and-referral-desk/check-submission/`,
+        {
+          method: "HEAD",
+          headers: { "Content-Type": "application/json" }
+        }
+      );
+      console.log("response", response);
+
+      if (response?.status === 404) return null;
+      // if (response?.status === 200) console.log("has submitted pard");
+      return response?.ok;
+    };
+
+  const createNewPardSubmission = async () => {
+    const response = await request(
+      `http://localhost:8000/api/forms/psychosocial-assistance-and-referral-desk/create-new/`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      }
+    );
+    
+    if (response?.ok) {
+      navigate(`/forms/pard`);
+    } else {
+      setToastMessage("Failed to create new submission");
+    }
+  };
+
   const formCards = [
     {
       title: "Basic Information Sheet",
@@ -189,6 +234,12 @@ export const FormPublicPage = () => {
                   <div className="flex justify-end mt-auto">
                     <button
                       disabled={form.comingSoon}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (index === 3 && hasSubmittedPard) {
+                          createNewPardSubmission();
+                        }
+                      }}
                       className={`self-start px-3 sm:px-5 py-1.5 sm:py-[0.6rem] rounded-lg text-xs sm:text-[0.9rem] border transition-colors duration-300 ease-in-out 
                         ${
                           form.comingSoon
@@ -196,7 +247,10 @@ export const FormPublicPage = () => {
                             : "bg-upgreen text-white hover:bg-green-700 hover:scale-105 duration-300 ease-in-out cursor-pointer border-transparent active:bg-white active:text-maroon-700 active:border-maroon-700"
                         }`}
                     >
-                      {form.comingSoon ? "Coming Soon" : "Fill Out"}
+                      {index == 3 ?
+                        (hasSubmittedPard ? "Create a new submission" : "Fill Out") :
+                        (form.comingSoon ? "Coming Soon" : "Fill Out")
+                      }
                     </button>
                   </div>
                 </div>

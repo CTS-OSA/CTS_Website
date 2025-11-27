@@ -10,7 +10,7 @@ export const useFormApi = () => {
       `${BASE_URL}/?student_number=${studentNumber}`,
       {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }
       }
     );
 
