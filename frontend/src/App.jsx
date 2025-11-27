@@ -329,6 +329,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/public-forms" element={<FormPublicPage />} />
         <Route path="/faq" element={<FAQPublicPage />} />

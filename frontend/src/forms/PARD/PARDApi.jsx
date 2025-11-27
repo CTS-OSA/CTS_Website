@@ -10,7 +10,7 @@ export const useFormApi = () => {
       `${BASE_URL}/?student_number=${studentNumber}`,
       {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }
       }
     );
 
@@ -27,8 +27,6 @@ export const useFormApi = () => {
           'Content-Type': 'application/json',
         },
       });
-      console.log("Response", response);
-
       return await response.json();
     } catch (error) {
       console.error("Error fetching student data:", error);
