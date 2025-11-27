@@ -265,7 +265,10 @@ class PARDFormView(APIView):
                     pass
 
             response_data = {
-                "submission": {"id": submission.id},
+                "submission": {
+                    "id": submission.id,
+                    "submitted_on": submission.submitted_on
+                },
                 "pard_data": pard_data,
                 "student_data": student_data
             }

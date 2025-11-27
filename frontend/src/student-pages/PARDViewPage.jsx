@@ -155,7 +155,7 @@ const PARDProfileView = ({ profileData, formData }) => {
             />
           </label>
           <label>
-            Preferred Appointment Date:{" "}
+            Appointment Date:{" "}
             <input
               type="text"
               value={pard_data?.preferred_date || ""}
@@ -163,7 +163,7 @@ const PARDProfileView = ({ profileData, formData }) => {
             />
           </label>
           <label>
-            Preferred Appointment Time:{" "}
+            Appointment Time:{" "}
             <input
               type="text"
               value={pard_data?.preferred_time || ""}
