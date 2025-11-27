@@ -69,7 +69,11 @@ export const UserDashboard = () => {
     if (form.status === 'draft') {
       navigate(`/forms/${slug}`);
     } else if (form.status === 'submitted') {
-      navigate(`/submitted-forms/${slug}`);
+      if (slug === 'psychosocial-assistance-and-referral-desk') {
+        navigate(`/submitted-forms/psychosocial-assistance-and-referral-desk/${form.id}`);
+      } else {
+        navigate(`/submitted-forms/${slug}`);
+      }
     }
   };
 

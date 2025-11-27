@@ -166,9 +166,9 @@ export const AdminPARDList = () => {
   if (loading || loadingData) return <Loader />;
   if (role !== "admin") return <div>Access denied. Admins only.</div>;
 
-  const handleViewStudent = (student) => {
+  const handleViewStudent = (submission_id) => {
     navigate(
-      `/admin/student-forms/${student.student_number}/psychosocial-assistance-and-referral-desk`
+      `/admin/psychosocial-assistance-and-referral-desk/${submission_id}`
     );
   };
 
@@ -230,20 +230,20 @@ export const AdminPARDList = () => {
           </thead>
           <tbody>
             {currentItems.length > 0 ? (
-              currentItems.map(({ student, submitted_on }) => (
-                <tr key={student.student_number}>
-                  <td>{student.student_number}</td>
+              currentItems.map((submission) => (
+                <tr key={submission.id}>
+                  <td>{submission.student.student_number}</td>
                   <td>
-                    {student.first_name} {student.last_name}
+                    {submission.student.first_name} {submission.student.last_name}
                   </td>
-                  <td>{formatDate(submitted_on)}</td>
+                  <td>{formatDate(submission.submitted_on)}</td>
                   <td>
-                    {student.current_year_level} & {student.degree_program}
+                    {submission.student.current_year_level} & {submission.student.degree_program}
                   </td>
                   <td>
                     <Button
                       variant="secondary"
-                      onClick={() => handleViewStudent(student)}
+                      onClick={() => handleViewStudent(submission.id)}
                     >
                       View
                     </Button>

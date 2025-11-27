@@ -54,7 +54,11 @@ export const AdminDashboardNew = () => {
   const handleRowClick = (params) => {
     const { id, form_type, student_number } = params.row;
     const slug = form_type.toLowerCase().replace(/\s+/g, "-");
-    navigate(`/admin/student-forms/${student_number}/${slug}/`);
+    if (slug === "psychosocial-assistance-and-referral-desk") {
+      navigate(`/admin/psychosocial-assistance-and-referral-desk/${id}/`);
+    } else {
+      navigate(`/admin/student-forms/${student_number}/${slug}/`);
+    }
   };
 
   const filteredSortedRows = recentSubmissions

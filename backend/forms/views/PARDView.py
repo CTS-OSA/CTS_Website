@@ -9,63 +9,36 @@ from ..serializers.SerializerPARD import PARDSubmissionSerializer, PARDSerialize
 from ..models.student import Student
 from django.utils import timezone
 
+# Global helper functions
+def get_student_data(student, request):
+    """Get basic student data"""
+    return {
+        "student_number": student.student_number,
+        "first_name": student.first_name,
+        "last_name": student.last_name,
+        "middle_name": student.middle_name,
+        "degree_program": student.degree_program,
+        "current_year_level": student.current_year_level,
+        "contact_number": student.contact_number,
+    }
+
+def get_pard_data(student, submission):
+    """Get PARD data if submission is submitted"""
+    if submission.status != 'submitted':
+        return None
+        
+    try:
+        pard_instance = PARD.objects.get(
+            student_number=student,
+            submission_id=submission
+        )
+        return PARDSerializer(instance=pard_instance).data
+    except PARD.DoesNotExist:
+        return None
+
 class PARDSubmitView(APIView):
     permission_classes = [IsAuthenticated]
-    
-    def get_student_data(self, student, request):
-        """Extract student profile and address data"""
-        data = {
-            "student_profile": {
-                "student_number": student.student_number,
-                "first_name": student.first_name,
-                "last_name": student.last_name,
-                "middle_name": student.middle_name,
-                "nickname": student.nickname,
-                "degree_program": student.degree_program,
-                "current_year_level": student.current_year_level,
-                "contact_number": student.contact_number,
-            },
-            "user": {
-                "email": request.user.email,
-            }
-        }
-        
-        if student.permanent_address:
-            data["permanent_address"] = {
-                "address_line_1": student.permanent_address.address_line_1,
-                "address_line_2": student.permanent_address.address_line_2,
-                "barangay": student.permanent_address.barangay,
-                "city_municipality": student.permanent_address.city_municipality,
-                "province": student.permanent_address.province,
-                "region": student.permanent_address.region,
-            }
-        
-        if student.address_while_in_up:
-            data["address_while_in_up"] = {
-                "address_line_1": student.address_while_in_up.address_line_1,
-                "address_line_2": student.address_while_in_up.address_line_2,
-                "barangay": student.address_while_in_up.barangay,
-                "city_municipality": student.address_while_in_up.city_municipality,
-                "province": student.address_while_in_up.province,
-                "region": student.address_while_in_up.region,
-            }
-        
-        return data
-    
-    def get_pard_data(self, student, submission):
-        """Get PARD data if submission is submitted"""
-        if submission.status != 'submitted':
-            return None
-            
-        try:
-            pard_instance = PARD.objects.get(
-                student_number=student,
-                submission_id=submission
-            )
-            return PARDSerializer(instance=pard_instance).data
-        except PARD.DoesNotExist:
-            return None
-    
+
     # Retrieve data for: 
     # STUDENT: Return basic information for pre-filled input fields
     # ADMIN: Return both student and PARD data 
@@ -85,7 +58,7 @@ class PARDSubmitView(APIView):
                         form_type="Psychosocial Assistance and Referral Desk"
                     )
                     response_data["submission"]["id"] = submission.id
-                    response_data["pard_data"] = self.get_pard_data(student, submission)
+                    response_data["pard_data"] = get_pard_data(student, submission)
                 except Submission.DoesNotExist:
                     response_data["submission"]["id"] = None
                     response_data["pard_data"] = None
@@ -254,3 +227,53 @@ class PARDSubmitView(APIView):
             return Response({
                 "error": f"An error occurred: {str(e)}"
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class PARDFormView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, submission_id):
+        """Get PARD form data by submission ID"""
+        try:
+            submission = get_object_or_404(
+                Submission,
+                id=submission_id,
+                form_type="Psychosocial Assistance and Referral Desk"
+            )
+
+            # Verify user has permission to view this submission
+            if submission.student.user != request.user and not request.user.is_staff:
+                return Response(
+                    {"error": "You don't have permission to view this form."},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Get student and PARD data using global helper functions
+            student = submission.student
+            student_data = get_student_data(student, request)
+            pard_data = get_pard_data(student, submission)
+            
+            # Set PARD status to 'read' if admin opens the form
+            if request.user.is_staff:
+                try:
+                    pard_instance = PARD.objects.get(
+                        student_number=student,
+                        submission_id=submission
+                    )
+                    pard_instance.status = 'read'
+                    pard_instance.save()
+                except PARD.DoesNotExist:
+                    pass
+
+            response_data = {
+                "submission": {"id": submission.id},
+                "pard_data": pard_data,
+                "student_data": student_data
+            }
+            
+            return Response(response_data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {"error": f"An error occurred: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

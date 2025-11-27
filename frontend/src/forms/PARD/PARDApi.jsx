@@ -60,9 +60,23 @@ export const useFormApi = () => {
     }
   };
 
+  const getFormData = async(submission_id) => {
+    const response = await request(
+      `${BASE_URL}/${submission_id}/`,
+      {
+        method: "GET",
+        headers: { "Content-Type": "application/json" }
+      }
+    );
+
+    if (response?.status === 404) return null;
+    return response?.ok ? await response.json() : null;
+  }
+
   return {
     getFormBundle,
     getStudentData,
     submitForm,
+    getFormData
   };
 };
