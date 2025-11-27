@@ -34,14 +34,55 @@ const createEmptyRecord = (level) => ({
   senior_high_gpa: "",
 });
 
-const ensureRequiredRecords = (records) => {
-  let updated = [...records];
+const cloneRecord = (record = {}) => {
+  const school = record.school || {};
+  const schoolAddress = school.school_address || {};
+
+  return {
+    ...record,
+    school: {
+      ...school,
+      school_address: {
+        ...schoolAddress,
+      },
+    },
+  };
+};
+
+const cloneRecords = (records = []) =>
+  records.map((record) => cloneRecord(record));
+
+const ensureRequiredRecords = (records = []) => {
+  let updated = cloneRecords(records);
   REQUIRED_LEVELS.forEach((level) => {
     if (!updated.some((record) => record.education_level === level)) {
       updated = [...updated, createEmptyRecord(level)];
     }
   });
   return updated;
+};
+
+const setNestedValue = (record, fieldPath, value) => {
+  const path = fieldPath.split(".");
+  let target = record;
+
+  for (let i = 0; i < path.length - 1; i++) {
+    const key = path[i];
+    const currentValue = target[key];
+
+    if (currentValue && typeof currentValue === "object") {
+      target[key] = Array.isArray(currentValue)
+        ? [...currentValue]
+        : { ...currentValue };
+    } else {
+      target[key] = {};
+    }
+
+    target = target[key];
+  }
+
+  target[path[path.length - 1]] = value;
+  return record;
 };
 
 const SCIFPreviousSchoolRecord = ({
@@ -125,26 +166,31 @@ const SCIFPreviousSchoolRecord = ({
   }, [sameAsPrimary]);
 
   const updateDataWithState = (records, same = sameAsPrimary) => {
-    setSchoolRecords(records);
-    updateData({
-      records,
-      sameAsPrimary: same,
-    });
+    const cloned = cloneRecords(records);
+    setSchoolRecords(cloned);
+    if (!readOnly && typeof updateData === "function") {
+      updateData({
+        records: cloned,
+        sameAsPrimary: same,
+      });
+    }
   };
 
   const handleFieldChange = (index, field, value) => {
     if (readOnly) return;
-    const updated = [...schoolRecords];
-    const path = field.split(".");
-    let target = updated[index];
-    for (let i = 0; i < path.length - 1; i++) {
-      target = target[path[i]] ||= {};
-    }
-    target[path[path.length - 1]] = value;
+    const updated = schoolRecords.map((record, idx) => {
+      if (idx !== index) return record;
+      const cloned = cloneRecord(record);
+      setNestedValue(cloned, field, value);
+      return cloned;
+    });
 
     // Reset GPA if not SHS
     if (field === "education_level" && value !== "Senior High") {
-      updated[index].senior_high_gpa = "";
+      updated[index] = {
+        ...updated[index],
+        senior_high_gpa: "",
+      };
     }
 
     updateDataWithState(updated);
@@ -179,24 +225,30 @@ const SCIFPreviousSchoolRecord = ({
   };
 
   const handleSameAsPrimaryToggle = (level) => {
+    if (readOnly) return;
     const updatedSame = {
       ...sameAsPrimary,
       [level]: !sameAsPrimary[level],
     };
 
     const primary = schoolRecords.find((r) => r.education_level === "Primary");
-    const levelRecord = schoolRecords.find((r) => r.education_level === level);
+    const levelIndex = schoolRecords.findIndex(
+      (r) => r.education_level === level
+    );
 
-    if (!primary || !levelRecord) return;
+    if (!primary || levelIndex === -1) return;
 
-    const updated = [...schoolRecords];
-    const idx = schoolRecords.findIndex((r) => r === levelRecord);
-
-    if (updatedSame[level]) {
-      // Copy name + address from primary
-      updated[idx].school.name = primary.school.name;
-      updated[idx].school.school_address = { ...primary.school.school_address };
-    }
+    const updated = schoolRecords.map((record, idx) => {
+      if (idx !== levelIndex) return record;
+      const cloned = cloneRecord(record);
+      if (updatedSame[level]) {
+        cloned.school.name = primary.school?.name || "";
+        cloned.school.school_address = {
+          ...(primary.school?.school_address || {}),
+        };
+      }
+      return cloned;
+    });
 
     setSameAsPrimary(updatedSame);
     updateDataWithState(updated, updatedSame);
