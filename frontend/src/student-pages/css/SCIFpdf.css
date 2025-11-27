@@ -579,6 +579,128 @@ textarea {
   font-weight: 600;
 }
 
+.custom-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.custom-radio--disabled {
+  cursor: not-allowed;
+}
+
+.custom-radio__input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.custom-radio__indicator {
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 2px solid #4b5563;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  background-color: #fff;
+  transition: border-color 0.2s ease;
+}
+
+.custom-radio__indicator-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background-color: #991b1b;
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out;
+}
+
+.custom-radio__indicator--checked {
+  border-color: #991b1b;
+}
+
+.custom-radio__indicator--checked .custom-radio__indicator-dot {
+  opacity: 1;
+}
+
+.custom-radio__label {
+  white-space: nowrap;
+}
+
+.custom-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+  line-height: 1.4;
+  max-width: 100%;
+}
+
+.custom-checkbox--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.custom-checkbox__input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.custom-checkbox__indicator {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #4b5563;
+  border-radius: 0.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  background-color: #fff;
+  flex-shrink: 0;
+}
+
+.custom-checkbox__indicator-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 0.8rem;
+  color: #fff;
+  opacity: 0;
+}
+
+.custom-checkbox__indicator--checked {
+  background-color: #7b1113;
+  border-color: #7b1113;
+}
+
+.custom-checkbox__indicator--checked .custom-checkbox__indicator-mark {
+  opacity: 1;
+}
+
+.custom-checkbox__label {
+  display: inline;
+  flex: 0 1 auto;
+  white-space: normal;
+}
+
+.privacy-consent-checkbox {
+  width: 100%;
+  align-items: flex-start;
+}
+
+.privacy-consent-text {
+  display: inline-block;
+  text-align: justify;
+}
+
 /* Print-friendly tweaks */
 @media print {
   body {
