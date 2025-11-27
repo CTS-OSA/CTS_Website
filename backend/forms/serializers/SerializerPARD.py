@@ -66,10 +66,6 @@ class PARDSubmissionSerializer(serializers.Serializer):
         # Remove None values
         pard_data = {k: v for k, v in pard_data.items() if v is not None}
         
-        pard_instance, created = PARD.objects.update_or_create(
-            student_number_id=student_number,
-            submission_id_id=submission_id,
-            defaults=pard_data
-        )
+        pard_instance = PARD.objects.create(**pard_data)
         
         return pard_instance

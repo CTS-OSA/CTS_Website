@@ -313,10 +313,10 @@ const PARD = () => {
       console.log("submission", result);
       if (result.success) {
         setShowConfirmation(true);
-        // navigate("/student");
-        // setTimeout(() => {
-        //   navigate("/student");
-        // }, 3000);
+          navigate("/student");
+          setTimeout(() => {
+            navigate("/student");
+          }, 5000);
       } else {
         if (result.status === 400 && result.data.errors) {
           setError(
