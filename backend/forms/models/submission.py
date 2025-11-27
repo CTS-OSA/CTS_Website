@@ -21,7 +21,13 @@ class Submission(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('student', 'form_type')  
+        constraints = [
+            models.UniqueConstraint(
+                fields=['student', 'form_type'],
+                condition=~models.Q(form_type='Psychosocial Assistance and Referral Desk'),
+                name='unique_form_type'
+            )
+        ]  
 
     def clean(self):
         # Conditional validation for logged-in student submissions

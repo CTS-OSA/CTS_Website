@@ -235,10 +235,10 @@ export const FormPublicPage = () => {
                     <button
                       disabled={form.comingSoon}
                       onClick={(e) => {
-                        e.stopPropagation();
-                        if (index === 3 && hasSubmittedPard) {
-                          createNewPardSubmission();
-                        }
+                        // e.stopPropagation();
+                        // if (index === 3 && hasSubmittedPard) {
+                        //   createNewPardSubmission();
+                        // }
                       }}
                       className={`self-start px-3 sm:px-5 py-1.5 sm:py-[0.6rem] rounded-lg text-xs sm:text-[0.9rem] border transition-colors duration-300 ease-in-out 
                         ${

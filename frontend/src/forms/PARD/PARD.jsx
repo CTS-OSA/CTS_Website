@@ -24,7 +24,6 @@ const PARD = () => {
   const navigate = useNavigate();
   const { getStudentData, submitForm } = useFormApi();
   const [step, setStep] = useState(1);
-  const [submissionId, setSubmissionId] = useState(null);
   const [studentNumber, setStudentNumber] = useState(
     profileData?.student_number
   );
@@ -42,14 +41,6 @@ const PARD = () => {
           const data = await getStudentData(studentNumber);
 
           if (data && data.student_profile) {
-            // Set submission ID from the response
-            if (data.submission && data.submission.id) {
-              setSubmissionId(data.submission.id);
-              if (data.submission.status === "submitted") {
-                setReadOnly(true);
-              }
-            }
-
             const student = data.student_profile;
             const permanentAddr = data.permanent_address;
             const upAddr = data.address_while_in_up;
@@ -88,7 +79,6 @@ const PARD = () => {
         }
       }
     };
-
     if (studentNumber) fetchStudentData();
   }, [studentNumber]);
 
@@ -319,7 +309,7 @@ const PARD = () => {
     setLoading(true);
 
     try {
-      const result = await submitForm(submissionId, formData);
+      const result = await submitForm(studentNumber, formData);
       console.log("submission", result);
       if (result.success) {
         setShowConfirmation(true);

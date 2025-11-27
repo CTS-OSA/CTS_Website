@@ -15,7 +15,6 @@ class PARDSubmitView(APIView):
     def get_student_data(self, student, request):
         """Extract student profile and address data"""
         data = {
-            "submission": {},
             "student_profile": {
                 "student_number": student.student_number,
                 "first_name": student.first_name,
@@ -77,26 +76,19 @@ class PARDSubmitView(APIView):
             # Retrieve student data
             response_data = self.get_student_data(student, request)
             
-            # Get or create submission
-            submission, created = Submission.objects.get_or_create(
-                student=student,
-                form_type="Psychosocial Assistance and Referral Desk",
-                defaults={'status': 'draft', 'saved_on': timezone.now()}
-            )
-            
-            # Update saved_on for existing submissions
-            if not created:
-                submission.saved_on = timezone.now()
-                submission.form_type = "Psychosocial Assistance and Referral Desk"
-                submission.save()
-            
-            
-            response_data["submission"]["id"] = submission.id
-            response_data["submission"]["form_type"] = submission.form_type
-            
-            # Get pard data only for admin
+            # Only include submission data for admin users
             if request.user.is_staff:
-                response_data["pard_data"] = self.get_pard_data(student, submission)
+                response_data["submission"] = {}
+                try:
+                    submission = Submission.objects.get(
+                        student=student,
+                        form_type="Psychosocial Assistance and Referral Desk"
+                    )
+                    response_data["submission"]["id"] = submission.id
+                    response_data["pard_data"] = self.get_pard_data(student, submission)
+                except Submission.DoesNotExist:
+                    response_data["submission"]["id"] = None
+                    response_data["pard_data"] = None
             
             return Response(response_data, status=status.HTTP_200_OK)
             
@@ -106,34 +98,37 @@ class PARDSubmitView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
-    def post(self, request, submission_id):
+    def post(self, request, student_number):
         try:
-            # Get the submission
-            submission = get_object_or_404(Submission, id=submission_id)
-
-            # Verify the submission belongs to the authenticated user
-            if submission.student.user != request.user:
+            # Get the student
+            student = get_object_or_404(Student, student_number=student_number)
+            
+            # Verify the student belongs to the authenticated user
+            if student.user != request.user:
                 return Response(
-                    {
-                        "error": (
-                            "You don't have permission to submit this form."
-                        )
-                    },
+                    {"error": "You don't have permission to submit this form."},
                     status=status.HTTP_403_FORBIDDEN
                 )
+
+            # Create new submission
+            submission = Submission.objects.create(
+                student=student,
+                form_type="Psychosocial Assistance and Referral Desk",
+                status='draft'
+            )
 
             # Serialize and validate the data
             serializer = PARDSubmissionSerializer(
                 data=request.data,
                 context={
-                    'submission_id': submission_id,
-                    'student_number': submission.student.student_number
+                    'submission_id': submission.id,
+                    'student_number': student_number
                 }
             )
             
             if serializer.is_valid():
                 # Save the PARD data
-                pard_instance = serializer.save()
+                serializer.save()
                 
                 # Update submission status
                 submission.status = 'submitted'

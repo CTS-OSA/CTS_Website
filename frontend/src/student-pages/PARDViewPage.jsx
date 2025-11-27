@@ -65,7 +65,6 @@ const PARDProfileView = ({ profileData, formData }) => {
   if (!formData) return <Loader />;
 
   const { pard_data, submission } = formData;
-  console.log("submission", submission);
   return (
     <>
       <div className="pdf-buttons">

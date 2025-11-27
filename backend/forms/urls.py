@@ -39,7 +39,7 @@ urlpatterns = [
     path('admin-edit/<int:submission_id>/', AdminFormEditView.as_view(), name='admin-form-edit'),
     
     # PARD 
-    path('psychosocial-assistance-and-referral-desk/submit/<int:submission_id>/', PARDSubmitView.as_view(), name='pard-submit'),
+    path('psychosocial-assistance-and-referral-desk/submit/<str:student_number>/', PARDSubmitView.as_view(), name='pard-submit'),
     path('psychosocial-assistance-and-referral-desk/student-data/<str:student_number>/', PARDSubmitView.as_view(), name='pard-student-data'),
     path('psychosocial-assistance-and-referral-desk/check-submission/', PARDSubmitView.as_view(), name='pard-check'),
     path('psychosocial-assistance-and-referral-desk/delete/<str:student_number>/', PARDSubmitView.as_view(), name='pard-delete'),

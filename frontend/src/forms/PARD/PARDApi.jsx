@@ -33,11 +33,11 @@ export const useFormApi = () => {
     }
   };
 
-  const submitForm = async (submissionId, formData) => {
+  const submitForm = async (studentNumber, formData) => {
     try {
       
       const response = await request(
-        `${BASE_URL}/submit/${submissionId}/`,
+        `${BASE_URL}/submit/${studentNumber}/`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
