@@ -54,11 +54,11 @@ const RSReferrerGuest = ({ formData, setFormData, errors, setErrors }) => {
       <div className="grid gap-4 pb-4">
         <FormField
           label="Unit/Department"
-          name="department"
+          name="department_unit"
           value={formData.referral.referrer?.department_unit || ""}
           onChange={handleChange}
-          onFocus={() => clearError(errors, setErrors, "department")}
-          error={errors?.["department"]}
+          onFocus={() => clearError(errors, setErrors, "department_unit")}
+          error={errors?.["department_unit"]}
           required
         />
       </div>

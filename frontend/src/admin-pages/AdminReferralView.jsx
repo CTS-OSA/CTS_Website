@@ -6,7 +6,7 @@ import Loader from "../components/Loader";
 import ReferralSlipProfileView from "../student-pages/ReferralSlipViewPage";
 
 export const AdminReferralView = () => {
-  const { referralId } = useParams();
+  const { submission_id } = useParams();
   const { request } = useApiRequest();
   const [referralData, setReferralData] = useState(null);
   const [profileData, setProfileData] = useState(null);
@@ -15,7 +15,7 @@ export const AdminReferralView = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!referralId) {
+      if (!submission_id) {
         setError("Missing referral ID.");
         setLoading(false);
         return;
@@ -23,7 +23,7 @@ export const AdminReferralView = () => {
 
       try {
         // Fetch referral
-        const resReferral = await request(`/api/forms/admin/referrals/${referralId}/`);
+        const resReferral = await request(`/api/forms/admin/referrals/${submission_id}/`);
         if (!resReferral.ok) throw new Error("Failed to fetch referral.");
         const referral = await resReferral.json();
         setReferralData(referral);
@@ -44,7 +44,7 @@ export const AdminReferralView = () => {
     };
 
     fetchData();
-  }, [referralId, request]);
+  }, [submission_id, request]);
 
   if (loading) return <Loader />;
   if (error) return <div style={{ color: "red" }}>{error}</div>;

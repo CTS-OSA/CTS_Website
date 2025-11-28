@@ -27,19 +27,38 @@ def get_student_profile_by_id(request, student_id):
     
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def get_referral_detail(request, referral_id):
-    try:
-        referral = Referral.objects.get(id=referral_id)
-    except Referral.DoesNotExist:
-        return Response({"error": "Referral not found"}, status=status.HTTP_404_NOT_FOUND)
-
+def get_referral_detail(request, submission_id):
     user = request.user
-    if user.is_staff or (hasattr(user, "student") and referral.referrer.student == user.student):
+
+    try:
+        submission = Submission.objects.get(id=submission_id)
+    except Submission.DoesNotExist:
+        return Response(
+            {"error": "Submission not found."},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    try:
+        referral = Referral.objects.get(submission=submission)
+    except Referral.DoesNotExist:
+        return Response(
+            {"error": "No referral exists for this submission."},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    if user.is_staff:
         serializer = AdminReferralDetailSerializer(referral)
         return Response(serializer.data)
-    else:
-        return Response({"error": "Access denied"}, status=status.HTTP_403_FORBIDDEN)
-    
+
+    if hasattr(user, "student") and referral.referrer.student == user.student:
+        serializer = AdminReferralDetailSerializer(referral)
+        return Response(serializer.data)
+
+    return Response(
+        {"error": "Access denied."},
+        status=status.HTTP_403_FORBIDDEN
+    )
+  
     
 class AdminBISList(APIView):
     permission_classes = [IsAdminUser]
@@ -74,13 +93,24 @@ class AdminSCIFList(APIView):
 class AdminReferralListView(APIView):
     permission_classes = [IsAdminUser]
 
+    # def get(self, request):
+    #     try:
+    #         referrals = Referral.objects.filter(submission__status="submitted").order_by('-referral_date')
+    #         serializer = AdminReferralListSerializer(referrals, many=True)
+    #         return Response(serializer.data, status=status.HTTP_200_OK)
+    #     except Exception as e:
+    #         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     def get(self, request):
-        try:
-            referrals = Referral.objects.filter(submission__status="submitted").order_by('-referral_date')
-            serializer = AdminReferralListSerializer(referrals, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        if not request.user.is_staff:
+            return Response({'error': 'Permission denied, admins only.'}, status=status.HTTP_403_FORBIDDEN)
+
+        referrals = Referral.objects.filter(
+            submission__form_type="Counseling Referral Slip",
+            submission__status="submitted"
+        ).order_by('-referral_date')
+
+        serializer = AdminReferralListSerializer(referrals, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
         
 class AdminPARDList(APIView):
     permission_classes = [IsAdminUser]

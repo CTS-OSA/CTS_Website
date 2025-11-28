@@ -6,6 +6,7 @@ import { AuthContext } from "../context/AuthContext";
 import { useApiRequest } from "../context/ApiRequestContext";
 import Loader from "../components/Loader";
 import DefaultLayout from "../components/DefaultLayout";
+import { formatDate } from "../utils/helperFunctions.js";
 
 export const AdminDashboardNew = () => {
   const { user, role, loading } = useContext(AuthContext);
@@ -14,6 +15,7 @@ export const AdminDashboardNew = () => {
   const [barData, setBarData] = useState([]);
   const [summaryData, setSummaryData] = useState([]);
   const [recentSubmissions, setRecentSubmissions] = useState([]);
+  const [referralData, setReferralData] = useState([]);
   const [totalStudents, setTotalStudents] = useState(0);
   const [error, setError] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
@@ -26,36 +28,13 @@ export const AdminDashboardNew = () => {
     form_type: [],
   });
 
-  // Hardcoded referral data (for now)
-  const referralData = [
-    {
-      id: 1,
-      student_name: "Juan Dela Cruz",
-      student_number: "2021-12345",
-      date_referred: "2025-10-15",
-      referred_by: "Prof. Santos",
-    },
-    {
-      id: 2,
-      student_name: "Maria Reyes",
-      student_number: "2022-67890",
-      date_referred: "2025-10-20",
-      referred_by: "Counselor Lopez",
-    },
-    {
-      id: 3,
-      student_name: "Jose Garcia",
-      student_number: "2020-54321",
-      date_referred: "2025-10-22",
-      referred_by: "Prof. Cruz",
-    },
-  ];
-
   const handleRowClick = (params) => {
     const { id, form_type, student_number } = params.row;
     const slug = form_type.toLowerCase().replace(/\s+/g, "-");
     if (slug === "psychosocial-assistance-and-referral-desk") {
       navigate(`/admin/psychosocial-assistance-and-referral-desk/${id}/`);
+    } else if (slug === "counseling-referral-slip") {
+      navigate(`/admin/counseling-referral-slip/${id}/`);
     } else {
       navigate(`/admin/student-forms/${student_number}/${slug}/`);
     }
@@ -120,6 +99,22 @@ export const AdminDashboardNew = () => {
           const json = await recentRes.json();
           setRecentSubmissions(json || []);
         }
+        const fetchReferrals = async () => {
+          try {
+            const res = await request(
+              "/api/forms/admin/counseling-referral-slip-submissions/"
+            );
+            if (!res.ok) throw new Error("Failed to fetch referrals");
+            const data = await res.json();
+            setReferralData(data);
+          } catch (err) {
+            console.error(err);
+          } finally {
+            setLoadingData(false);
+          }
+        };
+
+        fetchReferrals();
       } catch (err) {
         setError("Failed to load dashboard data.");
       } finally {
@@ -170,25 +165,34 @@ export const AdminDashboardNew = () => {
                         </th>
                       </tr>
                     </thead>
-                    <tbody>
-                      {referralData.map((row) => (
-                        <tr
-                          key={row.id}
-                          className="border-b border-gray-200 hover:bg-gray-50"
-                        >
-                          <td className="py-2 px-3">{row.student_name}</td>
-                          <td className="py-2 px-3">{row.date_referred}</td>
-                          <td className="py-2 px-3">{row.referred_by}</td>
-                          <td className="py-2 px-3">
-                            <button className="text-blue-600 border border-blue-600 px-3 py-1 rounded-md hover:bg-blue-600 hover:text-white transition-colors duration-200">
-                              View
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+              <tbody>
+                {referralData.slice(0, 5).map((row) => (
+                  <tr
+                    key={row.submission_id}
+                    className="border-b border-gray-200 hover:bg-gray-50"
+                  >
+                    <td className="py-2 px-3">
+                      {row.referred_person?.name || "-"}
+                    </td>
+                    <td className="py-2 px-3">{formatDate(row.referral_date)}</td>
+                    <td className="py-2 px-3">{row.referrer?.name || "-"}</td>
+                    <td className="py-2 px-3">
+                      <button
+                        onClick={() =>
+                          navigate(
+                            `/admin/counseling-referral-slip/${row.submission_id}/`
+                          )
+                        }
+                        className="text-blue-600 border border-blue-600 px-3 py-1 rounded-md hover:bg-blue-600 hover:text-white transition-colors duration-200"
+                      >
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              </table>
+              </div>
               </div>
             </div>
             {/* Recent Submissions Table */}

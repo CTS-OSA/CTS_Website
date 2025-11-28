@@ -135,6 +135,7 @@ export const AdminReferral = () => {
         data.sort((a, b) => new Date(b.referral_date) - new Date(a.referral_date));
         setSubmissions(data);
         setFiltered(data);
+         console.log(data);
       } catch (err) {
         setError("Error fetching data. Please try again.");
       } finally {
@@ -149,7 +150,7 @@ export const AdminReferral = () => {
   if (role !== "admin") return <div>Access denied. Admins only.</div>;
   if (error) return <div>{error}</div>;
 
-  const handleViewReferral = (referralId) => navigate(`/admin/counseling-referral-slip/${referralId}/`);
+  const handleViewReferral = (submission_id) => navigate(`/admin/counseling-referral-slip/${submission_id}/`);
 
   return (
     <DefaultLayout variant="admin">
@@ -215,15 +216,15 @@ export const AdminReferral = () => {
           </thead>
           <tbody>
             {currentItems.length > 0 ? (
-              currentItems.map(({ id, referral_date, referral_status, referred_person, referrer }) => (
-                <tr key={id}>
+              currentItems.map(({ submission_id, referral_date, referral_status, referred_person, referrer }) => (
+                <tr key={submission_id}>
                   <td>{`${referred_person?.name || ""}`}</td>
                   <td>{formatDate(referral_date)}</td>
                   <td>{referred_person ? `${referred_person.year_level} – ${referred_person.degree_program}` : "-"}</td>
                   <td>{referrer?.name || "-"}</td>
                   <td>{referral_status}</td>
                   <td>
-                    <Button variant="secondary" onClick={() => handleViewReferral(id)}>
+                    <Button variant="secondary" onClick={() => handleViewReferral(submission_id)}>
                       View
                     </Button>
                   </td>

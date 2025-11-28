@@ -124,7 +124,7 @@ function App() {
           }
         />
         <Route
-          path="/submitted-forms/basic-information-sheet"
+          path="/submitted-forms/basic-information-sheet/:submission_id"
           element={
             <ProtectedRoute requireAdmin={false}>
               <BISProfilePage />
@@ -140,7 +140,7 @@ function App() {
           }
         />
         <Route
-          path="/submitted-forms/student-cumulative-information-file"
+          path="/submitted-forms/student-cumulative-information-file/:submission_id"
           element={
             <ProtectedRoute requireAdmin={false}>
               <SCIFProfilePage />
@@ -156,7 +156,7 @@ function App() {
           }
         />
         <Route
-          path="/submitted-forms/counseling-referral-slip"
+          path="/submitted-forms/counseling-referral-slip/:submission_id"
           element={
             <ProtectedRoute requireAdmin={false}>
               <ReferralSlipProfilePage />
@@ -223,7 +223,7 @@ function App() {
           }
         />
         <Route
-          path="/admin/counseling-referral-slip/:referralId"
+          path="/admin/counseling-referral-slip/:submission_id"
           element={
             <ProtectedRoute requireAdmin={true} requireUser={false}>
               <AdminReferralView />
