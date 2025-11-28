@@ -24,8 +24,8 @@ const PARDProfileView = ({ profileData, formData }) => {
   const [appointmentDate, setAppointmentDate] = useState("");
   const [appointmentTime, setAppointmentTime] = useState("");
   const [formState, setFormState] = useState({
-    name: `${profileData.last_name}, ${profileData.first_name} ${profileData.middle_name}`,
-    year_course: `${profileData.current_year_level} - ${profileData.degree_program}`,
+    name: profileData ? `${profileData.last_name}, ${profileData.first_name} ${profileData.middle_name}` : "",
+    year_course: profileData ? `${profileData.current_year_level} - ${profileData.degree_program}` : "",
   });
 
   const handleDownloadClick = () => {

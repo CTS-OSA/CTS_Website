@@ -39,7 +39,6 @@ const PARD = () => {
       if (studentNumber) {
         try {
           const data = await getStudentData(studentNumber);
-
           if (data && data.student_profile) {
             const student = data.student_profile;
             const permanentAddr = data.permanent_address;
@@ -68,7 +67,6 @@ const PARD = () => {
                 student_email: student_email?.email || "",
               },
             }));
-            console.log("student data returned:", data);
           } else {
             setError("Failed to create or fetch the form.");
           }
