@@ -11,6 +11,46 @@ from django.utils import timezone
 
 # Global helper functions
 def get_student_data(student, request):
+        """Extract student profile and address data"""
+        data = {
+            "student_profile": {
+                "student_number": student.student_number,
+                "first_name": student.first_name,
+                "last_name": student.last_name,
+                "middle_name": student.middle_name,
+                "nickname": student.nickname,
+                "degree_program": student.degree_program,
+                "current_year_level": student.current_year_level,
+                "contact_number": student.contact_number,
+            },
+            "user": {
+                "email": request.user.email,
+            }
+        }
+        
+        if student.permanent_address:
+            data["permanent_address"] = {
+                "address_line_1": student.permanent_address.address_line_1,
+                "address_line_2": student.permanent_address.address_line_2,
+                "barangay": student.permanent_address.barangay,
+                "city_municipality": student.permanent_address.city_municipality,
+                "province": student.permanent_address.province,
+                "region": student.permanent_address.region,
+            }
+        
+        if student.address_while_in_up:
+            data["address_while_in_up"] = {
+                "address_line_1": student.address_while_in_up.address_line_1,
+                "address_line_2": student.address_while_in_up.address_line_2,
+                "barangay": student.address_while_in_up.barangay,
+                "city_municipality": student.address_while_in_up.city_municipality,
+                "province": student.address_while_in_up.province,
+                "region": student.address_while_in_up.region,
+            }
+        
+        return data
+
+def get_student_data_pard_form_view(student):
     """Get basic student data"""
     return {
         "student_number": student.student_number,
@@ -47,8 +87,8 @@ class PARDSubmitView(APIView):
             student = get_object_or_404(Student, student_number=student_number)
             
             # Retrieve student data
-            response_data = self.get_student_data(student, request)
-            
+            response_data = get_student_data(student, request)
+
             # Only include submission data for admin users
             if request.user.is_staff:
                 response_data["submission"] = {}
@@ -252,7 +292,7 @@ class PARDFormView(APIView):
             
             # Get student and PARD data using global helper functions
             student = submission.student
-            student_data = get_student_data(student, request)
+            student_data = get_student_data_pard_form_view(student)
             pard_data = get_pard_data(student, submission)
             
             # Set PARD status to 'read' if admin opens the form
@@ -287,7 +327,6 @@ class PARDFormView(APIView):
     def patch(self, request, submission_id):
         """Update PARD appointment details (admin only)"""
         try:
-            print(f"User: {request.user}, is_staff: {request.user.is_staff}, is_superuser: {request.user.is_superuser}")
             if not request.user.is_staff:
                 return Response(
                     {"error": "You don't have permission to edit this form."},
