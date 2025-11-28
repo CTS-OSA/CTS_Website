@@ -19,10 +19,6 @@ const ReferralSlip = () => {
   const { profileData } = useContext(AuthContext);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [step, setStep] = useState(1);
-  const [submissionId, setSubmissionId] = useState(null);
-  const [studentNumber, setStudentNumber] = useState(
-    profileData?.student_number
-  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [readOnly, setReadOnly] = useState(false);
@@ -36,10 +32,7 @@ const ReferralSlip = () => {
 
   // Change to Referral Slip APIs
   const {
-    createDraftSubmission,
-    getFormBundle,
-    saveDraft,
-    finalizeSubmission,
+    submitReferral,
   } = useFormApi();
   const [formData, setFormData] = useState({
     referral: {
@@ -165,41 +158,6 @@ const ReferralSlip = () => {
     }
   }, [profileData, navigate]);
 
-  useEffect(() => {
-    const fetchFormData = async () => {
-      setLoading(true);
-      try {
-        let response = await getFormBundle(studentNumber);
-        console.log("Fetched response:", response);
-
-        if (!response) {
-          response = await createDraftSubmission(studentNumber);
-          response = await getFormBundle(studentNumber);
-        }
-
-        if (response) {
-          setFormData({
-            referral: response.referral || {},
-          });
-          setSubmissionId(response.submission.id);
-          console.log(submissionId);
-
-          if (response.submission.status === "submitted") {
-            setReadOnly(true);
-          }
-        } else {
-          setError("Failed to create or fetch the form.");
-        }
-      } catch (err) {
-        setError("Error fetching or creating form.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (studentNumber) fetchFormData();
-  }, [studentNumber]);
-
   const handleNextStep = () => {
     const stepErrors = validateStep(step);
     if (Object.keys(stepErrors).length > 0) {
@@ -231,33 +189,11 @@ const ReferralSlip = () => {
     handleSubmit();
   };
 
-  const handleSaveDraft = async () => {
-    if (!submissionId) {
-      alert("Submission ID is missing. Try reloading the page.");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await saveDraft(submissionId, formData);
-      console.log("New Id:", submissionId);
-      console.log("form:", formData);
-      if (response?.ok) {
-        setShowDraftSuccessToast(true);
-      } else {
-        alert("Error saving draft.");
-      }
-    } catch (err) {
-      alert("Failed to save draft.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const result = await finalizeSubmission(submissionId, formData);
+      console.log("Submitting form with data:", formData);
+      const result = await submitReferral(formData);
 
       if (result.success) {
         setShowConfirmation(true);
@@ -359,16 +295,6 @@ const ReferralSlip = () => {
                       {/* Step 1: 'Next' button */}
                       {step === 1 && !loading && (
                         <>
-                          {!readOnly && (
-                            <Button
-                              variant="tertiary"
-                              onClick={handleSaveDraft}
-                              disabled={loading}
-                              style={{ marginLeft: "0.5rem" }}
-                            >
-                              {loading ? "Saving Draft..." : "Save Draft"}
-                            </Button>
-                          )}
                           <Button variant="primary" onClick={handleNextStep}>
                             {" "}
                             Next{" "}
@@ -385,16 +311,6 @@ const ReferralSlip = () => {
                             {" "}
                             Back{" "}
                           </Button>
-                          {!readOnly && (
-                            <Button
-                              variant="tertiary"
-                              onClick={handleSaveDraft}
-                              disabled={loading}
-                              style={{ marginLeft: "0.5rem" }}
-                            >
-                              {loading ? "Saving Draft..." : "Save Draft"}
-                            </Button>
-                          )}
                           <Button
                             variant="primary"
                             onClick={handleNextStep}
@@ -424,16 +340,6 @@ const ReferralSlip = () => {
                             {" "}
                             Preview{" "}
                           </Button>
-                          {!readOnly && (
-                            <Button
-                              variant="tertiary"
-                              onClick={handleSaveDraft}
-                              disabled={loading}
-                              style={{ marginLeft: "0.5rem" }}
-                            >
-                              {loading ? "Saving Draft..." : "Save Draft"}
-                            </Button>
-                          )}
                           {!readOnly && (
                             <Button
                               variant="primary"

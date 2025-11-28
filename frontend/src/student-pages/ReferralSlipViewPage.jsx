@@ -60,7 +60,7 @@ const ReferralSlipProfileView = ({
           formData?.referral?.referrer?.department_unit ||
           "",
         referrer_email:
-          profileData?.email || formData?.referral?.referrer?.email || "",
+          profileData?.email || formData?.referral?.guest_email || "",
         referrer_contact_number:
           profileData?.contact_number ||
           formData?.referral?.referrer?.contact_number ||
@@ -154,55 +154,7 @@ const ReferralSlipProfileView = ({
     element.classList.remove("pdf-mode");
   };
 
-  const handleSubmit = async () => {
-    // Clear previous errors
-    const newErrors = {};
-
-    // Validate required fields
-    if (!formState.name || formState.name.trim() === "") {
-      newErrors.name = "Name field cannot be empty.";
-    }
-
-    if (!formState.nickname || formState.nickname.trim() === "") {
-      newErrors.nickname = "Nickname field cannot be empty.";
-    }
-
-    if (!formState.year_course || formState.year_course.trim() === "") {
-      newErrors.year_course = "Year & course field cannot be empty.";
-    }
-
-    // Set all errors at once
-    setErrors(newErrors);
-
-    // If there are errors, don't submit
-    if (Object.keys(newErrors).length > 0) {
-      return;
-    }
-
-    try {
-      const response = await request(
-        `/api/forms/edit/bis/${profileData.student_number}/`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formState),
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setDownloadToast(data.message);
-      }
-    } catch (error) {
-      setDownloadToast("Failed to update form.");
-    }
-  };
-
   if (!formData) return <Loader />;
-  const { referral } = formData;
-
   return (
     <>
       <div className="pdf-buttons">

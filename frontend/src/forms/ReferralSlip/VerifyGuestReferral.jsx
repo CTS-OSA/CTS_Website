@@ -76,7 +76,7 @@ const VerifyReferralPage = () => {
               <h2>{message}</h2>
               {message.toLowerCase().includes("verified") && (
                 <button
-                  onClick={() => navigate("/submitted-forms/counseling-referral-slip")}
+                  onClick={() => navigate("/")}
                   className="continue-button"
                 >
                   Continue

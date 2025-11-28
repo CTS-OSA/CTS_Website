@@ -11,7 +11,12 @@ from forms.serializers import ReferralSerializer
 from forms.tokens import submission_token
 from rest_framework.permissions import AllowAny
 from forms.models import Referrer, ReferredPerson, Referral, Submission
-
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.utils import timezone
+from forms.models import PendingSubmission, Submission
+from forms.serializers import ReferralSerializer, GuestReferralSerializer
+from forms.tokens import submission_token
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -33,7 +38,7 @@ def create_referral_submission(request):
         referred_data = data.get("referred_person")
 
         # ----- REFERRER VALIDATION -----
-        required_referrer_fields = ['first_name', 'last_name', 'email', 'department_unit', 'contact_number']
+        required_referrer_fields = ['first_name', 'last_name', 'department_unit', 'contact_number']
         missing_referrer_fields = [f for f in required_referrer_fields if not referrer_data.get(f)]
         if missing_referrer_fields:
             return Response(
@@ -51,7 +56,7 @@ def create_referral_submission(request):
             )
 
         # ----- OTHER REQUIRED FIELDS -----
-        other_required_fields = ['reason_for_referral', 'initial_actions_taken']
+        other_required_fields = ['reason_for_referral', 'initial_actions_taken', 'guest_email']
         missing_other_fields = [f for f in other_required_fields if not data.get(f)]
         if missing_other_fields:
             return Response(
@@ -63,9 +68,12 @@ def create_referral_submission(request):
         if not serializer.is_valid():
             return Response({"errors": serializer.errors}, status=400)
 
-        # Save as PendingSubmission for email verification
+        guest_email = data.get("guest_email")
+        if not guest_email:
+            return Response({"error": "guest_email is required."}, status=400)
+
         pending = PendingSubmission.objects.create(
-            email=serializer.validated_data['referrer']['email'],
+            email=guest_email,
             data=data
         )
 
@@ -91,13 +99,6 @@ def create_referral_submission(request):
     serializer.save()
 
     return Response({"message": "Referral created successfully."}, status=201)
-
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from django.utils import timezone
-from forms.models import PendingSubmission, Submission
-from forms.serializers import ReferralSerializer
-from forms.tokens import submission_token
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -135,6 +136,7 @@ def verify_referral_submission(request):
     submission = Submission.objects.create(
         student=None,  # guest submission
         form_type=pending.data.get("form_type", "Counseling Referral Slip"),
+        guest_email=pending.data['guest_email'],
         status='draft',
         submitted_on=timezone.now()
     )
@@ -142,9 +144,10 @@ def verify_referral_submission(request):
     # ------------------------
     # Create the Referral using the serializer
     # ------------------------
-    serializer = ReferralSerializer(data=pending.data, context={"request": request})
+    serializer = GuestReferralSerializer(data=pending.data, context={"submission": submission})
     serializer.is_valid(raise_exception=True)
-    serializer.save(submission=submission) 
+    serializer.save()
+
     
     # Mark pending as verified
     pending.status = 'verified'

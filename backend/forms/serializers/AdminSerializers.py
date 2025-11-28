@@ -13,11 +13,13 @@ class AdminSubmissionDetailSerializer(serializers.ModelSerializer):
 class AdminReferralListSerializer(serializers.ModelSerializer):
     referrer = serializers.SerializerMethodField()
     referred_person = serializers.SerializerMethodField()
+    submission_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Referral
         fields = [
             "id",
+            "submission_id",
             "referral_date",
             "referral_status",
             "referrer",
@@ -45,8 +47,14 @@ class AdminReferralListSerializer(serializers.ModelSerializer):
             }
         return None
     
+    def get_submission_id(self, obj):
+        if obj.submission:
+            return obj.submission.id
+        return None
+    
 class AdminReferralDetailSerializer(serializers.ModelSerializer):
     referred_person = ReferredPersonSerializer(read_only=True)
+    
 
     class Meta:
         model = Referral
@@ -68,6 +76,7 @@ class AdminReferralDetailSerializer(serializers.ModelSerializer):
         if instance.referrer.student is None:
             from forms.serializers import GuestReferrerSerializer
             data['referrer'] = GuestReferrerSerializer(instance.referrer).data
+            data['guest_email'] = Submission.objects.get(id=instance.submission.id).guest_email
         else:
             from forms.serializers import StudentReferrerSerializer
             data['referrer'] = StudentReferrerSerializer(instance.referrer).data

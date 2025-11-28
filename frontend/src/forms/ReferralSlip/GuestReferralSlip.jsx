@@ -27,9 +27,7 @@ const ReferralSlip = () => {
   const navigate = useNavigate();
 
   // Change to Referral Slip APIs
-  const {
-    finalizeGuestSubmission,
-  } = useFormApi();
+  const { finalizeGuestSubmission } = useFormApi();
   const [formData, setFormData] = useState({
     referral: {
       referred_person: {
@@ -189,10 +187,16 @@ const ReferralSlip = () => {
   const handleSubmit = async () => {
     setLoading(true);
     const payload = {
-      referrer: formData.referral.referrer,
+      referrer: {
+        last_name: formData.referral.referrer.last_name,
+        first_name: formData.referral.referrer.first_name,
+        department_unit: formData.referral.referrer.department_unit,
+        contact_number: formData.referral.referrer.contact_number,
+      },
       referred_person: formData.referral.referred_person,
       reason_for_referral: formData.referral.reason_for_referral,
       initial_actions_taken: formData.referral.initial_actions_taken,
+      guest_email: formData.referral.referrer.email,
     };
     try {
       const result = await finalizeGuestSubmission(payload);

@@ -13,7 +13,6 @@ class Referrer(models.Model):
     # Guest (anonymous) fields
     last_name = models.CharField(max_length=50, null=True, blank=True)
     first_name = models.CharField(max_length=50, null=True, blank=True)
-    email = models.EmailField(null=True, blank=True)
     department_unit = models.CharField(max_length=50, null=True, blank=True)
     contact_number = models.CharField(
         max_length=15,
@@ -23,7 +22,7 @@ class Referrer(models.Model):
     )
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name} ({self.email})"
+        return f"{self.first_name} {self.last_name}"
 
     def is_registered(self):
         return self.student is not None
@@ -39,7 +38,7 @@ class Referrer(models.Model):
         # Logged-in referrer validations
         if self.student:
             guest_fields = [
-                self.first_name, self.last_name, self.email,
+                self.first_name, self.last_name,
                 self.department_unit, self.contact_number
             ]
             if any(guest_fields):

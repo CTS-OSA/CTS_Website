@@ -4,9 +4,11 @@ import { useFormApi } from '../forms/ReferralSlip/RSApi';
 import { AuthContext } from '../context/AuthContext';
 import DefaultLayout from '../components/DefaultLayout';
 import Loader from '../components/Loader';
+import { useParams } from 'react-router-dom';
 
 const  ReferralSlipProfilePage = () => {
-  const { getFormBundle } = useFormApi(); 
+  const { submission_id } = useParams();
+  const { getReferral } = useFormApi(); 
   const { profileData } = useContext(AuthContext); 
   const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -21,7 +23,7 @@ const  ReferralSlipProfilePage = () => {
       }
 
       try {
-        const data = await getFormBundle(profileData.student_number);
+        const data = await getReferral(submission_id);
         if (!data) {
           setError('Failed to load form data.');
           setLoading(false);
@@ -29,7 +31,7 @@ const  ReferralSlipProfilePage = () => {
         }
 
         const transformedData = {
-          referral: data.referral,
+          referral: data.data.referral,
         };
 
         setFormData(transformedData);

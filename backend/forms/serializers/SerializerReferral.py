@@ -17,12 +17,10 @@ class StudentReferrerSerializer(serializers.ModelSerializer):
             student=student,
             first_name=student.first_name,
             last_name=student.last_name,
-            email=student.user.email,
             contact_number=student.contact_number,
             department_unit=student.degree_program,
         )
         
-    # update should NEVER modify student
     def update(self, instance, validated_data):
         return instance
 
@@ -47,7 +45,6 @@ class GuestReferrerSerializer(serializers.ModelSerializer):
             "id",
             "first_name",
             "last_name",
-            "email",
             "department_unit",
             "contact_number",
         ]
@@ -57,44 +54,41 @@ class GuestReferrerSerializer(serializers.ModelSerializer):
         if "student" in data and data["student"] is not None:
             raise serializers.ValidationError("Student must not be provided for anonymous referrer.")
 
-        required_fields = ["first_name", "last_name", "email", "department_unit", "contact_number"]
+        required_fields = ["first_name", "last_name", "department_unit", "contact_number"]
         for field in required_fields:
             if not data.get(field):
                 raise serializers.ValidationError({field: "This field is required."})
         return data
 
 class ReferralSerializer(serializers.ModelSerializer):
-    referrer = serializers.DictField(write_only=True)  
-    referred_person = ReferredPersonSerializer()  
+    referred_person = ReferredPersonSerializer() 
 
     class Meta:
         model = Referral
-        fields = ["id", "submission", "referrer", "referred_person",
-                  "reason_for_referral", "initial_actions_taken",
-                  "referral_status", "referral_date"]
+        fields = [
+            "id",
+            "submission",
+            "referred_person",
+            "reason_for_referral",
+            "initial_actions_taken",
+            "referral_status",
+            "referral_date"
+        ]
         read_only_fields = ["referral_date", "submission"]
 
     def create(self, validated_data):
-        submission = self.context.get('submission') or self.initial_data.get('submission') or self.context.get('submission_instance')
-        if submission is None:
-            submission = self.context.get('submission') 
-            
         request = self.context["request"]
-        user = request.user
-        submission = validated_data.pop("submission", None)
+        student = request.user.student
 
-        # Detect student vs guest automatically
-        if user.is_authenticated and hasattr(user, "student"):
-            # Use the logged-in student's info
-            referrer, _ = Referrer.objects.get_or_create(student=user.student)
-        else:
-            # Create a new guest referrer from the provided data
-            referrer_data = validated_data.pop("referrer")
-            referrer = Referrer.objects.create(**referrer_data)
+        # Automatically get or create Referrer linked to student
+        referrer, _ = Referrer.objects.get_or_create(student=student)
 
-        # Create referred person (always required)
+        # Create referred person
         referred_person_data = validated_data.pop("referred_person")
         referred_person = ReferredPerson.objects.create(**referred_person_data)
+        submission = self.context.get('submission')
+        if not submission:
+            raise serializers.ValidationError("Submission instance is required.")
 
         # Create the referral
         referral = Referral.objects.create(
@@ -103,26 +97,45 @@ class ReferralSerializer(serializers.ModelSerializer):
             referred_person=referred_person,
             **validated_data
         )
-
         return referral
-    
-    def update(self, instance, validated_data):
-        referred_person_data = validated_data.pop("referred_person", None)
-        
-        # Update the referral fields
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
 
-        # Update the nested referred_person if present
-        if referred_person_data:
-            referred_person = instance.referred_person
-            for attr, value in referred_person_data.items():
-                setattr(referred_person, attr, value)
-            referred_person.save()
+class GuestReferralSerializer(serializers.ModelSerializer):
+    referred_person = ReferredPersonSerializer() 
+    referrer = GuestReferrerSerializer() 
 
-        return instance
-    
+    class Meta:
+        model = Referral
+        fields = [
+            "id",
+            "submission",
+            "referred_person",
+            "referrer",
+            "reason_for_referral",
+            "initial_actions_taken",
+            "referral_status",
+            "referral_date"
+        ]
+        read_only_fields = ["referral_date", "submission"]
+
+    def create(self, validated_data):
+        referrer_data = validated_data.pop("referrer")
+        referrer = Referrer.objects.create(**referrer_data)
+
+        referred_person_data = validated_data.pop("referred_person")
+        referred_person = ReferredPerson.objects.create(**referred_person_data)
+
+        submission = self.context.get("submission")
+        if not submission:
+            raise serializers.ValidationError("Submission instance is required.")
+
+        referral = Referral.objects.create(
+            submission=submission,
+            referrer=referrer,
+            referred_person=referred_person,
+            **validated_data
+        )
+        return referral
+
 class ReferralSubmissionSerializer(serializers.Serializer):
     referrer_data = GuestReferrerSerializer()
     referred_person_data = ReferredPersonSerializer()
@@ -133,7 +146,6 @@ class ReferralSubmissionSerializer(serializers.Serializer):
         if value.get('student') and any([
             value.get('first_name'),
             value.get('last_name'),
-            value.get('email'),
             value.get('department_unit'),
             value.get('contact_number')
         ]):
@@ -141,7 +153,6 @@ class ReferralSubmissionSerializer(serializers.Serializer):
         if not value.get('student') and not all([
             value.get('first_name'),
             value.get('last_name'),
-            value.get('email'),
             value.get('department_unit'),
             value.get('contact_number')
         ]):

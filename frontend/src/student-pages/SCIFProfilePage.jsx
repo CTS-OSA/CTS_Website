@@ -4,9 +4,11 @@ import { useFormApi } from '../forms/SCIF/SCIFApi';
 import { AuthContext } from '../context/AuthContext';
 import DefaultLayout from '../components/DefaultLayout';
 import Loader from '../components/Loader';
+import { useParams } from 'react-router-dom';
 
 const SCIFProfilePage = () => {
   const { getFormBundle } = useFormApi(); 
+  const { submissionId } = useParams();
   const { profileData } = useContext(AuthContext); 
   const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(true);
