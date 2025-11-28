@@ -118,14 +118,12 @@ export const UserDashboard = () => {
 
   return (
     <DefaultLayout variant="student">
-
         <DashboardTable
           submittedForms={submittedForms}
           pendingActions={pendingActions}
           onView={handleView}
           onDelete={promptDelete}
         />
-
 
       {confirmDialog.visible && (
         <ConfirmDialog

@@ -7,7 +7,7 @@ from .views.display import SubmissionViewSet
 from .views.getEnums import EnumChoicesView
 from .views.BISEditView import BISEditView
 from .views.SCIFEditView import SCIFEditView
-from .views.PARDView import PARDSubmitView, PARDFormView
+from .views.PARDView import PARDSubmitView, PARDFormView, PARDStatusView
 from .views.AdminProfileView import get_counselor_profile, update_counselor_profile, create_counselor_profile
 from .views.GuestSubmissionView import create_referral_submission, verify_referral_submission
 
@@ -49,6 +49,7 @@ urlpatterns = [
     path('admin/psychosocial-assistance-and-referral-desk/edit/<int:submission_id>/', PARDSubmitView.as_view(), name='pard-edit'),
     path('admin/psychosocial-assistance-and-referral-desk', AdminPARDList.as_view(), name='get_pard_students'),
     path('admin/psychosocial-assistance-and-referral-desk/<int:submission_id>/', PARDFormView.as_view(), name='get_pard_data'),
+    path('psychosocial-assistance-and-referral-desk/status-choices/', PARDStatusView.as_view(), name='pard_status_choices'),
 
     path('display/', include(router.urls)), 
     
