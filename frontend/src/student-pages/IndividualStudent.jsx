@@ -227,9 +227,14 @@ const StudentSideInfo = ({
       if (form.status === "draft") {
         navigate(`/forms/${slug}`);
       } else if (form.status === "submitted") {
+        if (slug === "psychosocial-assistance-and-referral-desk") {
+          navigate(
+            `/submitted-forms/psychosocial-assistance-and-referral-desk/${form.id}`
+          );
+        } else {
         navigate(`/submitted-forms/${slug}`);
-      }
-    }
+        }
+    }}
   };
 
   const updateProfileData = (updatedFields) => {
@@ -825,7 +830,7 @@ const StudentSideInfo = ({
                     {new Date(
                       form.submitted_on || form.saved_on
                     ).toLocaleDateString()}
-                  </td>
+                  </td> 
                   <td>
                     <span
                       className={`status-badge ${form.status.toLowerCase()}`}

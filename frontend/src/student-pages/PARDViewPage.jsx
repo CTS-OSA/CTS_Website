@@ -23,6 +23,8 @@ const PARDProfileView = ({ profileData, formData }) => {
   const [errors, setErrors] = useState({});
   const [appointmentDate, setAppointmentDate] = useState("");
   const [appointmentTime, setAppointmentTime] = useState("");
+  const [status, setStatus] = useState("");
+  const [statusChoices, setStatusChoices] = useState([]);
   const [formState, setFormState] = useState({
     name: profileData ? `${profileData.last_name}, ${profileData.first_name} ${profileData.middle_name}` : "",
     year_course: profileData ? `${profileData.current_year_level} - ${profileData.degree_program}` : "",
@@ -43,40 +45,90 @@ const PARDProfileView = ({ profileData, formData }) => {
     setDownloadToast("Download cancelled.");
   };
 
-  const handleDownload = () => {
-    const element = pdfRef.current;
-    const opt = {
-      margin: 0.5,
-      filename: "PARD_appointment.pdf",
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+  const handleDownload = async () => {
+      const element = pdfRef.current;
+      element.classList.add("pdf-mode");
+  
+      // Fill input and select values as text content for PDF
+      const inputs = element.querySelectorAll('input, select');
+      inputs.forEach(input => {
+        if (input.value) {
+          input.setAttribute('data-value', input.value);
+        }
+      });
+  
+      // wait for fonts (modern browsers)
+      if (document.fonts && document.fonts.ready) {
+        try {
+          await document.fonts.ready;
+        } catch (e) {
+          /* ignore */
+        }
+      }
+  
+      // wait for images inside the element
+      const imgs = Array.from(element.querySelectorAll("img"));
+      await Promise.all(
+        imgs.map((img) => {
+          if (img.complete) return Promise.resolve();
+          return new Promise((res) => {
+            img.onload = img.onerror = res;
+          });
+        })
+      );
+  
+      const opt = {
+        filename: "Referral_Slip.pdf",
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          allowTaint: false,
+          scrollY: 0,
+        },
+        jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+        pagebreak: { mode: ["css", "legacy"] },
+      };
+  
+      await html2pdf().set(opt).from(element).save();
+      element.classList.remove("pdf-mode");
     };
 
-    html2pdf().set(opt).from(element).save();
-  };
-
-  const handleSaveAppointment = async () => {
+  const handleSave = async () => {
     try {
+      const changes = {};
+      
+      if (appointmentDate !== (formData.pard_data?.preferred_date || "")) {
+        changes.preferred_date = appointmentDate;
+      }
+      if (appointmentTime !== (formData.pard_data?.preferred_time || "")) {
+        changes.preferred_time = appointmentTime;
+      }
+      if (status !== (formData.pard_data?.status || "")) {
+        changes.status = status;
+      }
+
+      if (Object.keys(changes).length === 0) {
+        setDownloadToast("No changes to save.");
+        return;
+      }
+
       const response = await request(
         `http://localhost:8000/api/forms/admin/psychosocial-assistance-and-referral-desk/edit/${formData.submission.id}/`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            preferred_date: appointmentDate,
-            preferred_time: appointmentTime,
-          }),
+          body: JSON.stringify(changes),
         }
       );
 
       if (response.ok) {
-        setDownloadToast("Appointment updated successfully!");
+        setDownloadToast("Updated successfully!");
       } else {
-        setDownloadToast("Failed to update appointment.");
+        setDownloadToast("Failed to update.");
       }
     } catch (error) {
-      setDownloadToast("Error updating appointment.");
+      setDownloadToast("Error updating.");
     }
   };
 
@@ -88,12 +140,29 @@ const PARDProfileView = ({ profileData, formData }) => {
     }
   };
 
+
   useEffect(() => {
     if (formData?.pard_data) {
       setAppointmentDate(formData.pard_data.preferred_date || "");
       setAppointmentTime(formData.pard_data.preferred_time || "");
+      setStatus(formData.pard_data.status || "");
     }
   }, [formData]);
+
+  useEffect(() => {
+    const fetchEnums = async () => {
+      try {
+        const response = await request('http://localhost:8000/api/forms/psychosocial-assistance-and-referral-desk/status-choices/');
+        if (response.ok) {
+          const data = await response.json();
+          setStatusChoices(data.status_choices || []);
+        }
+      } catch (error) {
+        console.error('Error fetching enums:', error);
+      }
+    };
+    fetchEnums();
+  }, []);
 
   if (!formData) return <Loader />;
 
@@ -119,7 +188,7 @@ const PARDProfileView = ({ profileData, formData }) => {
         {role === "admin" && (
           <Button
             variant="success"
-            onClick={handleSaveAppointment}
+            onClick={handleSave}
             className="pdf-button"
           >
             Save
@@ -127,121 +196,113 @@ const PARDProfileView = ({ profileData, formData }) => {
         )}
       </div>
 
-      <div className="pdf" ref={pdfRef}>
-        <FormHeader />
-        <div className="sub-info">
-          <div className="right">
-            <p>
-              <strong>OSA-CTS Form No. 02</strong>
-            </p>
-            <p>
-              <strong>Revised 2022</strong>
-            </p>
-          </div>
-          <div className="left">
-            <p>
-              <strong>CONFIDENTIAL FILE</strong>
-            </p>
-          </div>
-        </div>
-
+      <div className="pdf p-10" ref={pdfRef}>
         <h3>PSYCHOSOCIAL ASSISTANCE AND REFERRAL DESK (PARD)</h3>
         <h3>ONLINE APPOINMENT SCHEDULE</h3>
-
-        <div className="section-title">I. DEMOGRAPHIC PROFILE</div>
-        <div className="flex indented-section gap-5">
-          <label>
-            Last Name:{" "}
-            <input type="text" value={profileData?.last_name || ""} readOnly />
-          </label>
-          <label>
-            First Name:{" "}
-            <input type="text" value={profileData?.first_name || ""} readOnly />
-          </label>
-          <label>
-            Middle Name:{" "}
-            <input
-              type="text"
-              value={profileData?.middle_name || ""}
-              readOnly
-            />
-          </label>
+        <div className="font-semibold uppercase">
+          STATUS: {" "}
+          {role === "admin" ? (
+            <>
+              <span className="pdf-text border-b border-black flex-1 pb-0.5">
+                {statusChoices.find(([value]) => value === status)?.[1] || status}
+              </span>
+              <span className="border-b border-black flex-1 pb-0.5 pdf-input">
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  className="pdf-input"
+                >
+                  {statusChoices.map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </span>
+            </>
+          ) : (
+            <span className="border-b border-black flex-1 pb-0.5">
+              {statusChoices.find(([value]) => value === status)?.[1] || status}
+            </span>
+          )}
         </div>
-        <div className="flex gap-5 indented-section">
+        <div className="section-title">I. DEMOGRAPHIC PROFILE</div>
+        <div className="flex indented-section gap-3">
+          <label>
+            Name:{" "}
+            <span className="border-b border-black flex-1 pb-0.5">
+              {profileData?.first_name || ""} {profileData?.middle_name || ""} {profileData?.last_name}
+            </span>
+          </label>
           <label>
             Year Level:{" "}
-            <input
-              type="text"
-              value={profileData?.current_year_level || ""}
-              readOnly
-            />
+            <span className="border-b border-black flex-1 pb-0.5">{profileData?.current_year_level || ""}</span>
           </label>
           <label>
             Degree Program:{" "}
-            <input
-              type="text"
-              value={profileData?.degree_program || ""}
-              readOnly
-            />
+            <span className="border-b border-black flex-1 pb-0.5">{profileData?.degree_program || ""}</span>
           </label>
         </div>
-
-        <div className="section-title">II. CONTACT INFORMATION</div>
+        <div className="section-title mt-3">II. CONTACT INFORMATION</div>
         <div className="indented-section flex gap-5">
           <label>
             Contact Number:{" "}
-            <input
-              type="text"
-              value={profileData?.contact_number || ""}
-              readOnly
-            />
+            <span className="border-b border-black flex-1 pb-0.5">{profileData?.contact_number || ""}</span>
           </label>
           <label>
             Appointment Date:{" "}
-            <input
-              type="date"
-              value={appointmentDate}
+            <span className="border-b border-black flex-1 pb-0.5"
+              readOnly = {role !== 'admin'}
               onChange={(e) => setAppointmentDate(e.target.value)}
-              readOnly={role !== "admin"}
-            />
+              >{appointmentDate || ""}
+            </span>
           </label>
           <label>
             Appointment Time:{" "}
-            <input
-              type="time"
-              value={appointmentTime}
+            <span className="border-b border-black flex-1 pb-0.5"
+              readOnly = {role !== 'admin'}
               onChange={(e) => setAppointmentTime(e.target.value)}
-              readOnly={role !== "admin"}
-            />
+              >{appointmentTime || ""}
+            </span>
           </label>
         </div>
 
         <div className="section-title">III. PSYCHOSOCIAL ASSESSMENT</div>
-        <div className="indented-section grid grid-cols-2 gap-5">
+        <div className="indented-section grid grid-cols-2 grid-rows-2 gap-2">
           <label>
             Date Started:{" "}
-            <input type="date" value={pard_data?.date_started || ""} readOnly />
+            <span className="border-b border-black flex-1 pb-0.5">
+              {pard_data?.date_started || ""}
+            </span>
           </label>
           <label>
             Currently on Medication:{" "}
-            <input
-              type="text"
-              value={pard_data?.is_currently_on_medication ? "Yes" : "No"}
-              readOnly
+            <span className="border-b border-black flex-1 pb-0.5">
+              {pard_data?.is_currently_on_medication ? "Yes" : "No"}
+            </span>
+          </label>
+          <label className="col-span-2">
+            Symptoms Observed:
+            <AutoResizeTextarea
+              value={pard_data?.symptoms_observed || ""}
             />
           </label>
           <label>
-            Symptoms Observed:{" "}
-            <AutoResizeTextarea
-              value={pard_data?.symptoms_observed || ""}
-              readOnly
-            />
+            Date Diagnosed:{" "}
+            <span className="border-b border-black flex-1 pb-0.5">
+              {pard_data?.date_diagnosed || ""}
+            </span>
+          </label>
+          <label>
+            Diagnosed By:{" "}
+            <span className="border-b border-black flex-1 pb-0.5">
+              {pard_data?.diagnosed_by || ""}
+            </span>
           </label>
           <label>
             Communication Platform:{" "}
-            <input
-              type="text"
-              value={
+            <span className="border-b border-black flex-1 pb-0.5">
+              {
                 pard_data?.communication_platform
                   ? pard_data.communication_platform
                       .split("_")
@@ -249,37 +310,21 @@ const PARDProfileView = ({ profileData, formData }) => {
                       .join(" ")
                   : ""
               }
-              readOnly
-            />
-          </label>
-          <label>
-            Date Diagnosed:{" "}
-            <input
-              type="date"
-              value={pard_data?.date_diagnosed || ""}
-              readOnly
-            />
-          </label>
-          <label>
-            Diagnosed By:{" "}
-            <input type="text" value={pard_data?.diagnosed_by || ""} readOnly />
+
+            </span>
           </label>
         </div>
 
         <div className="signature">
           <label>
             Date Filed:{" "}
-            <input
-              type="date"
-              value={
-                submission?.submitted_on
+            <span>
+              {submission?.submitted_on
                   ? new Date(submission.submitted_on).toLocaleDateString(
                       "en-CA"
                     )
-                  : ""
-              }
-              readOnly
-            />
+                  : ""}
+            </span>
           </label>
         </div>
       </div>

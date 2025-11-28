@@ -269,6 +269,38 @@ textarea {
   font-weight: 600;
 }
 
+/* PDF Mode - Show text instead of inputs */
+.pdf-mode .pdf-text {
+  display: inline-block;
+  border-bottom: 1px solid black;
+  min-height: 1.2em;
+  padding: 2px 4px;
+  font-size: 12px;
+  min-width: 100px;
+}
+
+.pdf-mode .pdf-input,
+.pdf-mode select.pdf-input {
+  display: none;
+}
+
+.pdf-text {
+  display: none;
+}
+
+.pdf-mode .pdf-text {
+  display: inline-block;
+}
+
+.pdf-input,
+select.pdf-input {
+  display: inline-block;
+}
+
+.pdf-mode .pdf-buttons {
+  display: none;
+}
+
 /* Print-friendly tweaks */
 @media print {
   body {

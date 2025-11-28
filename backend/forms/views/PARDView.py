@@ -296,16 +296,18 @@ class PARDFormView(APIView):
             pard_data = get_pard_data(student, submission)
             
             # Set PARD status to 'read' if admin opens the form
-            # if request.user.is_staff:
-            #     try:
-            #         pard_instance = PARD.objects.get(
-            #             student_number=student,
-            #             submission_id=submission
-            #         )
-            #         pard_instance.status = 'read'
-            #         pard_instance.save()
-            #     except PARD.DoesNotExist:
-            #         pass
+            if request.user.is_staff:
+                try:
+                    pard_instance = PARD.objects.get(
+                        student_number=student,
+                        submission_id=submission
+                    )
+
+                    if pard_instance.status == 'unread':
+                        pard_instance.status = 'read'
+                        pard_instance.save()
+                except PARD.DoesNotExist:
+                    pass
 
             response_data = {
                 "submission": {
@@ -368,3 +370,11 @@ class PARDFormView(APIView):
                 {"error": f"An error occurred: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+class PARDStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """Get PARD status choices"""
+        from ..models.enums import PARDStatus
+        return Response({"status_choices": list(PARDStatus.choices)}, status=status.HTTP_200_OK)
