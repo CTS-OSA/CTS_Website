@@ -3,6 +3,8 @@ import React, { useContext, useRef, useState, useEffect } from "react";
 import "./css/SCIFpdf.css";
 // import "../forms/SetupProfile/css/multistep.css";
 import FormHeader from "./FormHeader";
+import CustomRadio from "../components/CustomRadio";
+import CustomCheckbox from "../components/CustomCheckbox";
 import AutoResizeTextarea from "../components/AutoResizeTextarea";
 import html2pdf from "html2pdf.js";
 import { calculateAge } from "../utils/helperFunctions";
@@ -698,9 +700,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       guidance_notes: safeTrim(formState.guidance_notes),
     };
 
-    if (seniorHighRecordRef.current) {
-      const record = seniorHighRecordRef.current;
-      const schoolAddress = record.school?.school_address
+    const formatSchoolRecord = (record, overrideGpa) => {
+      const schoolAddress = record?.school?.school_address
         ? {
             ...record.school.school_address,
           }
@@ -712,7 +713,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             region: "",
             zip_code: "",
           };
-      const school = record.school
+      const school = record?.school
         ? {
             ...record.school,
             school_address: schoolAddress,
@@ -721,17 +722,41 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             name: "",
             school_address: schoolAddress,
           };
+
+      return {
+        id: record?.id,
+        student_number: profileData.student_number,
+        education_level: record?.education_level || "",
+        start_year: record?.start_year || "",
+        end_year: record?.end_year || "",
+        honors_received: record?.honors_received || "",
+        senior_high_gpa:
+          overrideGpa ??
+          (record?.senior_high_gpa !== undefined
+            ? record?.senior_high_gpa
+            : ""),
+        school,
+      };
+    };
+
+    const existingSchoolRecords = Array.isArray(previous_school_record)
+      ? previous_school_record
+      : [];
+
+    if (existingSchoolRecords.length > 0) {
+      payload.previous_school_record = existingSchoolRecords.map((record) => {
+        const overrideGpa =
+          record?.education_level === "Senior High"
+            ? safeTrim(formState.senior_high_gpa)
+            : undefined;
+        return formatSchoolRecord(record, overrideGpa);
+      });
+    } else if (seniorHighRecordRef.current) {
       payload.previous_school_record = [
-        {
-          id: record.id,
-          student_number: profileData.student_number,
-          education_level: record.education_level || "Senior High",
-          start_year: record.start_year || "",
-          end_year: record.end_year || "",
-          honors_received: record.honors_received || "",
-          senior_high_gpa: safeTrim(formState.senior_high_gpa),
-          school,
-        },
+        formatSchoolRecord(
+          seniorHighRecordRef.current,
+          safeTrim(formState.senior_high_gpa)
+        ),
       ];
     }
     console.log("Payload:", payload);
@@ -748,7 +773,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       appendFormDataValue(formData, key, value);
     });
 
-    console.log("IDDD:", submissionId);
     return request(
       `http://localhost:8000/api/forms/admin-edit/${submissionId}/`,
       {
@@ -946,96 +970,305 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
   //   }
   // };
 
-const handleDownload = async () => {
-  const element = pdfRef.current;
+  const handleDownload = async () => {
+    const element = pdfRef.current;
+    if (!element) {
+      setDownloadToast("Unable to prepare the file. Please reload the page.");
+      return;
+    }
 
-  // --- 1. Create clean clone ---
-  const clone = element.cloneNode(true);
+    const clone = element.cloneNode(true);
+    const elementWidth =
+      element.getBoundingClientRect().width || element.offsetWidth;
+    clone.style.maxWidth = elementWidth + "px";
+    clone.style.width = elementWidth + "px";
+    clone.style.boxSizing = "border-box";
+    clone.style.backgroundColor = "#ffffff";
+    clone.style.padding = "0.55in 0.3in 0.55in 0.3in";
+    clone.style.margin = "0 auto";
 
-  // Prevent layout breaks
-  clone.style.maxWidth = element.offsetWidth + "px";
-  clone.style.width = element.offsetWidth + "px";
+    const workingWrapper = document.createElement("div");
+    workingWrapper.style.position = "fixed";
+    workingWrapper.style.left = "-10000px";
+    workingWrapper.style.top = "0";
+    workingWrapper.style.zIndex = "-1";
+    workingWrapper.appendChild(clone);
+    document.body.appendChild(workingWrapper);
 
-  // --- 2. Replace all form fields in the clone with plain text ---
-  const originalFields = element.querySelectorAll("input, textarea, select");
-const cloneFields = clone.querySelectorAll("input, textarea, select");
+    const originalFields = element.querySelectorAll("input, textarea, select");
+    const cloneFields = clone.querySelectorAll("input, textarea, select");
 
-cloneFields.forEach((cloneEl, i) => {
-  const originalEl = originalFields[i];
+    const getBorderColor = (computed) =>
+      computed.borderBottomColor &&
+      computed.borderBottomColor !== "rgba(0, 0, 0, 0)"
+        ? computed.borderBottomColor
+        : "#000";
 
-  const value = originalEl.value || "";
+    const getBorderWidth = (computed) =>
+      computed.borderBottomWidth && computed.borderBottomWidth !== "0px"
+        ? computed.borderBottomWidth
+        : "1px";
 
-  // Get computed styles from original input
-  const computed = window.getComputedStyle(originalEl);
+    cloneFields.forEach((cloneEl, i) => {
+      const originalEl = originalFields[i];
+      if (!originalEl) return;
 
-  // Create visual replacement
-  const textDiv = document.createElement("div");
-  textDiv.textContent = value;
+      const computed = window.getComputedStyle(originalEl);
+      const rect = originalEl.getBoundingClientRect();
 
-  // Copy key visual properties
-  textDiv.style.display = "block";
-  textDiv.style.fontSize = computed.fontSize;
-  textDiv.style.fontFamily = computed.fontFamily;
-  textDiv.style.fontWeight = computed.fontWeight;
-  textDiv.style.lineHeight = computed.lineHeight;
-  textDiv.style.padding = computed.padding;
-  textDiv.style.margin = computed.margin;
+      if (
+        (originalEl.type === "radio" || originalEl.type === "checkbox") &&
+        cloneEl.closest(".custom-radio, .custom-checkbox")
+      ) {
+        return;
+      }
 
-  // match height
-  textDiv.style.height = computed.height;
-  textDiv.style.minHeight = computed.height;
+      if (originalEl.type === "checkbox" || originalEl.type === "radio") {
+        const fallbackSize =
+          rect.height > 0
+            ? rect.height
+            : rect.width > 0
+            ? rect.width
+            : parseFloat(computed.fontSize || "14") * 1.2 || 16;
 
-  // match width
-  textDiv.style.width = computed.width;
+        const parentLabel =
+          cloneEl.parentElement &&
+          cloneEl.parentElement.tagName &&
+          cloneEl.parentElement.tagName.toUpperCase() === "LABEL"
+            ? cloneEl.parentElement
+            : null;
+        const targetComputed = window.getComputedStyle(
+          parentLabel || originalEl
+        );
 
-  // border bottom only (like your form)
-  textDiv.style.borderBottom = computed.borderBottomWidth + " solid " + computed.borderBottomColor;
+        const wrapperTag = parentLabel ? "label" : "span";
+        const wrapper = document.createElement(wrapperTag);
+        if (parentLabel) {
+          wrapper.className = parentLabel.className || "";
+        }
+        const inlineDisplay =
+          targetComputed.display === "inline" ||
+          targetComputed.display === "inline-block";
+        wrapper.style.display = inlineDisplay ? "inline-flex" : "flex";
+        wrapper.style.alignItems =
+          originalEl.type === "checkbox" ? "flex-start" : "center";
+        wrapper.style.justifyContent = "flex-start";
+        wrapper.style.gap = "0.4rem";
+        wrapper.style.padding = targetComputed.padding;
+        wrapper.style.margin = targetComputed.margin;
+        wrapper.style.boxSizing = "border-box";
+        wrapper.style.fontSize = targetComputed.fontSize;
+        wrapper.style.fontFamily = targetComputed.fontFamily;
+        wrapper.style.color = targetComputed.color || "#000";
+        wrapper.style.flexWrap = "wrap";
+        if (parentLabel && targetComputed.width !== "auto") {
+          wrapper.style.width = targetComputed.width;
+        }
 
-  // ensure text aligns like input text
-  textDiv.style.whiteSpace = "pre-wrap";
-  textDiv.style.boxSizing = "border-box";
+        const indicator = document.createElement("span");
+        const isRadio = originalEl.type === "radio";
+        const isCheckbox = originalEl.type === "checkbox";
 
-  cloneEl.replaceWith(textDiv);
-});
+        indicator.style.width = fallbackSize + "px";
+        indicator.style.height = fallbackSize + "px";
+        indicator.style.minWidth = fallbackSize + "px";
+        indicator.style.minHeight = fallbackSize + "px";
+        indicator.style.border = `${getBorderWidth(
+          computed
+        )} solid ${getBorderColor(computed)}`;
+        indicator.style.borderRadius = isRadio ? "999px" : "3px";
+        indicator.style.display = "flex";
+        indicator.style.alignItems = "center";
+        indicator.style.justifyContent = "center";
+        indicator.style.boxSizing = "border-box";
+        indicator.style.backgroundColor = "#fff";
 
+        if (isCheckbox && originalEl.checked) {
+          indicator.textContent = "✓";
+          indicator.style.fontSize = fallbackSize * 0.8 + "px";
+          indicator.style.lineHeight = "1";
+        }
 
-  // --- 3. Wait for fonts ---
-  if (document.fonts && document.fonts.ready) {
+        if (isRadio && originalEl.checked) {
+          const dot = document.createElement("span");
+          const dotSize = Math.max(fallbackSize * 0.5, 4);
+          dot.style.display = "block";
+          dot.style.width = dotSize + "px";
+          dot.style.height = dotSize + "px";
+          dot.style.borderRadius = "50%";
+          dot.style.backgroundColor = getBorderColor(computed);
+          dot.style.margin = "auto";
+          indicator.appendChild(dot);
+        }
+
+        if (parentLabel) {
+          indicator.style.marginRight = "0.35rem";
+          indicator.style.display = "inline-flex";
+          parentLabel.insertBefore(indicator, cloneEl);
+          parentLabel.removeChild(cloneEl);
+          return;
+        }
+
+        const contentContainer = document.createElement("span");
+        contentContainer.style.display = "inline-flex";
+        contentContainer.style.flex = "1";
+        contentContainer.style.flexWrap = "wrap";
+        contentContainer.style.alignItems = "flex-start";
+        contentContainer.style.gap = "0.25rem";
+
+        let siblingNode = cloneEl.nextSibling;
+        const allowedTags = new Set(["SPAN", "SMALL", "STRONG", "LABEL"]);
+        while (
+          siblingNode &&
+          (siblingNode.nodeType === Node.TEXT_NODE ||
+            (siblingNode.nodeType === Node.ELEMENT_NODE &&
+              allowedTags.has(siblingNode.nodeName.toUpperCase())))
+        ) {
+          const nextSibling = siblingNode.nextSibling;
+          contentContainer.appendChild(siblingNode);
+          siblingNode = nextSibling;
+        }
+
+        if (!contentContainer.hasChildNodes()) {
+          const fallbackText =
+            originalEl.getAttribute("value") ||
+            originalEl.getAttribute("aria-label") ||
+            (isRadio
+              ? originalEl.checked
+                ? "Selected"
+                : ""
+              : originalEl.checked
+              ? "Yes"
+              : "No");
+          if (fallbackText) {
+            const span = document.createElement("span");
+            span.textContent = fallbackText;
+            contentContainer.appendChild(span);
+          }
+        }
+
+        const isCertifyCheckbox =
+          isCheckbox && originalEl.classList?.contains("certify-checkbox");
+
+        if (isCertifyCheckbox) {
+          indicator.style.borderRadius = "4px";
+          indicator.style.borderColor = "#7b1113";
+          indicator.style.marginTop = "0.2rem";
+          if (originalEl.checked) {
+            indicator.style.backgroundColor = "#7b1113";
+            indicator.style.color = "#fff";
+            indicator.textContent = "✓";
+            indicator.style.fontWeight = "bold";
+          } else {
+            indicator.style.backgroundColor = "#fff";
+          }
+          wrapper.style.width = "100%";
+          wrapper.style.alignItems = "flex-start";
+        }
+
+        wrapper.appendChild(indicator);
+        if (contentContainer.hasChildNodes()) {
+          wrapper.appendChild(contentContainer);
+        }
+
+        if (parentLabel) {
+          parentLabel.replaceWith(wrapper);
+        } else {
+          cloneEl.replaceWith(wrapper);
+        }
+        return;
+      }
+
+      let value = originalEl.value || "";
+      if (originalEl.tagName === "SELECT") {
+        const selected = originalEl.options[originalEl.selectedIndex];
+        value = selected ? selected.text : value;
+      }
+
+      const textDiv = document.createElement("div");
+      textDiv.textContent = value || "\u00a0";
+      textDiv.style.display = "block";
+      textDiv.style.fontSize = computed.fontSize;
+      textDiv.style.fontFamily = computed.fontFamily;
+      textDiv.style.fontWeight = computed.fontWeight;
+      textDiv.style.lineHeight = computed.lineHeight;
+      textDiv.style.color = computed.color;
+      textDiv.style.padding = computed.padding;
+      textDiv.style.margin = computed.margin;
+
+      const width = rect.width || originalEl.offsetWidth;
+      if (width) {
+        textDiv.style.width = width + "px";
+        textDiv.style.maxWidth = width + "px";
+        textDiv.style.minWidth = width + "px";
+      } else if (computed.width) {
+        textDiv.style.width = computed.width;
+        textDiv.style.maxWidth = computed.width;
+      }
+
+      const height = rect.height || originalEl.offsetHeight;
+      if (height) {
+        textDiv.style.minHeight = height + "px";
+      } else if (computed.height && computed.height !== "auto") {
+        textDiv.style.minHeight = computed.height;
+      }
+      textDiv.style.height = "auto";
+
+      textDiv.style.whiteSpace = "pre-wrap";
+      textDiv.style.wordBreak = "break-word";
+      textDiv.style.overflowWrap = "break-word";
+      textDiv.style.boxSizing = "border-box";
+
+      textDiv.style.borderBottom = `${getBorderWidth(
+        computed
+      )} solid ${getBorderColor(computed)}`;
+
+      cloneEl.replaceWith(textDiv);
+    });
+
+    if (document.fonts && document.fonts.ready) {
+      try {
+        await document.fonts.ready;
+      } catch {
+        /* ignore font loading errors */
+      }
+    }
+
+    const imgs = clone.querySelectorAll("img");
+    await Promise.all(
+      Array.from(imgs).map(
+        (img) =>
+          new Promise((resolve) => {
+            if (img.complete) return resolve();
+            img.onload = img.onerror = resolve;
+          })
+      )
+    );
+
+    const options = {
+      margin: [0, 0, 0, 0],
+      filename: "SCIF_profile.pdf",
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+      },
+      jsPDF: {
+        unit: "in",
+        format: "letter",
+        orientation: "portrait",
+      },
+    };
+
     try {
-      await document.fonts.ready;
-    } catch {}
-  }
-
-  // --- 4. Wait for images ---
-  const imgs = clone.querySelectorAll("img");
-  await Promise.all(
-    Array.from(imgs).map(
-      (img) =>
-        new Promise((res) => {
-          if (img.complete) return res();
-          img.onload = img.onerror = res;
-        })
-    )
-  );
-
-  // --- 5. Render to PDF ---
-  const options = {
-    filename: "Referral_Slip.pdf",
-    html2canvas: {
-      scale: 2,
-      useCORS: true,
-      allowTaint: false,
-    },
-    jsPDF: {
-      unit: "in",
-      format: "letter",
-      orientation: "portrait",
-    },
+      await html2pdf().set(options).from(clone).save();
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+      setDownloadToast("Unable to generate the PDF. Please try again.");
+    } finally {
+      document.body.removeChild(workingWrapper);
+    }
   };
-
-  await html2pdf().set(options).from(clone).save();
-};
-
 
   if (!profileData || !formData) return <div>Loading...</div>;
 
@@ -1075,17 +1308,16 @@ cloneFields.forEach((cloneEl, i) => {
         <label className="whitespace-nowrap">Health Condition:</label>
 
         {ConditionOptions.map((option) => (
-          <label key={option.key} className="flex items-center gap-1">
-            <input
-              type="radio"
-              name="health_condition"
-              value={option.key}
-              checked={selectedValue === option.key}
-              onChange={() => onChange(option.key)}
-              disabled={!canEdit}
-            />
-            {option.label}
-          </label>
+          <CustomRadio
+            key={option.key}
+            name="health_condition"
+            value={option.key}
+            label={option.label}
+            checked={selectedValue === option.key}
+            onChange={() => onChange(option.key)}
+            disabled={!canEdit}
+            className="mr-2"
+          />
         ))}
       </div>
     );
@@ -1221,17 +1453,16 @@ cloneFields.forEach((cloneEl, i) => {
             <label className="whitespace-nowrap">Closest to:</label>
 
             {closestOptions.map((option) => (
-              <label key={option.value} className="flex items-center gap-1">
-                <input
-                  type="radio"
-                  name="closest_to"
-                  value={option.value}
-                  checked={selectedValue === option.value}
-                  onChange={() => handleClosestOptionChange(option.value)}
-                  disabled={!canEdit}
-                />
-                {option.label}
-              </label>
+              <CustomRadio
+                key={option.value}
+                name="closest_to"
+                value={option.value}
+                label={option.label}
+                checked={selectedValue === option.value}
+                onChange={() => handleClosestOptionChange(option.value)}
+                disabled={!canEdit}
+                className="mr-2"
+              />
             ))}
           </div>
           {selectedValue === "Other" && (
@@ -1289,8 +1520,11 @@ cloneFields.forEach((cloneEl, i) => {
         </Button>
       </div>
 
-      <div className="pdf w-[8.5in] bg-white p-8 leading-tight" ref={pdfRef}
-          style={{ fontSize: "11px", width: "816px" }}>
+      <div
+        className="pdf w-[8.5in] bg-white p-8 leading-tight"
+        ref={pdfRef}
+        style={{ fontSize: "11px", width: "816px" }}
+      >
         <FormHeader />
         <div className="sub-info">
           <div className="right">
@@ -1308,7 +1542,10 @@ cloneFields.forEach((cloneEl, i) => {
           </div>
         </div>
         <h3>STUDENT CUMULATIVE INFORMATION FILE (SCIF)</h3>
-        <div className="SCIF-section-1 SCIF-section">
+        <div
+          className="SCIF-section-1 SCIF-section"
+          style={{ pageBreakAfter: "always" }}
+        >
           <div className="SCIF-left">
             <div className="section-title">PERSONAL DATA:</div>
             <div className="SCIF-Name">
@@ -1417,7 +1654,7 @@ cloneFields.forEach((cloneEl, i) => {
                 )}
               </div>
               <div className="-mt-2">
-                <label className="field-sm">
+                <label>
                   BIRTH RANK:
                   <input
                     type="text"
@@ -1551,7 +1788,7 @@ cloneFields.forEach((cloneEl, i) => {
             </div>
             <div className="SCIF-inline flex-row">
               <div className="-mt-2">
-                <label className="field-xl">
+                <label className="field-lg">
                   Region:
                   {shouldUseRegionDropdown ? (
                     <select
@@ -1602,7 +1839,7 @@ cloneFields.forEach((cloneEl, i) => {
                 )}
               </div>
               <div className="-mt-2">
-                <label className="field-xs">
+                <label className="field-sm">
                   ZIP Code:
                   <input
                     type="text"
@@ -1752,7 +1989,7 @@ cloneFields.forEach((cloneEl, i) => {
                     readOnly={!canEdit}
                   />
                 </label>
-                <label className="field-sm">
+                <label>
                   <span>Contact No.: </span>
                   <input
                     type="text"
@@ -1766,7 +2003,7 @@ cloneFields.forEach((cloneEl, i) => {
               </div>
               <div className="SCIF-inline flex-row">
                 <div className="-mt-2">
-                  <label className="field-xl">
+                  <label className="field-lg">
                     Mother’s Name:{" "}
                     <input
                       type="text"
@@ -1860,7 +2097,7 @@ cloneFields.forEach((cloneEl, i) => {
                     readOnly={!canEdit}
                   />
                 </label>
-                <label className="field-sm">
+                <label>
                   <span>Contact No.: </span>
                   <input
                     type="text"
@@ -1993,7 +2230,7 @@ cloneFields.forEach((cloneEl, i) => {
             <div className="SCIF-inline flex-row">
               <div className="">
                 <label className="field-xm">
-                  Relationship: to guardian{" "}
+                  Relationship to guardian:{" "}
                   <input
                     type="text"
                     value={formState.guardian_relationship_to_guardian || "N/A"}
@@ -2008,7 +2245,7 @@ cloneFields.forEach((cloneEl, i) => {
                 </label>
               </div>
               <div className="-mt-2">
-                <label className="field-lg">
+                <label className="field-xm">
                   Languages/Dialects Spoken at Home:{" "}
                   <input
                     type="text"
@@ -2123,10 +2360,10 @@ cloneFields.forEach((cloneEl, i) => {
             </label>
           </div>
 
-          <div className="-mt-6">
+          <div className="-mt-4">
             <label>
               Reason:{" "}
-              <textarea
+              <AutoResizeTextarea
                 value={formState.reason_of_hospitalization || "Not Applicable"}
                 onChange={(e) =>
                   handleFieldChange("reason_of_hospitalization", e.target.value)
@@ -2204,7 +2441,7 @@ cloneFields.forEach((cloneEl, i) => {
             <label>No organization data available.</label>
           )}
         </div>
-        <div className="SCIF-section">
+        <div className="SCIF-section" style={{ pageBreakAfter: "always" }}>
           <div className="mb-5 font-bold">
             AWARDS RECEIVED WHILE IN COLLEGE (leave this portion blank)
           </div>
@@ -2237,7 +2474,7 @@ cloneFields.forEach((cloneEl, i) => {
           <div className="-mt-6">
             <label>
               <span className="label">Why did you enroll in UP Mindanao? </span>
-              <textarea
+              <AutoResizeTextarea
                 value={formState.enrollment_reason || ""}
                 onChange={(e) =>
                   handleFieldChange("enrollment_reason", e.target.value)
@@ -2247,39 +2484,31 @@ cloneFields.forEach((cloneEl, i) => {
             </label>
           </div>
           <div className="SCIF-inline flex-row">
-            <div className="flex justify-between gap-4 mt-6">
-              <label>
-                <span className="label">
-                  Does your program match your goal?
-                </span>
-              </label>
-              <div className="flex gap-10">
-                <label className="">
-                  <input
-                    type="radio"
-                    name="degree_program_aspiration"
-                    checked={formState.degree_program_aspiration === true}
-                    onChange={() =>
-                      handleFieldChange("degree_program_aspiration", true)
-                    }
-                    disabled={!canEdit}
-                  />
-                  Yes
-                </label>
-                <label className="">
-                  <input
-                    type="radio"
-                    name="degree_program_aspiration"
-                    checked={formState.degree_program_aspiration === false}
-                    onChange={() =>
-                      handleFieldChange("degree_program_aspiration", false)
-                    }
-                    disabled={!canEdit}
-                  />
-                  No
-                </label>
+            <div className="flex gap-4 mt-6 flex-wrap items-center">
+              <span className="label">Does your program match your goal?</span>
+              <div className="flex gap-6 flex-row">
+                <CustomRadio
+                  name="degree_program_aspiration"
+                  value="yes"
+                  label="Yes"
+                  checked={formState.degree_program_aspiration === true}
+                  onChange={() =>
+                    handleFieldChange("degree_program_aspiration", true)
+                  }
+                  disabled={!canEdit}
+                />
+                <CustomRadio
+                  name="degree_program_aspiration"
+                  value="no"
+                  label="No"
+                  checked={formState.degree_program_aspiration === false}
+                  onChange={() =>
+                    handleFieldChange("degree_program_aspiration", false)
+                  }
+                  disabled={!canEdit}
+                />
               </div>
-              <label className="field-xl">
+              <label className="field-lg ml-4 flex-1">
                 If not, why?
                 <input
                   type="text"
@@ -2376,7 +2605,7 @@ cloneFields.forEach((cloneEl, i) => {
           <div className="-mt-2">
             <label>
               Personal Characteristics:
-              <textarea
+              <AutoResizeTextarea
                 value={formState.personal_characteristics || ""}
                 onChange={(e) =>
                   handleFieldChange("personal_characteristics", e.target.value)
@@ -2387,10 +2616,9 @@ cloneFields.forEach((cloneEl, i) => {
           </div>
           <div className="SCIF-inline flex-row">
             <div className="flex justify-between gap-4 mt-6">
-              <label className="field-md">
+              <label>
                 <span>Who do you open up to? </span>
-                <input
-                  type="text"
+                <AutoResizeTextarea
                   value={formState.problem_confidant}
                   onChange={(e) =>
                     handleFieldChange("problem_confidant", e.target.value)
@@ -2398,9 +2626,11 @@ cloneFields.forEach((cloneEl, i) => {
                   readOnly={!canEdit}
                 />
               </label>
+            </div>
+            <div className="w-full gap-4 mt-6">
               <label>
                 <span>Why?</span>
-                <textarea
+                <AutoResizeTextarea
                   value={formState.confidant_reason}
                   onChange={(e) =>
                     handleFieldChange("confidant_reason", e.target.value)
@@ -2427,31 +2657,27 @@ cloneFields.forEach((cloneEl, i) => {
               <label>
                 <span>Any previous counseling?</span>
               </label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-1">
-                  <input
-                    type="radio"
-                    name="previous_counseling"
-                    checked={formState.previous_counseling === true}
-                    onChange={() =>
-                      handleFieldChange("previous_counseling", true)
-                    }
-                    disabled={!canEdit}
-                  />
-                  Yes
-                </label>
-                <label className="flex items-center gap-1">
-                  <input
-                    type="radio"
-                    name="previous_counseling"
-                    checked={formState.previous_counseling === false}
-                    onChange={() =>
-                      handleFieldChange("previous_counseling", false)
-                    }
-                    disabled={!canEdit}
-                  />
-                  No
-                </label>
+              <div className="flex gap-4 flex-row">
+                <CustomRadio
+                  name="previous_counseling"
+                  value="yes"
+                  label="Yes"
+                  checked={formState.previous_counseling === true}
+                  onChange={() =>
+                    handleFieldChange("previous_counseling", true)
+                  }
+                  disabled={!canEdit}
+                />
+                <CustomRadio
+                  name="previous_counseling"
+                  value="no"
+                  label="No"
+                  checked={formState.previous_counseling === false}
+                  onChange={() =>
+                    handleFieldChange("previous_counseling", false)
+                  }
+                  disabled={!canEdit}
+                />
               </div>
             </div>
           </div>
@@ -2470,7 +2696,7 @@ cloneFields.forEach((cloneEl, i) => {
                       readOnly={!canEdit}
                     />
                   </label>
-                  <label className="field-lg">
+                  <label className="field-md">
                     To whom?{" "}
                     <input
                       type="text"
@@ -2489,7 +2715,7 @@ cloneFields.forEach((cloneEl, i) => {
               <div className="SCIF-inline flex-row">
                 <label>
                   Why?
-                  <textarea
+                  <AutoResizeTextarea
                     value={formState.counseling_reason || ""}
                     onChange={(e) =>
                       handleFieldChange("counseling_reason", e.target.value)
@@ -2515,7 +2741,7 @@ cloneFields.forEach((cloneEl, i) => {
             </div>
           </div>
         </div>
-        <div className="SCIF-section">
+        <div className="SCIF-section" style={{ pageBreakAfter: "always" }}>
           <div className="section-title">
             PSYCHOMETRIC DATA (Leave it blank)
           </div>
@@ -2576,27 +2802,27 @@ cloneFields.forEach((cloneEl, i) => {
             https://privacy.up.edu.ph
           </a>
         </div>
-        <div className="mt-10 text-justify">
-          <div className="SCIF-inline">
-            <input
-              type="checkbox"
-              name="has_consented"
-              checked={privacy_consent.has_consented === true}
-              readOnly
-              className="certify-checkbox"
-            />
-            <span className="certify-text">
-              I have read the University of the Philippines’ Privacy Notice for
-              Students. I understand that for the UP System to carry out its
-              mandate under the 1987 Constitution, the UP Charter, and other
-              laws, the University must necessarily process my personal and
-              sensitive personal information. Therefore, I recognize the
-              authority of the University of the Philippines to process my
-              personal and sensitive personal information, pursuant to the UP
-              Privacy Notice and applicable laws.
-            </span>
-          </div>
+        <div className="flex justify-between">
+          <CustomCheckbox
+            name="has_consented"
+            value="true"
+            checked={privacy_consent.has_consented === true}
+            onChange={() => {}}
+            disabled
+          />
+
+          <span className="text-justify -ml-50 mt-4">
+            I have read the University of the Philippines' Privacy Notice for
+            Students. I understand that for the UP System to carry out its
+            mandate under the 1987 Constitution, the UP Charter, and other laws,
+            the University must necessarily process my personal and sensitive
+            personal information. Therefore, I recognize the authority of the
+            University of the Philippines to process my personal and sensitive
+            personal information, pursuant to the UP Privacy Notice and
+            applicable laws.
+          </span>
         </div>
+
         <div className="flex justify-between gap-4">
           <label className="field-md">
             Name of Student:{" "}
