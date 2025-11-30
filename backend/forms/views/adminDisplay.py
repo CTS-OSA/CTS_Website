@@ -56,6 +56,46 @@ class AdminSCIFList(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=500)
     
+class AdminReferralListView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        try:
+            referrals = Referral.objects.filter(submission__status="submitted").order_by('-referral_date')
+            serializer = AdminReferralListSerializer(referrals, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class AdminPARDList(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        if not request.user.is_staff:
+            return Response({'error': 'Permission denied, admins only.'}, status=403)
+
+        try:
+            submissions = Submission.objects.filter(
+                form_type="Psychosocial Assistance and Referral Desk", 
+                status="submitted"
+            ).select_related('student')
+
+            data = []
+            for submission in submissions:
+                submission_data = AdminSubmissionDetailSerializer(submission).data
+                
+                # Add PARD status only
+                try:
+                    pard = PARD.objects.get(submission_id=submission)
+                    submission_data['pard_status'] = pard.status
+                except PARD.DoesNotExist:
+                    submission_data['pard_status'] = None
+                    
+                data.append(submission_data)
+            
+            return Response(data, status=200)
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
 
 class AdminStudentFormsView(APIView):
     def get(self, request, student_id):
@@ -84,6 +124,23 @@ class AdminStudentFormView(APIView):
         except Submission.DoesNotExist:
             return Response({'error': 'No submission found for this student and form type.'}, status=status.HTTP_404_NOT_FOUND)
 
+        data = {
+            'submission': SubmissionSerializer(submission).data,
+        }
+
+        # Special handling for PARD
+        if form_type == 'psychosocial-assistance-and-referral-desk':
+            
+            
+            try:
+                pard = PARD.objects.get(submission_id=submission)
+                data['pard_data'] = PARDSerializer(pard).data
+            except PARD.DoesNotExist:
+                data['pard_data'] = None
+                
+            return Response(data, status=status.HTTP_200_OK)
+
+        # Regular form handling
         sections = FORM_SECTIONS_MAP.get(form_type)
         if not sections:
             return Response({'error': 'Invalid form type sections.'}, status=status.HTTP_400_BAD_REQUEST)
