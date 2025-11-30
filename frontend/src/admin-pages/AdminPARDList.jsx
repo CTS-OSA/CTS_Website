@@ -19,6 +19,7 @@ export const AdminPARDList = () => {
 
   // raw and filtered submissions
   const [submissions, setSubmissions] = useState([]);
+  const [pard_data, setPardData] = useState([]);
   const [filtered, setFiltered] = useState([]);
 
   const [loadingData, setLoadingData] = useState(true);
@@ -121,6 +122,10 @@ export const AdminPARDList = () => {
     }
   };
 
+  const handleEmailView = () => {
+
+  };
+
   // Sort filtered items
   const sorted = [...filtered].sort((a, b) => {
     if (!sortConfig.key) return 0;
@@ -172,10 +177,6 @@ export const AdminPARDList = () => {
     );
   };
 
-  const handleDeleteForm = (submission_id) => {
-
-  };
-
   return (
     <DefaultLayout variant="admin">
       <Box className="admin-student-list" sx={{ p: 3 }} style={{ padding: 50 }}>
@@ -216,20 +217,27 @@ export const AdminPARDList = () => {
                 onClearSort={handleClearSort}
               />
               <SortableTableHeader
-                label="Date Submitted"
-                sortKey="date"
-                currentSort={sortConfig}
-                onSort={handleSort}
-                onClearSort={handleClearSort}
-              />
-              <SortableTableHeader
                 label="Year & Degree Program"
                 sortKey="yearProgram"
                 currentSort={sortConfig}
                 onSort={handleSort}
                 onClearSort={handleClearSort}
               />
+              <SortableTableHeader
+                label="Date Submitted"
+                sortKey="date"
+                currentSort={sortConfig}
+                onSort={handleSort}
+                onClearSort={handleClearSort}
+              />
               <th>Actions</th>
+              <SortableTableHeader
+                label="Status"
+                sortKey="status"
+                currentSort={sortConfig}
+                onSort={handleSort}
+                onClearSort={handleClearSort}
+              />
             </tr>
           </thead>
           <tbody>
@@ -237,13 +245,27 @@ export const AdminPARDList = () => {
               currentItems.map((submission) => (
                 <tr key={submission.id}>
                   <td>{submission.student.student_number}</td>
+
                   <td>
                     {submission.student.first_name} {submission.student.last_name}
                   </td>
-                  <td>{formatDate(submission.submitted_on)}</td>
+                  
                   <td>
                     {submission.student.current_year_level} & {submission.student.degree_program}
                   </td>
+                  
+                  <td>{formatDate(submission.submitted_on)}</td>
+                    
+                  <td className="uppercase">
+                    <p className={` text-center rounded-lg px-3 py-1
+                      ${submission.pard_status === 'completed' ? 'bg-green-100' : 
+                      submission.pard_status === 'unread' ? 'bg-blue-100' : 
+                      submission.pard_status === 'read' ? 'bg-orange-100' : 
+                      submission.pard_status === 'pending' ? 'bg-yellow-100' : ''} `}>
+                      {submission.pard_status || 'N/A'}
+                    </p>
+                  </td>
+                  
                   <td class="flex gap-2">
                     <Button
                       variant="secondary"
@@ -253,11 +275,12 @@ export const AdminPARDList = () => {
                     </Button>
                     <Button
                       variant="secondary"
-                      onClick={() => handleDeleteForm(submission.id)}
+                      onClick={() => handleEmailView(submission.id)}
                     >
-                      Delete
+                      Send Email
                     </Button>
                   </td>
+                  
                 </tr>
               ))
             ) : (

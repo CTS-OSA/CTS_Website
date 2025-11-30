@@ -17,3 +17,4 @@ from .submission import Submission, PendingSubmission
 from .PARD import PARD
 from .referral_slip import Referrer, Referral, AcknowledgementReceipt, ReferredPerson
 from .counselor import Counselor
+from .poster import Poster
