@@ -13,6 +13,7 @@ class Submission(models.Model):
     ]
 
     student = models.ForeignKey(Student, null=True, blank=True, on_delete=models.SET_NULL)
+    guest_email = models.EmailField(null=True, blank=True)
     form_type = models.CharField(max_length=50, choices=FORM_CHOICES)
     status = models.CharField(max_length=10, choices=[('draft', 'Draft'), ('submitted', 'Submitted')], default='draft')
     created_at = models.DateTimeField(auto_now_add=True) 
@@ -30,10 +31,21 @@ class Submission(models.Model):
         ]  
 
     def clean(self):
-        # Conditional validation for logged-in student submissions
-        if self.form_type == 'Counseling Referral Slip':  
-            if not self.student and not self.student_name:
-                raise ValidationError("Student information is required for referral slip submissions.")
+        super().clean()
+        
+        # Conditional uniqueness for some forms only
+        if self.form_type in ['Basic Information Sheet', 'Student Cumulative Information File']:
+            if self.student:
+                qs = Submission.objects.filter(student=self.student, form_type=self.form_type)
+                if self.pk:
+                    qs = qs.exclude(pk=self.pk)
+                if qs.exists():
+                    raise ValidationError(f"A submission for {self.form_type} by this student already exists.")
+                
+                
+        if self.form_type == 'Counseling Referral Slip':
+            if not self.student and not self.guest_email:
+                raise ValidationError("Either a student or a guest email is required for referral slip submissions.")
             
     def __str__(self):
         return f"Submission for {self.student} - {self.form_type} - {self.status}"
