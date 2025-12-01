@@ -16,6 +16,10 @@ import { AuthContext } from "../context/AuthContext";
 import { useApiRequest } from "../context/ApiRequestContext";
 import BackToTopButton from "../components/BackToTop";
 import { useEnumChoices } from "../utils/enumChoices";
+import {
+  getProfilePhotoUrl,
+  getProfileInitials,
+} from "../utils/profileUtils";
 
 const INTEGER_ONLY_FIELDS = new Set([
   "birth_rank",
@@ -93,16 +97,6 @@ const normalizeScholarshipEntries = (value) => {
   return value.map((entry) => safeTrim(entry)).filter(Boolean);
 };
 
-const getProfilePhotoUrl = (profile) =>
-  profile?.photo?.image || profile?.photo?.url || "";
-
-const getProfileInitials = (profile) => {
-  if (!profile) return "ID";
-  const first = profile.first_name?.charAt(0) || "";
-  const last = profile.last_name?.charAt(0) || "";
-  const initials = `${first}${last}`.trim();
-  return initials.toUpperCase() || "ID";
-};
 
 const toBoolean = (value) => {
   if (typeof value === "boolean") return value;
