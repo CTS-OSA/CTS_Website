@@ -142,7 +142,11 @@ const PARDProfileView = ({ profileData, formData }) => {
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(changes),
+          body: JSON.stringify({
+            preferred_date: appointmentDate,
+            preferred_time: appointmentTime,
+            status: status,
+          }),
         }
       );
 
@@ -392,7 +396,7 @@ const PARDProfileView = ({ profileData, formData }) => {
             </span>
           </label>
         </div>
-
+        
         <div className="signature">
           <label>
             Date Filed:{" "}
