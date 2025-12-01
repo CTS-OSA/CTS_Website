@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useContext } from "react";
-import "./css/pdfStyle.css";
+import "./css/BISpdf.css";
 import "../forms/SetupProfile/css/multistep.css";
 import FormHeader from "./FormHeader";
 import { useNavigate } from "react-router-dom";
@@ -23,65 +23,66 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
   const [errors, setErrors] = useState({});
   const [formState, setFormState] = useState({
     name: `${profileData.last_name}, ${profileData.first_name} ${profileData.middle_name}`,
-    nickname: profileData.nickname || '',
+    nickname: profileData.nickname || "",
     year_course: `${profileData.current_year_level} - ${profileData.degree_program}`,
     support: [],
-    scholarship_notes: '',
-    combination_notes: '',
-    others_notes: '',
-    scholarships: '',
-    scholarship_privileges: '',
-    monthly_allowance: '',
-    spending_habit: '',
-    influence: '',
-    reason_for_enrolling: '',
-    transfer_plans: 'No',
-    transfer_reason: '',
-    shift_plans: 'No',
-    planned_shift_degree: '',
-    reason_for_shifting: '',
-    intended_course: '',
-    first_choice_course: '',
-    admitted_course: '',
-    next_plan: ''
+    scholarship_notes: "",
+    combination_notes: "",
+    others_notes: "",
+    scholarships: "",
+    scholarship_privileges: "",
+    monthly_allowance: "",
+    spending_habit: "",
+    influence: "",
+    reason_for_enrolling: "",
+    transfer_plans: "No",
+    transfer_reason: "",
+    shift_plans: "No",
+    planned_shift_degree: "",
+    reason_for_shifting: "",
+    intended_course: "",
+    first_choice_course: "",
+    admitted_course: "",
+    next_plan: "",
   });
-  
+
   useEffect(() => {
     if (formData) {
       setFormState({
         name: `${profileData.last_name}, ${profileData.first_name} ${profileData.middle_name}`,
-        nickname: profileData.nickname || '',
+        nickname: profileData.nickname || "",
         year_course: `${profileData.current_year_level} - ${profileData.degree_program}`,
         support: student_support?.support || [],
-        scholarship_notes: student_support?.other_scholarship || '',
-        combination_notes: student_support?.combination_notes || '',
-        others_notes: student_support?.other_notes || '',
-        scholarships: socio_economic_status?.scholarships || '',
-        scholarship_privileges: socio_economic_status?.scholarship_privileges || '',
-        monthly_allowance: socio_economic_status?.monthly_allowance || '',
-        spending_habit: socio_economic_status?.spending_habit || '',
-        transfer_plans: preferences?.transfer_plans || '', 
-        influence: preferences?.influence || '',
-        reason_for_enrolling: preferences?.reason_for_enrolling || '',
-        transfer_reason: preferences?.transfer_reason || '',
-        shift_plans: preferences?.shift_plans ? 'Yes' : 'No',
-        planned_shift_degree: preferences?.planned_shift_degree || '',
-        reason_for_shifting: preferences?.reason_for_shifting || '',
-        intended_course: scholastic_status?.intended_course || '',
-        first_choice_course: scholastic_status?.first_choice_course || '',
-        admitted_course: scholastic_status?.admitted_course || '',
-        next_plan: scholastic_status?.next_plan || '',
+        scholarship_notes: student_support?.other_scholarship || "",
+        combination_notes: student_support?.combination_notes || "",
+        others_notes: student_support?.other_notes || "",
+        scholarships: socio_economic_status?.scholarships || "",
+        scholarship_privileges:
+          socio_economic_status?.scholarship_privileges || "",
+        monthly_allowance: socio_economic_status?.monthly_allowance || "",
+        spending_habit: socio_economic_status?.spending_habit || "",
+        transfer_plans: preferences?.transfer_plans || "",
+        influence: preferences?.influence || "",
+        reason_for_enrolling: preferences?.reason_for_enrolling || "",
+        transfer_reason: preferences?.transfer_reason || "",
+        shift_plans: preferences?.shift_plans ? "Yes" : "No",
+        planned_shift_degree: preferences?.planned_shift_degree || "",
+        reason_for_shifting: preferences?.reason_for_shifting || "",
+        intended_course: scholastic_status?.intended_course || "",
+        first_choice_course: scholastic_status?.first_choice_course || "",
+        admitted_course: scholastic_status?.admitted_course || "",
+        next_plan: scholastic_status?.next_plan || "",
       });
     }
   }, [formData, profileData]);
-  
+
   const handleDownloadClick = () => {
     setShowDownloadConfirm(true);
   };
 
-  const handleConfirmDownload = () => {
+  const handleConfirmDownload = async () => {
     setShowDownloadConfirm(false);
-    handleDownload();
+    await handleDownload();
     setDownloadToast("Download started!");
   };
 
@@ -90,17 +91,170 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
     setDownloadToast("Download cancelled.");
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     const element = pdfRef.current;
-    const opt = {
-      margin: 0.5,
+    if (!element) return;
+
+    element.classList.add("pdf-mode");
+
+    const clone = element.cloneNode(true);
+    const elementWidth =
+      element.getBoundingClientRect().width || element.offsetWidth || 800;
+    const printableWidth = Math.min(elementWidth, 720); // ~7.5in at 96dpi
+    clone.style.maxWidth = `${printableWidth}px`;
+    clone.style.width = `${printableWidth}px`;
+    clone.style.boxSizing = "border-box";
+    clone.style.backgroundColor = "#ffffff";
+    clone.style.margin = "0 auto";
+    clone.style.padding = window.getComputedStyle(element).padding || "0.5in";
+
+    const workingWrapper = document.createElement("div");
+    workingWrapper.style.position = "fixed";
+    workingWrapper.style.left = "-10000px";
+    workingWrapper.style.top = "0";
+    workingWrapper.style.zIndex = "-1";
+    workingWrapper.appendChild(clone);
+    document.body.appendChild(workingWrapper);
+
+    const originalFields = element.querySelectorAll("input, textarea, select");
+    const cloneFields = clone.querySelectorAll("input, textarea, select");
+
+    const getBorderColor = (computed) =>
+      computed.borderBottomColor &&
+      computed.borderBottomColor !== "rgba(0, 0, 0, 0)"
+        ? computed.borderBottomColor
+        : "#000";
+
+    const getBorderWidth = (computed) =>
+      computed.borderBottomWidth && computed.borderBottomWidth !== "0px"
+        ? computed.borderBottomWidth
+        : "1px";
+
+    cloneFields.forEach((cloneEl, index) => {
+      const originalEl = originalFields[index];
+      if (!originalEl) return;
+
+      const type = originalEl.getAttribute("type") || cloneEl.type || "";
+      if (type === "button" || type === "submit") return;
+
+      const computed = window.getComputedStyle(originalEl);
+      const rect = originalEl.getBoundingClientRect();
+
+      if (type === "checkbox") {
+        const isPrivacyConsent =
+          cloneEl.name === "has_consented" ||
+          cloneEl.closest(".privacy-consent");
+
+        const indicator = document.createElement("span");
+        indicator.className = "pdf-checkbox-indicator";
+        if (isPrivacyConsent) {
+          indicator.classList.add("pdf-checkbox-indicator--privacy");
+        }
+        indicator.textContent = originalEl.checked ? "☑" : "☐";
+        indicator.style.fontSize = computed.fontSize;
+        indicator.style.lineHeight = "1";
+        indicator.style.marginRight = "0.35rem";
+
+        const parentLabel = cloneEl.closest("label");
+        if (parentLabel) {
+          parentLabel.style.display = "flex";
+          parentLabel.style.alignItems = "flex-start";
+          parentLabel.style.gap = "0.5rem";
+          parentLabel.insertBefore(indicator, cloneEl);
+          parentLabel.removeChild(cloneEl);
+        } else {
+          cloneEl.replaceWith(indicator);
+        }
+        return;
+      }
+
+      let value = originalEl.value || "";
+      if (cloneEl.tagName === "SELECT") {
+        const selected = originalEl.options[originalEl.selectedIndex];
+        value = selected ? selected.text : value;
+      }
+
+      if (type === "date" && value) {
+        value = new Date(value).toLocaleDateString("en-CA");
+      }
+
+      const textDiv = document.createElement("div");
+      textDiv.className = "pdf-field-value";
+      if (cloneEl.tagName === "TEXTAREA") {
+        textDiv.classList.add("multiline");
+      }
+      textDiv.textContent = value || "\u00a0";
+      textDiv.style.fontSize = computed.fontSize;
+      textDiv.style.fontFamily = computed.fontFamily;
+      textDiv.style.fontWeight = computed.fontWeight;
+      textDiv.style.lineHeight = computed.lineHeight;
+      textDiv.style.color = computed.color || "#000";
+      textDiv.style.margin = computed.margin;
+      textDiv.style.padding = computed.padding;
+      textDiv.style.boxSizing = "border-box";
+      textDiv.style.whiteSpace = "pre-wrap";
+      textDiv.style.wordBreak = "break-word";
+      textDiv.style.borderBottom = `${getBorderWidth(
+        computed
+      )} solid ${getBorderColor(computed)}`;
+
+      const width = rect.width || originalEl.offsetWidth;
+      if (width) {
+        textDiv.style.width = width + "px";
+        textDiv.style.maxWidth = width + "px";
+      } else if (computed.width && computed.width !== "auto") {
+        textDiv.style.width = computed.width;
+        textDiv.style.maxWidth = computed.width;
+      }
+
+      const height = rect.height || originalEl.offsetHeight;
+      if (height && height > 0) {
+        textDiv.style.minHeight = height + "px";
+      }
+
+      cloneEl.replaceWith(textDiv);
+    });
+
+    if (document.fonts && document.fonts.ready) {
+      try {
+        await document.fonts.ready;
+      } catch {
+        /* ignore font load issues */
+      }
+    }
+
+    const imgs = clone.querySelectorAll("img");
+    await Promise.all(
+      Array.from(imgs).map(
+        (img) =>
+          new Promise((resolve) => {
+            if (img.complete) return resolve();
+            img.onload = img.onerror = resolve;
+          })
+      )
+    );
+
+    const options = {
+      margin: [0.5, 0.5, 0.5, 0.5],
       filename: "BIS_Profile.pdf",
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        scrollY: 0,
+      },
       jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
     };
 
-    html2pdf().set(opt).from(element).save();
+    try {
+      await html2pdf().set(options).from(clone).save();
+    } catch (error) {
+      console.error("Failed to generate BIS PDF:", error);
+      setDownloadToast("Unable to generate the PDF. Please try again.");
+    } finally {
+      element.classList.remove("pdf-mode");
+      document.body.removeChild(workingWrapper);
+    }
   };
 
   const handleReturn = () => {
@@ -113,21 +267,21 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
 
   const handleFieldChange = (field, value) => {
     if (role === "admin") {
-      setFormState(prev => ({ ...prev, [field]: value }));
+      setFormState((prev) => ({ ...prev, [field]: value }));
       // Clear error when user starts typing
       if (errors[field]) {
-        setErrors(prev => ({ ...prev, [field]: null }));
+        setErrors((prev) => ({ ...prev, [field]: null }));
       }
     }
   };
 
   const handleSupportChange = (key, checked) => {
     if (role === "admin") {
-      setFormState(prev => ({
+      setFormState((prev) => ({
         ...prev,
-        support: checked 
+        support: checked
           ? [...prev.support, key]
-          : prev.support.filter(item => item !== key)
+          : prev.support.filter((item) => item !== key),
       }));
     }
   };
@@ -135,44 +289,46 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
   const handleSubmit = async () => {
     // Clear previous errors
     const newErrors = {};
-    
+
     // Validate required fields
-    if (!formState.name || formState.name.trim() === '') {
-      newErrors.name = 'Name field cannot be empty.';
-    }
-    
-    if (!formState.nickname || formState.nickname.trim() === '') {
-      newErrors.nickname = 'Nickname field cannot be empty.';
+    if (!formState.name || formState.name.trim() === "") {
+      newErrors.name = "Name field cannot be empty.";
     }
 
-    if (!formState.year_course || formState.year_course.trim() === '') {
-      newErrors.year_course = 'Year & course field cannot be empty.';
+    if (!formState.nickname || formState.nickname.trim() === "") {
+      newErrors.nickname = "Nickname field cannot be empty.";
     }
-    
+
+    if (!formState.year_course || formState.year_course.trim() === "") {
+      newErrors.year_course = "Year & course field cannot be empty.";
+    }
 
     // Set all errors at once
     setErrors(newErrors);
-    
+
     // If there are errors, don't submit
     if (Object.keys(newErrors).length > 0) {
       return;
     }
-    
+
     try {
-      const response = await request(`/api/forms/edit/bis/${profileData.student_number}/`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formState),
-      });
+      const response = await request(
+        `/api/forms/edit/bis/${profileData.student_number}/`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formState),
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
         setDownloadToast(data.message);
       }
     } catch (error) {
-      setDownloadToast('Failed to update form.');
+      setDownloadToast("Failed to update form.");
     }
   };
 
@@ -222,11 +378,19 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
           Return to Profile
         </Button>
         {role === "admin" && (
-          <Button variant="secondary" onClick={handleSubmit} className="pdf-button">
+          <Button
+            variant="secondary"
+            onClick={handleSubmit}
+            className="pdf-button"
+          >
             Save Changes
           </Button>
         )}
-        <Button variant="primary" onClick={handleDownloadClick} className="pdf-button">
+        <Button
+          variant="primary"
+          onClick={handleDownloadClick}
+          className="pdf-button"
+        >
           Download as PDF
         </Button>
       </div>
@@ -263,30 +427,36 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
             <input
               type="text"
               value={formState.name}
-              onChange={(e) => handleFieldChange('name', e.target.value)}
+              onChange={(e) => handleFieldChange("name", e.target.value)}
               readOnly={role !== "admin"}
             />
-            {errors.name && <div class="error-state-message">{errors.name}</div>}
+            {errors.name && (
+              <div class="error-state-message">{errors.name}</div>
+            )}
           </label>
           <label>
             2. Nickname:{" "}
             <input
               type="text"
               value={formState.nickname}
-              onChange={(e) => handleFieldChange('nickname', e.target.value)}
+              onChange={(e) => handleFieldChange("nickname", e.target.value)}
               readOnly={role !== "admin"}
             />
-            {errors.nickname && <div class="error-state-message">{errors.nickname}</div>}
+            {errors.nickname && (
+              <div class="error-state-message">{errors.nickname}</div>
+            )}
           </label>
           <label>
             3. Year & Course:{" "}
             <input
               type="text"
               value={formState.year_course}
-              onChange={(e) => handleFieldChange('year_course', e.target.value)}
+              onChange={(e) => handleFieldChange("year_course", e.target.value)}
               readOnly={role !== "admin"}
             />
-            {errors.year_course && <div class="error-state-message">{errors.year_course}</div>}
+            {errors.year_course && (
+              <div class="error-state-message">{errors.year_course}</div>
+            )}
           </label>
         </div>
 
@@ -297,29 +467,47 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
           </label>
           <ul className="checkbox-list indented-section">
             {supportOptions.map(({ key, label }) => {
-              const hasInput = ['scholarship', 'combination', 'others'].includes(key);
-              const inputValue = key === 'scholarship' ? student_support?.other_scholarship :
-                               key === 'combination' ? student_support?.combination_notes :
-                               key === 'others' ? student_support?.other_notes : '';
-              const isChecked = Array.isArray(formState.support) && formState.support.includes(key) || (hasInput && inputValue);
-              
+              const hasInput = [
+                "scholarship",
+                "combination",
+                "others",
+              ].includes(key);
+              const inputValue =
+                key === "scholarship"
+                  ? student_support?.other_scholarship
+                  : key === "combination"
+                  ? student_support?.combination_notes
+                  : key === "others"
+                  ? student_support?.other_notes
+                  : "";
+              const isChecked =
+                (Array.isArray(formState.support) &&
+                  formState.support.includes(key)) ||
+                (hasInput && inputValue);
+
               return (
                 <li key={key}>
                   <label>
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={isChecked}
-                      onChange={(e) => handleSupportChange(key, e.target.checked)}
+                      onChange={(e) =>
+                        handleSupportChange(key, e.target.checked)
+                      }
                       disabled={role !== "admin"}
                     />
-                    {hasInput ? key.charAt(0).toUpperCase() + key.slice(1) : label}
+                    {hasInput
+                      ? key.charAt(0).toUpperCase() + key.slice(1)
+                      : label}
                     {hasInput && inputValue && (
                       <input
                         type="text"
                         value={formState[`${key}_notes`] || inputValue}
-                        onChange={(e) => handleFieldChange(`${key}_notes`, e.target.value)}
+                        onChange={(e) =>
+                          handleFieldChange(`${key}_notes`, e.target.value)
+                        }
                         readOnly={role !== "admin"}
-                        style={{ marginLeft: '10px', width: '200px' }}
+                        style={{ marginLeft: "10px", width: "200px" }}
                         placeholder={`Specify ${key}...`}
                       />
                     )}
@@ -335,7 +523,9 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
             <input
               type="text"
               value={formState.scholarships}
-              onChange={(e) => handleFieldChange('scholarships', e.target.value)}
+              onChange={(e) =>
+                handleFieldChange("scholarships", e.target.value)
+              }
               readOnly={role !== "admin"}
             />
           </label>
@@ -344,7 +534,9 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
             <input
               type="text"
               value={formState.scholarship_privileges}
-              onChange={(e) => handleFieldChange('scholarship_privileges', e.target.value)}
+              onChange={(e) =>
+                handleFieldChange("scholarship_privileges", e.target.value)
+              }
               readOnly={role !== "admin"}
             />
           </label>
@@ -354,7 +546,9 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
             <input
               type="text"
               value={formState.monthly_allowance}
-              onChange={(e) => handleFieldChange('monthly_allowance', e.target.value)}
+              onChange={(e) =>
+                handleFieldChange("monthly_allowance", e.target.value)
+              }
               readOnly={role !== "admin"}
             />
           </label>
@@ -362,7 +556,9 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
             8. What do you spend much on?{" "}
             <AutoResizeTextarea
               value={formState.spending_habit}
-              onChange={(e) => handleFieldChange('spending_habit', e.target.value)}
+              onChange={(e) =>
+                handleFieldChange("spending_habit", e.target.value)
+              }
               readOnly={role !== "admin"}
             />
           </label>
@@ -374,7 +570,7 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
             <input
               type="text"
               value={formState.influence}
-              onChange={(e) => handleFieldChange('influence', e.target.value)}
+              onChange={(e) => handleFieldChange("influence", e.target.value)}
               readOnly={role !== "admin"}
             />
           </label>
@@ -382,7 +578,9 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
             10. Indicate the reason/s for enrolling in UP Mindanao:{" "}
             <AutoResizeTextarea
               value={formState.reason_for_enrolling}
-              onChange={(e) => handleFieldChange('reason_for_enrolling', e.target.value)}
+              onChange={(e) =>
+                handleFieldChange("reason_for_enrolling", e.target.value)
+              }
               readOnly={role !== "admin"}
             />
           </label>
@@ -392,7 +590,9 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
             <input
               type="text"
               value={formState.transfer_plans}
-              onChange={(e) => handleFieldChange('transfer_plans', e.target.value)}
+              onChange={(e) =>
+                handleFieldChange("transfer_plans", e.target.value)
+              }
               readOnly={role !== "admin"}
             />
           </label>
@@ -400,7 +600,9 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
             12. Why or why not?{" "}
             <AutoResizeTextarea
               value={formState.transfer_reason}
-              onChange={(e) => handleFieldChange('transfer_reason', e.target.value)}
+              onChange={(e) =>
+                handleFieldChange("transfer_reason", e.target.value)
+              }
               readOnly={role !== "admin"}
             />
           </label>
@@ -410,7 +612,7 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
             <input
               type="text"
               value={formState.shift_plans}
-              onChange={(e) => handleFieldChange('shift_plans', e.target.value)}
+              onChange={(e) => handleFieldChange("shift_plans", e.target.value)}
               readOnly={role !== "admin"}
             />
           </label>
@@ -419,7 +621,9 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
             <input
               type="text"
               value={formState.planned_shift_degree}
-              onChange={(e) => handleFieldChange('planned_shift_degree', e.target.value)}
+              onChange={(e) =>
+                handleFieldChange("planned_shift_degree", e.target.value)
+              }
               readOnly={role !== "admin"}
             />
           </label>
@@ -427,7 +631,9 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
             15. Why?{" "}
             <AutoResizeTextarea
               value={formState.reason_for_shifting}
-              onChange={(e) => handleFieldChange('reason_for_shifting', e.target.value)}
+              onChange={(e) =>
+                handleFieldChange("reason_for_shifting", e.target.value)
+              }
               readOnly={role !== "admin"}
             />
           </label>
@@ -441,7 +647,9 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
             <input
               type="text"
               value={formState.intended_course}
-              onChange={(e) => handleFieldChange('intended_course', e.target.value)}
+              onChange={(e) =>
+                handleFieldChange("intended_course", e.target.value)
+              }
               readOnly={role !== "admin"}
             />
           </label>
@@ -451,7 +659,9 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
             <input
               type="text"
               value={formState.first_choice_course}
-              onChange={(e) => handleFieldChange('first_choice_course', e.target.value)}
+              onChange={(e) =>
+                handleFieldChange("first_choice_course", e.target.value)
+              }
               readOnly={role !== "admin"}
             />
           </label>
@@ -460,14 +670,17 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
             <input
               type="text"
               value={formState.admitted_course}
-              onChange={(e) => handleFieldChange('admitted_course', e.target.value)}
+              onChange={(e) =>
+                handleFieldChange("admitted_course", e.target.value)
+              }
               readOnly={role !== "admin"}
             />
           </label>
           <label>
             19. If (17) is different (18), what would be your next plan?{" "}
-            <AutoResizeTextarea value={formState.next_plan || "Not Applicable"} 
-              onChange={(e) => handleFieldChange('next_plan', e.target.value)}
+            <AutoResizeTextarea
+              value={formState.next_plan || "Not Applicable"}
+              onChange={(e) => handleFieldChange("next_plan", e.target.value)}
               readOnly={role !== "admin"}
             />{" "}
           </label>
@@ -477,14 +690,15 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
             20. I certify that all facts and information stated in this form are
             true and correct.
           </label>
-          <div className="sign" style={{ textAlign: "right" }}>
-            <label style={{ textAlign: "right" }}>
-              ____________________________
-            </label>
-            <label style={{ textAlign: "right", paddingRight: "50px" }}>
-              21. Signature:{" "}
-            </label>
+          <div className="flex justify-end mt-10">
+            <div className="flex flex-col gap-8">
+              <div>
+                <label>________________________________________</label>
+                <label className="justify-center">21. Signature </label>
+              </div>
+            </div>
           </div>
+
           <label>
             22. Date Filed:{" "}
             <input
@@ -497,7 +711,7 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
           </label>
         </div>
         <h5>Privacy Statement: </h5>
-        <label className="privacy-description indented-section">
+        <div className="font-bold text-upmaroon mt-5 text-justify">
           The University of the Philippines takes your privacy seriously and we
           are committed to protecting your personal information. For the UP
           Privacy Policy, please visit{" "}
@@ -508,32 +722,31 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
           >
             https://privacy.up.edu.ph
           </a>
-        </label>
-
-        <div className="certify-agreement">
-          <label className="form-label">
+        </div>
+        <div className="flex -ml-25">
+          <label className="privacy-consent">
             <input
               type="checkbox"
               name="has_consented"
               checked={privacy_consent.has_consented === true}
               readOnly
-              className="certify-checkbox"
+              disabled
             />
-            <span className="certify-text">
-              I have read the University of the Philippines’ Privacy Notice for
-              Students. I understand that for the UP System to carry out its
-              mandate under the 1987 Constitution, the UP Charter, and other
-              laws, the University must necessarily process my personal and
-              sensitive personal information. Therefore, I recognize the
-              authority of the University of the Philippines to process my
-              personal and sensitive personal information, pursuant to the UP
-              Privacy Notice and applicable laws.
-            </span>
           </label>
+          <span className="text-justify -ml-25 mt-4">
+            I have read the University of the Philippines' Privacy Notice for
+            Students. I understand that for the UP System to carry out its
+            mandate under the 1987 Constitution, the UP Charter, and other laws,
+            the University must necessarily process my personal and sensitive
+            personal information. Therefore, I recognize the authority of the
+            University of the Philippines to process my personal and sensitive
+            personal information, pursuant to the UP Privacy Notice and
+            applicable laws.
+          </span>
         </div>
 
-        <div className="flex-row">
-          <label>
+        <div className="flex justify-between gap-4">
+          <label className="field-md">
             Name of Student:{" "}
             <input
               type="text"
@@ -542,8 +755,7 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
             />
           </label>
           <label>
-            Signature of Student:
-            <input type="text" />
+            Signature of Student: <input type="text" />
           </label>
           <label>
             Date Signed:{" "}
