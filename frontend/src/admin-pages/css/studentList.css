@@ -6,7 +6,7 @@ th {
 /* Container */
 .admin-student-list {
   padding: 2rem;
-  /* max-width: 1000px; */
+  max-width: 1000px;
   margin: 0 auto;
   font-family: Arial, sans-serif;
 }
@@ -69,50 +69,6 @@ th {
 
 .admin-student-list table button:hover {
   background-color: #7b1113;
-}
-
-.pard-table {
-  table-layout: fixed;
-}
-
-.pard-table col.col-student-id {
-  width: 12%;
-}
-
-.pard-table col.col-student-name {
-  width: 24%;
-}
-
-.pard-table col.col-year-program {
-  width: 20%;
-}
-
-.pard-table col.col-date {
-  width: 16%;
-}
-
-.pard-table col.col-status,
-.pard-table col.col-actions {
-  width: 14%;
-}
-
-.pard-table th.status-header,
-.pard-table th.actions-column {
-  text-align: center;
-}
-
-.pard-table td.status-column {
-  text-align: center;
-}
-
-.pard-table td.actions-column {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.pard-table td.actions-column button {
-  flex: 0 0 auto;
 }
 
 /* Responsive Table */
