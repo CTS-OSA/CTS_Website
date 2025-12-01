@@ -24,8 +24,11 @@ export const AdminPardView = () => {
         const form = await formRes.json();
         setFormData({
           pard_data: form.pard_data,
-          submission: form.submission
+          submission: form.submission,
+          email: form.email
         });
+
+        console.log("Form", form.email);
         setProfileData(form.student_data);
       } catch (err) {
         setError(err.message);

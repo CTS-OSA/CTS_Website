@@ -124,8 +124,21 @@ class AdminPARDList(APIView):
                 form_type="Psychosocial Assistance and Referral Desk", 
                 status="submitted"
             ).select_related('student')
-            serializer = AdminSubmissionDetailSerializer(submissions, many=True)
-            return Response(serializer.data, status=200)
+
+            data = []
+            for submission in submissions:
+                submission_data = AdminSubmissionDetailSerializer(submission).data
+                
+                # Add PARD status only
+                try:
+                    pard = PARD.objects.get(submission_id=submission)
+                    submission_data['pard_status'] = pard.status
+                except PARD.DoesNotExist:
+                    submission_data['pard_status'] = None
+                    
+                data.append(submission_data)
+            
+            return Response(data, status=200)
         except Exception as e:
             return Response({'error': str(e)}, status=500)
 
@@ -162,8 +175,7 @@ class AdminStudentFormView(APIView):
 
         # Special handling for PARD
         if form_type == 'psychosocial-assistance-and-referral-desk':
-            from forms.models.PARD import PARD
-            from forms.serializers.SerializerPARD import PARDSerializer
+            
             
             try:
                 pard = PARD.objects.get(submission_id=submission)

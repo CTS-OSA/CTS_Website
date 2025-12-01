@@ -166,7 +166,7 @@ const PARDProfileView = ({ profileData, formData }) => {
 
   if (!formData) return <Loader />;
 
-  const { pard_data, submission } = formData;
+  const { pard_data, submission, email } = formData;
   return (
     <>
       <div className="pdf-buttons">
@@ -244,26 +244,54 @@ const PARDProfileView = ({ profileData, formData }) => {
           </label>
         </div>
         <div className="section-title mt-3">II. CONTACT INFORMATION</div>
-        <div className="indented-section flex gap-5">
+        <div className="indented-section grid grid-cols-2 gap-5">
           <label>
             Contact Number:{" "}
             <span className="border-b border-black flex-1 pb-0.5">{profileData?.contact_number || ""}</span>
           </label>
           <label>
+            Email:{" "}
+            <span className="border-b border-black flex-1 pb-0.5">{email || ""}</span>
+          </label>
+          <label>
             Appointment Date:{" "}
-            <span className="border-b border-black flex-1 pb-0.5"
-              readOnly = {role !== 'admin'}
-              onChange={(e) => setAppointmentDate(e.target.value)}
-              >{appointmentDate || ""}
-            </span>
+            {role === "admin" ? (
+              <>
+                <span className="border-b border-black flex-1 pb-0.5 pdf-text">
+                  {appointmentDate || ""}
+                </span>
+                <input
+                  type="date"
+                  value={appointmentDate}
+                  onChange={(e) => setAppointmentDate(e.target.value)}
+                  className="border-b border-black flex-1 pb-0.5 pdf-input"
+                />
+              </>
+            ) : (
+              <span className="border-b border-black flex-1 pb-0.5">
+                {pard_data?.preferred_date || ""}
+              </span>
+            )}
           </label>
           <label>
             Appointment Time:{" "}
-            <span className="border-b border-black flex-1 pb-0.5"
-              readOnly = {role !== 'admin'}
-              onChange={(e) => setAppointmentTime(e.target.value)}
-              >{appointmentTime || ""}
-            </span>
+            {role === "admin" ? (
+              <>
+                <span className="border-b border-black flex-1 pb-0.5 pdf-text">
+                  {appointmentTime || ""}
+                </span>
+                <input
+                  type="time"
+                  value={appointmentTime}
+                  onChange={(e) => setAppointmentTime(e.target.value)}
+                  className="border-b border-black flex-1 pb-0.5 pdf-input"
+                />
+              </>
+            ) : (
+              <span className="border-b border-black flex-1 pb-0.5">
+                {pard_data?.preferred_time || ""}
+              </span>
+            )}
           </label>
         </div>
 

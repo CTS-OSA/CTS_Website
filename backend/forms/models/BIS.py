@@ -1,7 +1,6 @@
 from django.db import models
 from django.core.exceptions import ValidationError
-from .student import Student
-from .enums import CollegeEnum, YearLevelEnum, DegreeProgramEnum, SupportChoices
+from .enums import SupportChoices
 from .submission import Submission
 from forms.utils.helperFunctions import check_required_fields
 

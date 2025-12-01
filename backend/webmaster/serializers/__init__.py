@@ -1,0 +1,3 @@
+from .PosterSerializers import (
+    PosterSerializer,
+)

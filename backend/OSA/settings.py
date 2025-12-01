@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'djoser',
     'forms.apps.FormsConfig',
     'analytics',
+    'webmaster',
     'storages'
 ]
 
