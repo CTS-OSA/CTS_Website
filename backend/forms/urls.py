@@ -71,5 +71,6 @@ urlpatterns = [
     # Guest Submissions
     path("guest/create-referral-submission/", create_referral_submission, name="create_submission"),
     path("guest/verify-referral-submission/", verify_referral_submission, name="verify_submission"),
+
 ]
 

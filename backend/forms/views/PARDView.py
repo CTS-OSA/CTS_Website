@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from ..models.submission import Submission
-from ..models.PARD import PARD
+from ..models.PARD import PARD, PARDSchedule
 from ..serializers.SerializerPARD import PARDSubmissionSerializer, PARDSerializer
 from ..models.student import Student
 from django.utils import timezone
@@ -309,13 +309,15 @@ class PARDFormView(APIView):
                 except PARD.DoesNotExist:
                     pass
 
+            
             response_data = {
                 "submission": {
                     "id": submission.id,
                     "submitted_on": submission.submitted_on
                 },
                 "pard_data": pard_data,
-                "student_data": student_data
+                "student_data": student_data,
+                "email": student.user.email
             }
             
             return Response(response_data, status=status.HTTP_200_OK)
@@ -346,24 +348,33 @@ class PARDFormView(APIView):
                 student_number=submission.student,
                 submission_id=submission
             )
-            
+
+            # FIX ME: IF THE STATUS IS COMPLETED, IT SHOULD ADD THE SCHEDULE DATE TO PARDSCHEDUlE            
             serializer = PARDSerializer(
                 pard_instance,
                 data=request.data,
                 partial=True
             )
-            
+
             if serializer.is_valid():
                 serializer.save()
                 return Response(
                     {"message": "Appointment updated successfully!"},
                     status=status.HTTP_200_OK
                 )
-            else:
-                return Response(
-                    {"Error updating data": serializer.errors},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+            
+            # if pard_instance.status == 'completed':
+                
+            #     PARDSchedule.objects.create(
+            #         student=student, 
+            #         scheduled_date=,
+            #         scheduled_time=
+            #     )
+
+            #     serializer = PARDScheduleSerializer(
+            #         data=request.data, 
+            #         partial=True
+            #     )
                 
         except Exception as e:
             return Response(
