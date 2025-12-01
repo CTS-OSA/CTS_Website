@@ -6,6 +6,7 @@ import { Menu, X, ChevronDown, Home, User } from "react-feather";
 import SignUpModal from "./SignUpModal";
 import LoginModal from "./LoginModal";
 import LogoutModal from "./LogoutModal";
+import { getProfilePhotoUrl, getProfileInitials } from "../utils/profileUtils";
 
 export default function Navbar() {
   const { user, logout, isAuthenticated, role, profileData, loading } =
@@ -21,12 +22,14 @@ export default function Navbar() {
   const loginRef = useRef(null);
   const userRef = useRef(null);
 
+  const profilePhotoUrl = getProfilePhotoUrl(profileData || user);
+  const profileInitials = getProfileInitials(profileData || user);
   const nickname = profileData?.nickname ?? user?.nickname ?? "User";
   const fullName = `${profileData?.first_name || user?.first_name || ""} ${
     profileData?.last_name || user?.last_name || ""
   }`.trim();
-  const idNumber =
-    profileData?.student_id || user?.student_id || user?.email || "";
+  const userEmail = profileData?.email || user?.email || "";
+  const idNumber = profileData?.student_id || user?.student_id || userEmail;
 
   useEffect(() => {
     const handler = (e) => {
@@ -150,28 +153,28 @@ export default function Navbar() {
                     <Link
                       to="/admin-bis-list"
                       onClick={() => setShowRecordsDropDown(false)}
-                      className="block px-4 py-2 hover:bg-gray-50"
+                      className="block px-4 py-2 hover:bg-gray-50 hover:rounded-t-sm hover:font-semibold"
                     >
                       Basic Information Sheet
                     </Link>
                     <Link
                       to="/admin-scif-list"
                       onClick={() => setShowRecordsDropDown(false)}
-                      className="block px-4 py-2 hover:bg-gray-50"
+                      className="block px-4 py-2 hover:bg-gray-50 hover:font-semibold"
                     >
                       Student Cumulative Information
                     </Link>
                     <Link
                       to="/admin-referral-list"
                       onClick={() => setShowRecordsDropDown(false)}
-                      className="block px-4 py-2 hover:bg-gray-50"
+                      className="block px-4 py-2 hover:bg-gray-50 hover:font-semibold"
                     >
                       Referral Form
                     </Link>
                     <Link
                       to="/admin-pard-list"
                       onClick={() => setShowRecordsDropDown(false)}
-                      className="block px-4 py-2 hover:bg-gray-50"
+                      className="block px-4 py-2 hover:bg-gray-50 hover:rounded-b-sm hover:font-semibold"
                     >
                       Psychosocial Assistance and Referral Desk
                     </Link>
@@ -229,8 +232,17 @@ export default function Navbar() {
                   <div className="absolute right-0 mt-2 bg-gray-200 text-gray-900 rounded shadow-lg w-52 z-50 font-roboto">
                     <div className="px-4 py-3 border-b border-gray-400">
                       <div className="flex items-center gap-3">
-                        <div className="bg-upmaroon text-white rounded-full w-10 h-10 flex items-center justify-center font-bold">
-                          {fullName?.charAt(0) || "U"}
+                        {/* Avatar */}
+                        <div className="flex-shrink-0 rounded-full w-10 h-10 overflow-hidden  text-white flex items-center justify-center font-bold">
+                          {profilePhotoUrl ? (
+                            <img
+                              src={profilePhotoUrl}
+                              alt={fullName || nickname}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            profileInitials
+                          )}
                         </div>
                         <div className="text-left">
                           <button
@@ -246,9 +258,12 @@ export default function Navbar() {
                             {fullName || nickname}
                           </button>
 
-                          {idNumber && (
-                            <div className="text-[10px] text-gray-600">
-                              {idNumber}
+                          {(idNumber || userEmail) && (
+                            <div
+                              className="text-[10px] text-gray-600 max-w-[160px] overflow-hidden whitespace-nowrap text-ellipsis"
+                              title={idNumber || userEmail}
+                            >
+                              {idNumber || userEmail}
                             </div>
                           )}
                         </div>
