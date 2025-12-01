@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import CustomTooltip from "../components/CustomToolTip";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function GroupedBarChart({
   data,
@@ -99,13 +100,13 @@ export default function GroupedBarChart({
             onClick={scrollLeft}
             className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 py-1 rounded"
           >
-            &lt;
+            <ChevronLeft />
           </button>
           <button
             onClick={scrollRight}
             className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 py-1 rounded"
           >
-            &gt;
+            <ChevronRight />
           </button>
         </div>
       )}

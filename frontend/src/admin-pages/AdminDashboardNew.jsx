@@ -7,6 +7,7 @@ import { useApiRequest } from "../context/ApiRequestContext";
 import Loader from "../components/Loader";
 import DefaultLayout from "../components/DefaultLayout";
 import { formatDate } from "../utils/helperFunctions.js";
+import { MoveRight } from "lucide-react";
 
 export const AdminDashboardNew = () => {
   const { user, role, loading } = useContext(AuthContext);
@@ -17,6 +18,7 @@ export const AdminDashboardNew = () => {
   const [recentSubmissions, setRecentSubmissions] = useState([]);
   const [referralData, setReferralData] = useState([]);
   const [totalStudents, setTotalStudents] = useState(0);
+  const [pardSubmissions, setPardSubmissions] = useState([]);
   const [error, setError] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
   const [filterText, setFilterText] = useState("");
@@ -76,6 +78,35 @@ export const AdminDashboardNew = () => {
       setLoadingData(false);
     }
 
+    const fetchReferrals = async () => {
+      try {
+        const res = await request(
+          "/api/forms/admin/counseling-referral-slip-submissions/"
+        );
+        if (!res || !res.ok) throw new Error("Failed to fetch referrals");
+        const data = await res.json();
+        setReferralData(data);
+      } catch (err) {
+        console.error("Referral fetch failed:", err);
+      }
+    };
+
+    const fetchPardForms = async () => {
+      try {
+        const res = await request(
+          "/api/forms/admin/psychosocial-assistance-and-referral-desk"
+        );
+        if (!res || !res.ok) throw new Error("Failed to fetch PARD forms");
+        const data = await res.json();
+        data.sort(
+          (a, b) => new Date(b.submitted_on) - new Date(a.submitted_on)
+        );
+        setPardSubmissions(data);
+      } catch (err) {
+        console.error("PARD fetch failed:", err);
+      }
+    };
+
     (async () => {
       try {
         const [barRes, summaryRes, recentRes] = await Promise.all([
@@ -99,22 +130,7 @@ export const AdminDashboardNew = () => {
           const json = await recentRes.json();
           setRecentSubmissions(json || []);
         }
-        const fetchReferrals = async () => {
-          try {
-            const res = await request(
-              "/api/forms/admin/counseling-referral-slip-submissions/"
-            );
-            if (!res.ok) throw new Error("Failed to fetch referrals");
-            const data = await res.json();
-            setReferralData(data);
-          } catch (err) {
-            console.error(err);
-          } finally {
-            setLoadingData(false);
-          }
-        };
-
-        fetchReferrals();
+        await Promise.all([fetchReferrals(), fetchPardForms()]);
       } catch (err) {
         setError("Failed to load dashboard data.");
       } finally {
@@ -130,23 +146,32 @@ export const AdminDashboardNew = () => {
     <DefaultLayout variant="admin">
       <div className="min-h-screen w-full px-4 sm:px-8 py-6 bg-gray-50">
         <div className="space-y-8">
+          {/* Summary cards */}
+          <div className="grid grid-cols-4 gap-6">
+            {summaryData.map((item, index) => (
+              <SummaryCard
+                key={index}
+                title={item.title}
+                value={item.value}
+                subtitle={item.subtitle}
+                color={item.color}
+              />
+            ))}
+          </div>
           <div className="flex flex-col lg:flex-row gap-6 pt-4 pr-4 pl-4 pb-0">
             <div className="flex flex-col gap-6 w-full lg:w-1/2">
-              {/* Summary cards */}
-              <div className="grid grid-cols-2 gap-6">
-                {summaryData.map((item, index) => (
-                  <SummaryCard
-                    key={index}
-                    title={item.title}
-                    value={item.value}
-                    subtitle={item.subtitle}
-                    color={item.color}
-                  />
-                ))}
-              </div>
               {/* Referral Table */}
               <div className="bg-white rounded-lg shadow p-4 flex-1 flex flex-col">
-                <h2 className="text-xl font-semibold mb-4">Referral Forms</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold">Referral Forms</h2>
+                  <button
+                    onClick={() => navigate("/admin-referral-list")}
+                    aria-label="Go to Referral list"
+                    className="text-upmaroon hover:scale-110 transform transition-colors duration-200"
+                  >
+                    <MoveRight />
+                  </button>
+                </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse ">
                     <thead className="bg-white-100 border-b border-t border-gray-300">
@@ -165,36 +190,106 @@ export const AdminDashboardNew = () => {
                         </th>
                       </tr>
                     </thead>
-              <tbody>
-                {referralData.slice(0, 5).map((row) => (
-                  <tr
-                    key={row.submission_id}
-                    className="border-b border-gray-200 hover:bg-gray-50"
-                  >
-                    <td className="py-2 px-3">
-                      {row.referred_person?.name || "-"}
-                    </td>
-                    <td className="py-2 px-3">{formatDate(row.referral_date)}</td>
-                    <td className="py-2 px-3">{row.referrer?.name || "-"}</td>
-                    <td className="py-2 px-3">
-                      <button
-                        onClick={() =>
-                          navigate(
-                            `/admin/counseling-referral-slip/${row.submission_id}/`
-                          )
-                        }
-                        className="text-blue-600 border border-blue-600 px-3 py-1 rounded-md hover:bg-blue-600 hover:text-white transition-colors duration-200"
-                      >
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              </table>
+                    <tbody>
+                      {referralData.slice(0, 5).map((row) => (
+                        <tr
+                          key={row.submission_id}
+                          className="border-b border-gray-200 hover:bg-gray-50"
+                        >
+                          <td className="py-2 px-3">
+                            {row.referred_person?.name || "-"}
+                          </td>
+                          <td className="py-2 px-3">
+                            {formatDate(row.referral_date)}
+                          </td>
+                          <td className="py-2 px-3">
+                            {row.referrer?.name || "-"}
+                          </td>
+                          <td className="py-2 px-3">
+                            <button
+                              onClick={() =>
+                                navigate(
+                                  `/admin/counseling-referral-slip/${row.submission_id}/`
+                                )
+                              }
+                              className="text-upmaroon border border-upmaroon px-3 py-1 rounded-md hover:bg-upmaroon hover:text-white transition-colors duration-200"
+                            >
+                              View
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
+              {/* PARD Recent Submissions */}
+              <div className="bg-white rounded-lg shadow p-4 flex-1 flex flex-col">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold">PARD Forms</h2>
+                  <button
+                    onClick={() => navigate("/admin-pard-list")}
+                    aria-label="Go to PARD list"
+                    className="text-upmaroon hover:scale-110 transform transition-colors duration-200"
+                  >
+                    <MoveRight />
+                  </button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm border-collapse ">
+                    <thead className="bg-white-100 border-b border-t border-gray-300">
+                      <tr>
+                        <th className="text-left py-2 px-3 font-medium">
+                          Name of Student
+                        </th>
+                        <th className="text-left py-2 px-3 font-medium">
+                          Date Submitted
+                        </th>
+                        <th className="text-left py-2 px-3 font-medium">
+                          Status
+                        </th>
+                        <th className="text-left py-2 px-3 font-medium">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pardSubmissions.slice(0, 5).map((submission) => (
+                        <tr
+                          key={submission.id}
+                          className="border-b border-gray-200 hover:bg-gray-50"
+                        >
+                          <td className="py-2 px-3">
+                            {`${submission.student?.first_name || ""} ${
+                              submission.student?.last_name || ""
+                            }`.trim() || "-"}
+                          </td>
+                          <td className="py-2 px-3">
+                            {formatDate(submission.submitted_on)}
+                          </td>
+                          <td className="py-2 px-3 capitalize">
+                            {submission.pard_status || "N/A"}
+                          </td>
+                          <td className="py-2 px-3">
+                            <button
+                              onClick={() =>
+                                navigate(
+                                  `/admin/psychosocial-assistance-and-referral-desk/${submission.id}/`
+                                )
+                              }
+                              className="text-upmaroon border border-upmaroon px-3 py-1 rounded-md hover:bg-upmaroon hover:text-white transition-colors duration-200"
+                            >
+                              View
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
+
             {/* Recent Submissions Table */}
             <div className="bg-white p-6 rounded-lg shadow w-full lg:w-3/5 flex-1 flex flex-col">
               <h2 className="text-xl font-semibold mb-4 ">
@@ -226,7 +321,7 @@ export const AdminDashboardNew = () => {
                         <td className="py-2 px-3">
                           <button
                             onClick={() => handleRowClick({ row })}
-                            className="text-blue-600 border border-blue-600 px-3 py-1 rounded-md hover:bg-blue-600 hover:text-white transition-colors duration-200"
+                            className="text-upmaroon border border-upmaroon px-3 py-1 rounded-md hover:bg-upmaroon hover:text-white transition-colors duration-200"
                           >
                             View
                           </button>
