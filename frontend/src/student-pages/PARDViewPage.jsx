@@ -26,8 +26,12 @@ const PARDProfileView = ({ profileData, formData }) => {
   const [status, setStatus] = useState("");
   const [statusChoices, setStatusChoices] = useState([]);
   const [formState, setFormState] = useState({
-    name: profileData ? `${profileData.last_name}, ${profileData.first_name} ${profileData.middle_name}` : "",
-    year_course: profileData ? `${profileData.current_year_level} - ${profileData.degree_program}` : "",
+    name: profileData
+      ? `${profileData.last_name}, ${profileData.first_name} ${profileData.middle_name}`
+      : "",
+    year_course: profileData
+      ? `${profileData.current_year_level} - ${profileData.degree_program}`
+      : "",
   });
 
   const handleDownloadClick = () => {
@@ -46,58 +50,58 @@ const PARDProfileView = ({ profileData, formData }) => {
   };
 
   const handleDownload = async () => {
-      const element = pdfRef.current;
-      element.classList.add("pdf-mode");
-  
-      // Fill input and select values as text content for PDF
-      const inputs = element.querySelectorAll('input, select');
-      inputs.forEach(input => {
-        if (input.value) {
-          input.setAttribute('data-value', input.value);
-        }
-      });
-  
-      // wait for fonts (modern browsers)
-      if (document.fonts && document.fonts.ready) {
-        try {
-          await document.fonts.ready;
-        } catch (e) {
-          /* ignore */
-        }
+    const element = pdfRef.current;
+    element.classList.add("pdf-mode");
+
+    // Fill input and select values as text content for PDF
+    const inputs = element.querySelectorAll("input, select");
+    inputs.forEach((input) => {
+      if (input.value) {
+        input.setAttribute("data-value", input.value);
       }
-  
-      // wait for images inside the element
-      const imgs = Array.from(element.querySelectorAll("img"));
-      await Promise.all(
-        imgs.map((img) => {
-          if (img.complete) return Promise.resolve();
-          return new Promise((res) => {
-            img.onload = img.onerror = res;
-          });
-        })
-      );
-  
-      const opt = {
-        filename: "Referral_Slip.pdf",
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          allowTaint: false,
-          scrollY: 0,
-        },
-        jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
-        pagebreak: { mode: ["css", "legacy"] },
-      };
-  
-      await html2pdf().set(opt).from(element).save();
-      element.classList.remove("pdf-mode");
+    });
+
+    // wait for fonts (modern browsers)
+    if (document.fonts && document.fonts.ready) {
+      try {
+        await document.fonts.ready;
+      } catch (e) {
+        /* ignore */
+      }
+    }
+
+    // wait for images inside the element
+    const imgs = Array.from(element.querySelectorAll("img"));
+    await Promise.all(
+      imgs.map((img) => {
+        if (img.complete) return Promise.resolve();
+        return new Promise((res) => {
+          img.onload = img.onerror = res;
+        });
+      })
+    );
+
+    const opt = {
+      filename: "Referral_Slip.pdf",
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        scrollY: 0,
+      },
+      jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+      pagebreak: { mode: ["css", "legacy"] },
     };
+
+    await html2pdf().set(opt).from(element).save();
+    element.classList.remove("pdf-mode");
+  };
 
   const handleSave = async () => {
     try {
       const changes = {};
-      
+
       if (appointmentDate !== (formData.pard_data?.preferred_date || "")) {
         changes.preferred_date = appointmentDate;
       }
@@ -140,7 +144,6 @@ const PARDProfileView = ({ profileData, formData }) => {
     }
   };
 
-
   useEffect(() => {
     if (formData?.pard_data) {
       setAppointmentDate(formData.pard_data.preferred_date || "");
@@ -152,13 +155,15 @@ const PARDProfileView = ({ profileData, formData }) => {
   useEffect(() => {
     const fetchEnums = async () => {
       try {
-        const response = await request('http://localhost:8000/api/forms/psychosocial-assistance-and-referral-desk/status-choices/');
+        const response = await request(
+          "http://localhost:8000/api/forms/psychosocial-assistance-and-referral-desk/status-choices/"
+        );
         if (response.ok) {
           const data = await response.json();
           setStatusChoices(data.status_choices || []);
         }
       } catch (error) {
-        console.error('Error fetching enums:', error);
+        console.error("Error fetching enums:", error);
       }
     };
     fetchEnums();
@@ -178,6 +183,11 @@ const PARDProfileView = ({ profileData, formData }) => {
         >
           Return to Profile
         </Button>
+        {role === "admin" && (
+          <Button variant="success" onClick={handleSave} className="pdf-button">
+            Save
+          </Button>
+        )}
         <Button
           variant="primary"
           onClick={handleDownloadClick}
@@ -185,26 +195,18 @@ const PARDProfileView = ({ profileData, formData }) => {
         >
           Download as PDF
         </Button>
-        {role === "admin" && (
-          <Button
-            variant="success"
-            onClick={handleSave}
-            className="pdf-button"
-          >
-            Save
-          </Button>
-        )}
       </div>
 
       <div className="pdf p-10" ref={pdfRef}>
         <h3>PSYCHOSOCIAL ASSISTANCE AND REFERRAL DESK (PARD)</h3>
         <h3>ONLINE APPOINMENT SCHEDULE</h3>
         <div className="font-semibold uppercase">
-          STATUS: {" "}
+          STATUS:{" "}
           {role === "admin" ? (
             <>
               <span className="pdf-text border-b border-black flex-1 pb-0.5">
-                {statusChoices.find(([value]) => value === status)?.[1] || status}
+                {statusChoices.find(([value]) => value === status)?.[1] ||
+                  status}
               </span>
               <span className="border-b border-black flex-1 pb-0.5 pdf-input">
                 <select
@@ -226,32 +228,41 @@ const PARDProfileView = ({ profileData, formData }) => {
             </span>
           )}
         </div>
-        <div className="section-title">I. DEMOGRAPHIC PROFILE</div>
+        <div className="section-title mt-2">I. DEMOGRAPHIC PROFILE</div>
         <div className="flex indented-section gap-3">
           <label>
             Name:{" "}
             <span className="border-b border-black flex-1 pb-0.5">
-              {profileData?.first_name || ""} {profileData?.middle_name || ""} {profileData?.last_name}
+              {profileData?.first_name || ""} {profileData?.middle_name || ""}{" "}
+              {profileData?.last_name}
             </span>
           </label>
           <label>
             Year Level:{" "}
-            <span className="border-b border-black flex-1 pb-0.5">{profileData?.current_year_level || ""}</span>
+            <span className="border-b border-black flex-1 pb-0.5">
+              {profileData?.current_year_level || ""}
+            </span>
           </label>
           <label>
             Degree Program:{" "}
-            <span className="border-b border-black flex-1 pb-0.5">{profileData?.degree_program || ""}</span>
+            <span className="border-b border-black flex-1 pb-0.5">
+              {profileData?.degree_program || ""}
+            </span>
           </label>
         </div>
         <div className="section-title mt-3">II. CONTACT INFORMATION</div>
         <div className="indented-section grid grid-cols-2 gap-5">
           <label>
             Contact Number:{" "}
-            <span className="border-b border-black flex-1 pb-0.5">{profileData?.contact_number || ""}</span>
+            <span className="border-b border-black flex-1 pb-0.5">
+              {profileData?.contact_number || ""}
+            </span>
           </label>
           <label>
             Email:{" "}
-            <span className="border-b border-black flex-1 pb-0.5">{email || ""}</span>
+            <span className="border-b border-black flex-1 pb-0.5">
+              {email || ""}
+            </span>
           </label>
           <label>
             Appointment Date:{" "}
@@ -311,9 +322,7 @@ const PARDProfileView = ({ profileData, formData }) => {
           </label>
           <label className="col-span-2">
             Symptoms Observed:
-            <AutoResizeTextarea
-              value={pard_data?.symptoms_observed || ""}
-            />
+            <AutoResizeTextarea value={pard_data?.symptoms_observed || ""} />
           </label>
           <label>
             Date Diagnosed:{" "}
@@ -330,15 +339,12 @@ const PARDProfileView = ({ profileData, formData }) => {
           <label>
             Communication Platform:{" "}
             <span className="border-b border-black flex-1 pb-0.5">
-              {
-                pard_data?.communication_platform
-                  ? pard_data.communication_platform
-                      .split("_")
-                      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                      .join(" ")
-                  : ""
-              }
-
+              {pard_data?.communication_platform
+                ? pard_data.communication_platform
+                    .split("_")
+                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(" ")
+                : ""}
             </span>
           </label>
         </div>
@@ -348,10 +354,8 @@ const PARDProfileView = ({ profileData, formData }) => {
             Date Filed:{" "}
             <span>
               {submission?.submitted_on
-                  ? new Date(submission.submitted_on).toLocaleDateString(
-                      "en-CA"
-                    )
-                  : ""}
+                ? new Date(submission.submitted_on).toLocaleDateString("en-CA")
+                : ""}
             </span>
           </label>
         </div>
