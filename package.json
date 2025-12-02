@@ -9,8 +9,10 @@
     "@mui/x-date-pickers": "^8.4.0",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
+    "html2canvas": "^1.4.1",
     "html2pdf.js": "^0.10.3",
     "js-cookie": "^3.0.5",
+    "jspdf": "^3.0.4",
     "react-feather": "^2.0.10",
     "react-toastify": "^11.0.5",
     "recharts": "^2.15.3"

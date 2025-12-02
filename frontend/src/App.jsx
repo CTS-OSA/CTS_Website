@@ -52,6 +52,7 @@ import SCIFProfilePage from "./student-pages/SCIFProfilePage";
 import PARDProfilePage from "./student-pages/PARDProfilePage";
 import ReferralSlipProfilePage from "./student-pages/ReferralSlipProfilePage";
 import VerifyReferralPage from "./forms/ReferralSlip/VerifyGuestReferral";
+import AdminReferralAcknowledgement from "./admin-pages/AdminReferralAcknowledgement";
 
 function App() {
   return (
@@ -230,6 +231,15 @@ function App() {
             </ProtectedRoute>
           }
         />
+        {/* NEW ROUTE: Admin Referral Acknowledgement */}
+        <Route
+          path="/admin/referral-acknowledgement/:referralId"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <AdminReferralAcknowledgement />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/admin-bis-list"
           element={
@@ -320,9 +330,14 @@ function App() {
         />
 
         {/* Fallback for unauthorized access */}
-        <Route path="/forms/counseling-referral-slip" element={<ProtectedRoute requireAdmin={false} requireUser={true}>
+        <Route
+          path="/forms/counseling-referral-slip"
+          element={
+            <ProtectedRoute requireAdmin={false} requireUser={true}>
               <ReferralSlip />
-            </ProtectedRoute>} />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/forms/pard"
           element={
@@ -332,10 +347,7 @@ function App() {
           }
         />
         <Route path="/forms/guest/counseling-referral-slip" element={<GuestReferralSlip />} />
-        <Route
-          path="/verify"
-          element={<VerifyReferralPage />}
-        />
+        <Route path="/verify" element={<VerifyReferralPage />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/public-forms" element={<FormPublicPage />} />
         <Route path="/faq" element={<FAQPublicPage />} />
