@@ -86,11 +86,11 @@ export const ChangePassword = () => {
 
   return (
     <>
-      <h1 className="page-heading">PRIVACY SETTING</h1>
+      <h1 className="page-heading">SYSTEM SETTINGS</h1>
       <div className="reset-password-page-wrapper">
         <div className="reset-password">
           <h2 className="form-title">CHANGE PASSWORD</h2>
-          <form onSubmit={handleSubmit} className="reset_form">
+          <form onSubmit={handleSubmit} className="-mt-4">
             <FormField
               label="Current Password"
               type="password"
@@ -117,7 +117,10 @@ export const ChangePassword = () => {
               required={true}
               name="reNewPassword"
             />
-            <button type="submit" className="submit-button">
+            <button
+              type="submit"
+              className="bg-upmaroon mt-2 rounded-md text-white font-roboto p-2 w-full cursor-pointer"
+            >
               CONFIRM
             </button>
           </form>
