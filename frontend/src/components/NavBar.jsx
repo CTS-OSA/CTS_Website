@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import logo from "../assets/upmin-logo.svg";
@@ -19,9 +19,6 @@ export default function Navbar() {
   const [showRecordsDropDown, setShowRecordsDropDown] = useState(false);
 
   const navigate = useNavigate();
-  const loginRef = useRef(null);
-  const userRef = useRef(null);
-
   const profilePhotoUrl = getProfilePhotoUrl(profileData || user);
   const profileInitials = getProfileInitials(profileData || user);
   const nickname = profileData?.nickname ?? user?.nickname ?? "User";
@@ -36,9 +33,12 @@ export default function Navbar() {
       if (activeModal && e.target.classList.contains("bg-black/50")) {
         setActiveModal(null);
       }
-      if (userRef.current && !userRef.current.contains(e.target)) {
-        setShowUserDropdown(false);
-      }
+      const clickedInsideUser =
+        e.target.closest("[data-user-dropdown]") !== null;
+      const clickedInsideRecords =
+        e.target.closest("[data-records-dropdown]") !== null;
+      if (!clickedInsideUser) setShowUserDropdown(false);
+      if (!clickedInsideRecords) setShowRecordsDropDown(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -63,7 +63,7 @@ export default function Navbar() {
 
   if (loading) {
     return (
-      <nav className="sticky top-0 left-0 w-full bg-upmaroon z-40 shadow-sm">
+      <nav className="sticky top-0 left-0 w-full bg-upmaroon z-40 shadow-lg">
         <div className="max-w-7xl mx-auto flex items-center p-4">
           <img src={logo} alt="logo" className="h-12 w-auto mr-4" />
           <div className="text-white">Loading...</div>
@@ -131,7 +131,7 @@ export default function Navbar() {
 
             {/* ADMIN ONLY — RECORD MANAGEMENT */}
             {role === "admin" && (
-              <div className="relative">
+              <div className="relative" data-records-dropdown>
                 <button
                   onClick={() => {
                     setShowRecordsDropDown((prev) => !prev);
@@ -209,7 +209,7 @@ export default function Navbar() {
             )}
 
             {isAuthenticated && (
-              <div className="relative" ref={userRef}>
+              <div className="relative" data-user-dropdown>
                 <button
                   onClick={() => {
                     setShowUserDropdown((prev) => !prev);
@@ -288,12 +288,6 @@ export default function Navbar() {
 
                           <button
                             className="w-full px-4 py-2 hover:bg-gray-100 hover:font-semibold hover:cursor-pointer transition duration-200"
-                            onClick={() => go("/public-forms")}
-                          >
-                            Forms
-                          </button>
-                          <button
-                            className="w-full px-4 py-2 hover:bg-gray-100 hover:font-semibold hover:cursor-pointer transition duration-200"
                             onClick={() => go("/privacy-setting")}
                           >
                             System Settings
@@ -308,6 +302,12 @@ export default function Navbar() {
                             onClick={() => go("/admin")}
                           >
                             Dashboard
+                          </button>
+                          <button
+                            className="block px-4 py-2 hover:bg-gray-50  w-full hover:font-semibold hover:cursor-pointer transition duration-200"
+                            onClick={() => go("/admin/myprofile")}
+                          >
+                            My Profile
                           </button>
                           <button
                             className="block px-4 py-2 hover:bg-gray-50  w-full hover:font-semibold hover:cursor-pointer transition duration-200"
@@ -382,7 +382,7 @@ export default function Navbar() {
               )}
 
               {role === "admin" && (
-                <div className="relative">
+                <div className="relative" data-records-dropdown>
                   <button
                     onClick={() => {
                       setShowRecordsDropDown((prev) => !prev);
@@ -435,7 +435,7 @@ export default function Navbar() {
               )}
 
               {!isAuthenticated && (
-                <div className="w-full" ref={loginRef}>
+                <div className="w-full">
                   <button
                     onClick={() => {
                       setActiveModal("login");
@@ -449,7 +449,7 @@ export default function Navbar() {
               )}
 
               {isAuthenticated && (
-                <div className="w-full" ref={userRef}>
+                <div className="w-full" data-user-dropdown>
                   <button
                     onClick={() => setShowUserDropdown((s) => !s)}
                     className="w-full text-center text-white uppercase py-2 inline-flex justify-center items-center gap-2"
@@ -484,15 +484,22 @@ export default function Navbar() {
                           <>
                             <button
                               className="block px-4 py-2 hover:bg-gray-50  w-full hover:font-semibold"
+                              onClick={() => go("/student")}
+                            >
+                              Dashboard
+                            </button>
+                            <button
+                              className="block px-4 py-2 hover:bg-gray-50  w-full hover:font-semibold"
                               onClick={() => go("/myprofile")}
                             >
                               My Profile
                             </button>
+
                             <button
                               className="block px-4 py-2 hover:bg-gray-50  w-full hover:font-semibold"
-                              onClick={() => go("/public-forms")}
+                              onClick={() => go("/privacy-setting")}
                             >
-                              Forms
+                              System Settings
                             </button>
                           </>
                         )}
