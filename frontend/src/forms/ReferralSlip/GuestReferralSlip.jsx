@@ -16,6 +16,7 @@ import ConfirmDialog from "../../components/ConfirmDialog";
 
 const ReferralSlip = () => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const isLoggedIn = false;
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -24,7 +25,6 @@ const ReferralSlip = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [errors, setErrors] = useState({});
-  const navigate = useNavigate();
 
   // Change to Referral Slip APIs
   const { finalizeGuestSubmission } = useFormApi();
@@ -204,9 +204,6 @@ const ReferralSlip = () => {
       if (result.success) {
         setShowConfirmation(true);
         setShowSuccessToast(true);
-        setTimeout(() => {
-          navigate("/submitted-forms/counseling-referral-slip");
-        }, 3000);
       } else {
         if (result.status === 400 && result.data.errors) {
           alert(
@@ -287,10 +284,10 @@ const ReferralSlip = () => {
                             step={step}
                             errors={errors}
                             setErrors={setErrors} />}
-                        {step === 4 && <RSSubmit />}
+                        {step === 4 && <RSSubmit formData={formData} step={step} />}
                       </>
                     ) : (
-                      <ReferralSubmissionConfirmation />
+                     <ReferralSubmissionConfirmation isLoggedIn={isLoggedIn} />
                     )}
                     {/* Error Message */}
                     {error && (
@@ -301,6 +298,7 @@ const ReferralSlip = () => {
                   </div>
 
                   {/* Buttons Section */}
+                  {!showConfirmation && (
                   <div className="flex justify-end mt-auto">
                     <div className="main-form-buttons">
                       {/* Step 1: 'Next' button */}
@@ -365,6 +363,7 @@ const ReferralSlip = () => {
                       {loading && <div>Loading...</div>}
                     </div>
                   </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -7,16 +7,13 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from rest_framework.permissions import AllowAny
 from forms.models import PendingSubmission
-from forms.serializers import ReferralSerializer
 from forms.tokens import submission_token
-from rest_framework.permissions import AllowAny
-from forms.models import Referrer, ReferredPerson, Referral, Submission
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
+from forms.models import Referrer, ReferredPerson, Referral, Submission, PendingSubmission
 from django.utils import timezone
-from forms.models import PendingSubmission, Submission
 from forms.serializers import ReferralSerializer, GuestReferralSerializer
-from forms.tokens import submission_token
+from django.template.loader import render_to_string
+from django.core.mail import EmailMultiAlternatives
+from django.utils.html import strip_tags
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -82,12 +79,24 @@ def create_referral_submission(request):
         verify_url = f"{settings.FRONTEND_URL}/verify?pending_id={pending.id}&token={token}"
 
         # Send email
-        send_mail(
-            subject="Verify your referral submission",
-            message=f"Click here to verify your submission: {verify_url}",
+        context = {
+            "verify_url": verify_url,
+            "site_name": "Your Counseling Office",
+            "year": 2025,
+        }
+
+        html_content = render_to_string("referral_verification.html", context)
+        text_content = strip_tags(html_content)
+        
+        email = EmailMultiAlternatives(
+            subject="Counseling Referral Slip Verification",
+            body=text_content,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[pending.email]
+            to=[pending.email],
         )
+        email.attach_alternative(html_content, "text/html")
+        email.send()
+
 
         return Response({"message": "Verification email sent."}, status=200)
 
@@ -138,7 +147,8 @@ def verify_referral_submission(request):
         form_type=pending.data.get("form_type", "Counseling Referral Slip"),
         guest_email=pending.data['guest_email'],
         status='draft',
-        submitted_on=timezone.now()
+        submitted_on=timezone.now(),
+        saved_on=timezone.now()
     )
 
     # ------------------------
@@ -155,4 +165,34 @@ def verify_referral_submission(request):
     submission.status = 'submitted'
     submission.save()
 
+    context = {
+        "referred_person_first_name": pending_data['referred_person']['first_name'],
+        "referred_person_last_name": pending_data['referred_person']['last_name'],
+        "referred_person_degree_program": pending_data['referred_person']['degree_program'],
+        "referred_person_year_level": pending_data['referred_person']['year_level'],
+        "referred_person_gender": pending_data['referred_person']['gender'],
+        "referred_person_contact_number": pending_data['referred_person']['contact_number'],
+        "reason_for_referral": pending_data['reason_for_referral'],
+        "initial_actions_taken": pending_data['initial_actions_taken'],
+        "referrer_first_name": pending_data['referrer']['first_name'],
+        "referrer_last_name": pending_data['referrer']['last_name'],
+        "referrer_department": pending_data['referrer']['department_unit'],
+        "referrer_contact_number": pending_data['referrer']['contact_number'],
+        "referrer_email": pending_data['guest_email'],
+        "referral_date": timezone.now,
+        "site_name": "Your Counseling Office",
+        "year": 2025,
+        "up_logo_url": "up_logo.png",
+        "up_28th_logo_url": "up28_logo.png",
+    }
+
+    html_content = render_to_string("referral_verified.html", context) 
+    text_content = strip_tags(html_content) 
+    email = EmailMultiAlternatives( 
+        subject="Your Referral Slip Has Been Sent to the Counselor", 
+        body=text_content, from_email=settings.DEFAULT_FROM_EMAIL, 
+        to=[pending_data['guest_email']], ) 
+    
+    email.attach_alternative(html_content, "text/html") 
+    email.send()
     return Response({"message": "Referral verified and saved successfully."}, status=201)

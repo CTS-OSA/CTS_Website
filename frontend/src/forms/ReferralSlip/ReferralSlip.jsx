@@ -17,6 +17,7 @@ import ConfirmDialog from "../../components/ConfirmDialog";
 
 const ReferralSlip = () => {
   const { profileData } = useContext(AuthContext);
+  const isLoggedIn = !!profileData; 
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -199,7 +200,7 @@ const ReferralSlip = () => {
         setShowConfirmation(true);
         setShowSuccessToast(true);
         setTimeout(() => {
-          navigate("/submitted-forms/counseling-referral-slip");
+          navigate("/student");
         }, 3000);
       } else {
         if (result.status === 400 && result.data.errors) {
@@ -279,7 +280,7 @@ const ReferralSlip = () => {
                         {step === 4 && <RSSubmit />}
                       </>
                     ) : (
-                      <ReferralSubmissionConfirmation />
+                      <ReferralSubmissionConfirmation isLoggedIn={isLoggedIn} />
                     )}
                     {/* Error Message */}
                     {error && (

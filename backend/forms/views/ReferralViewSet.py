@@ -48,7 +48,8 @@ class ReferralSubmissionView(APIView):
             student=student,
             status='submitted', 
             form_type='Counseling Referral Slip', 
-            submitted_on=timezone.now() 
+            submitted_on=timezone.now(),
+            saved_on=timezone.now()
         )
         serializer = ReferralSerializer(data=section_data, context={'request': request, 'submission': submission})
         if serializer.is_valid():

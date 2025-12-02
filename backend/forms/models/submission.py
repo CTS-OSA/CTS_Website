@@ -25,10 +25,14 @@ class Submission(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['student', 'form_type'],
-                condition=~models.Q(form_type='Psychosocial Assistance and Referral Desk'),
+                condition=~models.Q(form_type__in=[
+                    'Psychosocial Assistance and Referral Desk',
+                    'Counseling Referral Slip'
+                ]),
                 name='unique_form_type'
             )
-        ]  
+        ]
+ 
 
     def clean(self):
         super().clean()
