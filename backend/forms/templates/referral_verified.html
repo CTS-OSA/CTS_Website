@@ -1,0 +1,74 @@
+<!-- {% load i18n %}
+
+{% block subject %}
+{% blocktrans %}Counseling Referral Slip Verified{% endblocktrans %}
+{% endblock subject %}
+
+{% block text_body %}
+{% blocktrans %}Your referral submission has been successfully verified and forwarded to the counselor.{% endblocktrans %}
+
+{% trans "Thank you for taking the time to support a student’s well-being. Your care and attention truly make a difference." %}
+
+{% trans "The counselor will review the referral shortly." %}
+
+{% blocktrans %}The {{ site_name }} Team{% endblocktrans %}
+{% endblock text_body %}
+
+{% block html_body %} -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>{% trans "Referral Slip Verified" %}</title>
+</head>
+<body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding: 40px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; padding: 40px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+          
+          <!-- ICON -->
+          <tr>
+            <td align="center" style="padding-bottom: 20px;">
+              <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #7B1113; color: white; font-size: 28px; line-height: 60px; font-weight: bold; text-align: center; border-color:#7B1113;">
+                ✓
+              </div>
+            </td>
+          </tr>
+
+          <!-- TITLE -->
+          <tr>
+            <td align="center" style="font-size: 24px; font-weight: bold; color: #333; padding-bottom: 20px;">
+              {% trans "Your Referral Has Been Verified" %}
+            </td>
+          </tr>
+
+          <!-- MAIN MESSAGE -->
+          <tr>
+            <td style="font-size: 16px; color: #555; text-align: center; padding: 0 20px;">
+              {% blocktrans %}
+              Your counseling referral slip has been successfully verified and has been sent to the counselor.
+              {% endblocktrans %}
+              <br><br>
+              {% trans "Thank you for looking out for the student’s well-being. Your willingness to speak up shows care, compassion, and professionalism." %}
+              <br><br>
+              {% trans "The counselor will review the referral soon, and your support is greatly appreciated." %}
+            </td>
+          </tr>
+
+          <!-- FOOTER -->
+          <tr>
+            <td align="center" style="padding-top: 40px; font-size: 12px; color: #aaa;">
+              © {{ year|default:"2025" }} {{ site_name }}. {% trans "All rights reserved." %}<br />
+              {% trans "You received this email because you submitted a counseling referral slip." %}<br />
+              <a href="#" style="color: #888;">{% trans "Unsubscribe" %}</a>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+{% endblock html_body %}

@@ -188,3 +188,7 @@ class CounselorLicenseAdmin(admin.ModelAdmin):
 @admin.register(CounselorPhoto)
 class CounselorPhotoAdmin(admin.ModelAdmin):
     list_display = ('counselor', 'uploaded_at')
+
+@admin.register(PendingSubmission)
+class PendingSubmissionAdmin(admin.ModelAdmin):
+    list_display = ('email', 'status', 'created_at')
