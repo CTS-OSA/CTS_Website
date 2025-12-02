@@ -456,7 +456,7 @@ const SCIF = () => {
         setShowConfirmation(true); // ✅ show the confirmation component instead
 
         setTimeout(() => {
-          navigate("/submitted-forms/student-cumulative-information-file");
+          navigate("/student");
         }, 3000);
       } else {
         let errorMessage = "Failed to submit form.";

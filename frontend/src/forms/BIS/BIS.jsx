@@ -249,7 +249,7 @@ const BISForm = () => {
       if (result.success) {
         setShowConfirmation(true);
         setTimeout(() => {
-          navigate("/submitted-forms/basic-information-sheet");
+          navigate("/student");
         }, 3000);
       } else {
         if (result.status === 400 && result.data.errors) {
