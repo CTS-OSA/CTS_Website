@@ -12,6 +12,7 @@ import PaginationButtons from "../components/PaginationControls";
 import SortableTableHeader from "../components/SortableTableHeader";
 import Loader from "../components/Loader";
 import ConfirmDialog from "../components/ConfirmDialog";
+import { Eye, Trash2 } from "lucide-react";
 
 const STATUS_ORDER = ["read", "unread", "deleted", "completed", "pending"];
 
@@ -249,6 +250,24 @@ export const AdminPARDList = () => {
     setDeleteTarget(null);
   };
 
+  const getStatusBadgeClasses = (status) => {
+    const normalized = (status || "").toLowerCase();
+    switch (normalized) {
+      case "completed":
+        return "bg-upgreen text-white";
+      case "unread":
+        return "bg-blue-800 text-white";
+      case "read":
+        return "bg-orange-400 text-white";
+      case "pending":
+        return "bg-upyellow text-black";
+      case "deleted":
+        return "bg-gray-500 text-white";
+      default:
+        return "bg-gray-200 text-gray-800";
+    }
+  };
+
   const statusMenuItems = [
     ...STATUS_ORDER.map((status) => ({
       label: status.charAt(0).toUpperCase() + status.slice(1),
@@ -344,59 +363,76 @@ export const AdminPARDList = () => {
             {currentItems.length > 0 ? (
               currentItems.map((submission) => (
                 <tr key={submission.id}>
-                  <td>{submission.student.student_number}</td>
+                  <td data-label="Student ID">
+                    {submission.student.student_number}
+                  </td>
 
-                  <td>
+                  <td data-label="Student Name">
                     {submission.student.first_name}{" "}
                     {submission.student.last_name}
                   </td>
 
-                  <td>
+                  <td data-label="Year & Degree Program">
                     {submission.student.current_year_level} &{" "}
                     {submission.student.degree_program}
                   </td>
 
-                  <td>{formatDate(submission.submitted_on)}</td>
+                  <td data-label="Date Submitted">
+                    {formatDate(submission.submitted_on)}
+                  </td>
 
-                  <td className="status-column uppercase">
+                  <td className="status-column" data-label="Status">
                     <p
-                      className={` text-center rounded-lg mr-15 px-4 py-1
-                      ${
-                        submission.pard_status === "completed"
-                          ? "bg-upgreen text-white"
-                          : submission.pard_status === "unread"
-                          ? "bg-blue-800 text-white"
-                          : submission.pard_status === "read"
-                          ? "bg-orange-400"
-                          : submission.pard_status === "pending"
-                          ? "bg-upyellow"
-                          : submission.pard_status === "deleted"
-                          ? "bg-gray-500 text-white"
-                          : ""
-                      } `}
+                      className={`status-badge ${getStatusBadgeClasses(
+                        submission.pard_status
+                      )}`}
                     >
                       {submission.pard_status || "N/A"}
                     </p>
                   </td>
-                  <td className="actions-column flex gap-2 justify-center">
-                    <Button
-                      variant="secondary"
-                      onClick={() => handleViewStudent(submission.id)}
-                    >
-                      View
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      onClick={() => handleDeleteSubmission(submission)}
-                    >
-                      Delete
-                    </Button>
+                  <td className="actions-column" data-label="Actions">
+                    <div className="actions-desktop">
+                      <Button
+                        variant="secondary"
+                        onClick={() => handleViewStudent(submission.id)}
+                      >
+                        View
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        onClick={() => handleDeleteSubmission(submission)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                    <div className="actions-mobile">
+                      <button
+                        type="button"
+                        className="action-icon-button view"
+                        onClick={() => handleViewStudent(submission.id)}
+                        aria-label="View submission"
+                      >
+                        <Eye size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        className="action-icon-button delete"
+                        onClick={() => handleDeleteSubmission(submission)}
+                        aria-label="Delete submission"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="6" style={{ textAlign: "center" }}>
+                <td
+                  colSpan="6"
+                  data-label="Notice"
+                  style={{ textAlign: "center" }}
+                >
                   No submissions match your filters.
                 </td>
               </tr>

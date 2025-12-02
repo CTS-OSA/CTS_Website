@@ -11,6 +11,7 @@ import StudentFilterBar from "../components/StudentFilterBar";
 import PaginationButtons from "../components/PaginationControls";
 import SortableTableHeader from "../components/SortableTableHeader";
 import Loader from "../components/Loader";
+import { Eye } from "lucide-react";
 
 export const AdminBISList = () => {
   const navigate = useNavigate();
@@ -220,42 +221,58 @@ export const AdminBISList = () => {
                 onClearSort={handleClearSort}
               />
               <SortableTableHeader
-                label="Year – Degree Program"
+                label="Year & Degree Program"
                 sortKey="yearProgram"
                 currentSort={sortConfig}
                 onSort={handleSort}
                 onClearSort={handleClearSort}
               />
-              <th>Actions</th>
+              <th className="actions-column">Actions</th>
             </tr>
           </thead>
           <tbody>
             {currentItems.length > 0 ? (
               currentItems.map(({ student, submitted_on }) => (
                 <tr key={student.student_number}>
-                  <td>
-                    {student.student_number}
-                  </td>
-                  <td>
+                  <td data-label="Student ID">{student.student_number}</td>
+                  <td data-label="Student Name">
                     {student.first_name} {student.last_name}
                   </td>
-                  <td>{formatDate(submitted_on)}</td>
-                  <td>
-                    {student.current_year_level} – {student.degree_program}
+                  <td data-label="Date Submitted">
+                    {formatDate(submitted_on)}
                   </td>
-                  <td>
-                    <Button
-                      variant="secondary"
-                      onClick={() => handleViewStudent(student)}
-                    >
-                      View
-                    </Button>
+                  <td data-label="Year & Degree Program">
+                    {student.current_year_level} & {student.degree_program}
+                  </td>
+                  <td className="actions-column" data-label="Actions">
+                    <div className="actions-desktop">
+                      <Button
+                        variant="secondary"
+                        onClick={() => handleViewStudent(student)}
+                      >
+                        View
+                      </Button>
+                    </div>
+                    <div className="actions-mobile">
+                      <button
+                        type="button"
+                        className="action-icon-button view"
+                        onClick={() => handleViewStudent(student)}
+                        aria-label="View submission"
+                      >
+                        <Eye size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="5" style={{ textAlign: "center" }}>
+                <td
+                  colSpan="5"
+                  data-label="Notice"
+                  style={{ textAlign: "center" }}
+                >
                   No submissions match your filters.
                 </td>
               </tr>

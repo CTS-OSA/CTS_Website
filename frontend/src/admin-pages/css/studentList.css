@@ -56,7 +56,7 @@ th {
 }
 
 /* Button styling */
-.admin-student-list table button {
+.admin-student-list table button:not(.action-icon-button) {
   background-color: #58514f;
   color: #fff;
   border: none;
@@ -67,7 +67,7 @@ th {
   font-size: 0.85rem;
 }
 
-.admin-student-list table button:hover {
+.admin-student-list table button:not(.action-icon-button):hover {
   background-color: #7b1113;
 }
 
@@ -96,23 +96,110 @@ th {
   width: 14%;
 }
 
-.pard-table th.status-header,
-.pard-table th.actions-column {
+.pard-table th.status-header {
   text-align: center;
 }
 
-.pard-table td.status-column {
+.admin-student-list th.actions-column {
+  text-align: center;
+  padding-right: 40px;
+}
+
+.admin-student-list td.status-column {
   text-align: center;
 }
 
-.pard-table td.actions-column {
+.admin-student-list td.actions-column {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   gap: 0.5rem;
 }
 
-.pard-table td.actions-column button {
+.admin-student-list td.actions-column button:not(.action-icon-button) {
   flex: 0 0 auto;
+}
+
+.actions-desktop,
+.actions-mobile {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  width: auto;
+  padding-right: 20px;
+}
+
+.actions-desktop {
+  flex-wrap: nowrap;
+}
+
+.actions-mobile {
+  display: none;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.actions-desktop .btn {
+  /* border-radius: 999px; */
+  min-width: 80px;
+  text-align: center;
+}
+
+.action-icon-button {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.action-icon-button.view {
+  background-color: #014421;
+}
+.action-icon-button.view:hover {
+  background-color: #0c6a39;
+}
+
+.action-icon-button.delete {
+  background-color: #7b1113;
+}
+.action-icon-button.delete:hover {
+  background-color: #b71c1c;
+}
+
+.status-badge {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 110px;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+/* Medium screens: switch to icon-only controls */
+@media (max-width: 1024px) {
+  .admin-student-list td.actions-column {
+    align-items: flex-start;
+  }
+
+  .actions-desktop {
+    display: none;
+  }
+
+  .actions-mobile {
+    display: flex;
+    justify-content: flex-start;
+  }
 }
 
 /* Responsive Table */
@@ -151,6 +238,15 @@ th {
     margin-bottom: 1rem;
     border-bottom: 1px solid #ddd;
     padding-bottom: 1rem;
+  }
+
+  .actions-desktop button:not(.action-icon-button) {
+    width: 100%;
+  }
+
+  .status-badge {
+    width: 100%;
+    min-width: auto;
   }
 
   .admin-student-list .MuiPagination-root {
