@@ -68,7 +68,7 @@ const FormField = ({
     focus:outline-none focus:ring-0 peer ${className}`;
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full mt-2">
       {type === "textarea" ? (
         <textarea
           id={id}

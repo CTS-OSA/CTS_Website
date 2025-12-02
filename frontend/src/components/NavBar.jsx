@@ -296,7 +296,7 @@ export default function Navbar() {
                             className="w-full px-4 py-2 hover:bg-gray-100 hover:font-semibold hover:cursor-pointer transition duration-200"
                             onClick={() => go("/privacy-setting")}
                           >
-                            Privacy Setting
+                            System Settings
                           </button>
                         </>
                       )}
