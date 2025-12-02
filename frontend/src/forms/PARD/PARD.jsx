@@ -190,8 +190,7 @@ const PARD = () => {
         message: "This field is required.",
       },
       date_diagnosed: {
-        required: true,
-        message: "This field is required.",
+        required: false,
         lesserThan: new Date(),
         lesserThanMessage: "Please enter a valid date.",
       },

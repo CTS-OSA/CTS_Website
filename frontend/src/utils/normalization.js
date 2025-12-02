@@ -1,12 +1,12 @@
 export const normalizeNumber = (formData) => {
   const normalizedData = JSON.parse(JSON.stringify(formData)); 
 
-  if (normalizedData.family_data?.mother?.age !== "") {
+  if (normalizedData.family_data?.mother?.age !== "" && normalizedData.family_data?.mother?.age != null) {
     normalizedData.family_data.mother.age = 
       Number(normalizedData.family_data.mother.age);
   }
 
-  if (normalizedData.family_data?.father?.age !== "") {
+  if (normalizedData.family_data?.father?.age !== "" && normalizedData.family_data?.father?.age != null) {
     normalizedData.family_data.father.age = 
       Number(normalizedData.family_data.father.age);
   }
