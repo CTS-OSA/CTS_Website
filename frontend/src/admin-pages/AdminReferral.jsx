@@ -11,6 +11,7 @@ import SortableTableHeader from "../components/SortableTableHeader";
 import Loader from "../components/Loader";
 import { formatDate } from "../utils/helperFunctions";
 import "./css/studentList.css";
+import { Eye } from "lucide-react";
 
 export const AdminReferral = () => {
   const navigate = useNavigate();
@@ -152,6 +153,27 @@ export const AdminReferral = () => {
 
   const handleViewReferral = (submission_id) => navigate(`/admin/counseling-referral-slip/${submission_id}/`);
 
+  const getStatusBadgeClasses = (status) => {
+    const normalized = (status || "").toLowerCase();
+    switch (normalized) {
+      case "completed":
+      case "resolved":
+        return "bg-upgreen text-white";
+      case "in-progress":
+      case "read":
+        return "bg-orange-400 text-white";
+      case "pending":
+        return "bg-upyellow text-black";
+      case "unread":
+        return "bg-blue-800 text-white";
+      case "cancelled":
+      case "deleted":
+        return "bg-gray-500 text-white";
+      default:
+        return "bg-gray-200 text-gray-800";
+    }
+  };
+
   return (
     <DefaultLayout variant="admin">
       <Box className="admin-student-list" sx={{ p: 3 }} style={{ padding: 50 }}>
@@ -191,7 +213,7 @@ export const AdminReferral = () => {
                 onClearSort={handleClearSort}
               />
               <SortableTableHeader
-                label="Year – Degree Program"
+                label="Year & Degree Program"
                 sortKey="yearProgram"
                 currentSort={sortConfig}
                 onSort={handleSort}
@@ -211,28 +233,56 @@ export const AdminReferral = () => {
                 onSort={handleSort}
                 onClearSort={handleClearSort}
               />
-              <th>Actions</th>
+              <th className="actions-column">Actions</th>
             </tr>
           </thead>
           <tbody>
             {currentItems.length > 0 ? (
               currentItems.map(({ submission_id, referral_date, referral_status, referred_person, referrer }) => (
                 <tr key={submission_id}>
-                  <td>{`${referred_person?.name || ""}`}</td>
-                  <td>{formatDate(referral_date)}</td>
-                  <td>{referred_person ? `${referred_person.year_level} – ${referred_person.degree_program}` : "-"}</td>
-                  <td>{referrer?.name || "-"}</td>
-                  <td>{referral_status}</td>
-                  <td>
-                    <Button variant="secondary" onClick={() => handleViewReferral(submission_id)}>
-                      View
-                    </Button>
+                  <td data-label="Name">{`${referred_person?.name || ""}`}</td>
+                  <td data-label="Referral Date">{formatDate(referral_date)}</td>
+                  <td data-label="Year & Degree Program">
+                    {referred_person
+                      ? `${referred_person.year_level} & ${referred_person.degree_program}`
+                      : "-"}
+                  </td>
+                  <td data-label="Referred By">{referrer?.name || "-"}</td>
+                  <td className="status-column" data-label="Status">
+                    <span
+                      className={`status-badge ${getStatusBadgeClasses(
+                        referral_status
+                      )}`}
+                    >
+                      {referral_status || "N/A"}
+                    </span>
+                  </td>
+                  <td className="actions-column" data-label="Actions">
+                    <div className="actions-desktop">
+                      <Button variant="secondary" onClick={() => handleViewReferral(submission_id)}>
+                        View
+                      </Button>
+                    </div>
+                    <div className="actions-mobile">
+                      <button
+                        type="button"
+                        className="action-icon-button view"
+                        onClick={() => handleViewReferral(submission_id)}
+                        aria-label="View referral"
+                      >
+                        <Eye size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="6" style={{ textAlign: "center" }}>
+                <td
+                  colSpan="6"
+                  data-label="Notice"
+                  style={{ textAlign: "center" }}
+                >
                   No submissions match your filters.
                 </td>
               </tr>
