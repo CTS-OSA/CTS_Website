@@ -245,16 +245,7 @@ export default function Navbar() {
                           )}
                         </div>
                         <div className="text-left">
-                          <button
-                            className="text-left font-semibold hover:cursor-pointer hover:scale-105 transform duration-200 flex-1"
-                            onClick={() =>
-                              go(
-                                role === "admin"
-                                  ? "/admin/myprofile"
-                                  : "/myprofile"
-                              )
-                            }
-                          >
+                          <button className="text-left font-semibold flex-1">
                             {fullName || nickname}
                           </button>
 
@@ -466,10 +457,7 @@ export default function Navbar() {
                   {showUserDropdown && (
                     <div className="mt-2 bg-gray-200 text-gray-900 rounded shadow-lg font-roboto">
                       <div className="px-4 py-3 border-b text-center border-gray-400">
-                        <button
-                          className="font-semibold hover:cursor-pointer hover:scale-105 transition  duration-200 ease-in-out"
-                          onClick={() => go("/admin/myprofile")}
-                        >
+                        <button className="font-semibold">
                           {fullName || nickname}
                         </button>
                         {idNumber && (
