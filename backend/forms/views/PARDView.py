@@ -323,7 +323,6 @@ class PARDFormView(APIView):
                 submission_id=submission
             )
 
-            # FIX ME: IF THE STATUS IS COMPLETED, IT SHOULD ADD THE SCHEDULE DATE TO PARDSCHEDUlE            
             serializer = PARDSerializer(
                 pard_instance,
                 data=request.data,
