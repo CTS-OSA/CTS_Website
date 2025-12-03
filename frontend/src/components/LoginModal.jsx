@@ -92,15 +92,6 @@ export default function LoginModal ({ onClose, onSwitchToSignup}) {
                   text={loading ? "Logging in..." : "Log In"}
                   disabled={loading}
                 />
-              <div className="flex items-center justify-center mb-4">
-                <hr className="grow border-t border-gray-300" />
-                <span className="mx-3 text-gray-500 text-sm">or</span>
-                <hr className="grow border-t border-gray-300" />
-              </div>
-              <SubmitButton
-                text={loading ? "Logging in..." : "Log in with Google"}
-                disabled={loading}
-              />
               <div className="text-center text-sm text-gray-600 mt-2 leading-[1.6]">
                 <br />
                   <span className="text-sm text-gray-600">
