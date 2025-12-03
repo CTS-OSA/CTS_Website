@@ -6,6 +6,7 @@ from .student import Student
 from .counselor import Counselor
 from django.core.exceptions import ValidationError
 from users.models import CustomUser
+from django.utils import timezone
    
 class Referrer(models.Model):
     # Logged-in referrer
@@ -22,7 +23,9 @@ class Referrer(models.Model):
     )
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}"
+        first = self.first_name or ""
+        last = self.last_name or ""
+        return f"{first} {last}".strip()
 
     def is_registered(self):
         return self.student is not None
@@ -46,7 +49,7 @@ class Referrer(models.Model):
         # Guest referrer validations
         else:
             required_fields = [
-                self.first_name, self.last_name, self.email,
+                self.first_name, self.last_name,
                 self.department_unit, self.contact_number
             ]
             if not all(required_fields):
@@ -66,11 +69,7 @@ class ReferredPerson(models.Model):
     gender = models.CharField(max_length=10, null=True, blank=True)
 
     def clean(self):
-        submission_status = self.referral.submission.status
-        if submission_status == 'draft':
-            return
-
-        elif self.referral.submission.status == 'submitted':
+        if self.referral.submission.status == 'submitted':
             required_fields = {
                 'first_name': 'required',
                 'last_name': 'required',
@@ -87,7 +86,7 @@ class Referral(models.Model):
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
     referrer = models.ForeignKey(Referrer, null=True, blank=True, on_delete=models.SET_NULL)
     referred_person = models.ForeignKey(ReferredPerson, null=True, blank=True, on_delete=models.SET_NULL)
-    referral_date = models.DateTimeField(auto_now=True)
+    referral_date = models.DateTimeField(auto_now_add=True)
     reason_for_referral = models.TextField(blank=True)
     initial_actions_taken = models.TextField(blank=True)
     referral_status = models.CharField(
@@ -124,7 +123,7 @@ class AcknowledgementReceipt(models.Model):
     referral = models.ForeignKey(Referral, on_delete=models.CASCADE)
     counselor = models.ForeignKey(Counselor, on_delete=models.CASCADE)
     date_of_visitation = models.DateField()
-    date_of_receipt = models.DateField()
+    date_of_receipt = models.DateTimeField(default=timezone.now)
     status = models.CharField(max_length=30, choices=ReceiptStatus.choices)
     follow_up = models.IntegerField(null=True, blank=True)
     referred_to = models.CharField(max_length=50, null=True, blank=True)
@@ -132,10 +131,6 @@ class AcknowledgementReceipt(models.Model):
     def clean(self):
         # Get submission status through referral
         submission_status = self.referral.submission.status
-
-        # 1) SKIP validation while draft
-        if submission_status == 'draft':
-            return
 
         # 2) Validate on submitted
         errors = {}

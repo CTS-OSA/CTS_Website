@@ -233,7 +233,7 @@ function App() {
         />
         {/* NEW ROUTE: Admin Referral Acknowledgement */}
         <Route
-          path="/admin/referral-acknowledgement/:referralId"
+          path="/admin/referral-acknowledgement/:submission_id"
           element={
             <ProtectedRoute requireAdmin={true} requireUser={false}>
               <AdminReferralAcknowledgement />
