@@ -11,6 +11,7 @@ from .views.PARDView import PARDSubmitView, PARDFormView, PARDStatusView
 from .views.AdminProfileView import get_counselor_profile, update_counselor_profile, create_counselor_profile
 from .views.GuestSubmissionView import create_referral_submission, verify_referral_submission
 from .views.ReferralViewSet import ReferralSubmissionView
+from .views.FormStatusView import FormStatusView
 
 app_name= 'forms'
 
@@ -26,6 +27,10 @@ urlpatterns = [
     path('admin/basic-information-sheet-submissions', AdminBISList.as_view(), name='get_bis_students'),
     path('admin/student-cumulative-information-file-submissions', AdminSCIFList.as_view(), name='get_scif_students'),
     path('admin/counseling-referral-slip-submissions/', AdminReferralListView.as_view(), name='admin-referral-list'),
+    
+    # Form Status Check
+    path('check-form-submission/', FormStatusView.as_view(), name='forms-status'),
+    
     path('<str:form_type>/', FormBundleView.as_view(), name='form-bundle'),
     path('finalize/<int:submission_id>/', FinalizeSubmissionView.as_view(), name='finalize-submission'),
     path('admin/students/', AdminStudentListView.as_view(), name='admin-student-list'),
@@ -42,7 +47,6 @@ urlpatterns = [
     # PARD 
     path('psychosocial-assistance-and-referral-desk/submit/<str:student_number>/', PARDSubmitView.as_view(), name='pard-submit'),
     path('psychosocial-assistance-and-referral-desk/student-data/<str:student_number>/', PARDSubmitView.as_view(), name='pard-student-data'),
-    path('psychosocial-assistance-and-referral-desk/check-submission/', PARDSubmitView.as_view(), name='pard-check'),
     path('psychosocial-assistance-and-referral-desk/delete/<str:student_number>/', PARDSubmitView.as_view(), name='pard-delete'),
     path('psychosocial-assistance-and-referral-desk/<int:submission_id>/', PARDFormView.as_view(), name='get_pard_data'),
     

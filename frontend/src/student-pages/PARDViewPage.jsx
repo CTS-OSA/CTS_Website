@@ -201,9 +201,9 @@ const PARDProfileView = ({ profileData, formData }) => {
         <h3>PSYCHOSOCIAL ASSISTANCE AND REFERRAL DESK (PARD)</h3>
         <h3>ONLINE APPOINMENT SCHEDULE</h3>
         <div className="font-semibold uppercase">
-          STATUS:{" "}
           {role === "admin" ? (
             <>
+              STATUS:{" "}
               <span className="pdf-text border-b border-black flex-1 pb-0.5">
                 {statusChoices.find(([value]) => value === status)?.[1] ||
                   status}
@@ -223,9 +223,7 @@ const PARDProfileView = ({ profileData, formData }) => {
               </span>
             </>
           ) : (
-            <span className="border-b border-black flex-1 pb-0.5">
-              {statusChoices.find(([value]) => value === status)?.[1] || status}
-            </span>
+            ""
           )}
         </div>
         <div className="section-title mt-2">I. DEMOGRAPHIC PROFILE</div>
@@ -289,7 +287,7 @@ const PARDProfileView = ({ profileData, formData }) => {
             {role === "admin" ? (
               <>
                 <span className="border-b border-black flex-1 pb-0.5 pdf-text">
-                  {appointmentTime || ""}
+                  {appointmentTime ? new Date(`1970-01-01T${appointmentTime}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : ""}
                 </span>
                 <input
                   type="time"
@@ -300,7 +298,7 @@ const PARDProfileView = ({ profileData, formData }) => {
               </>
             ) : (
               <span className="border-b border-black flex-1 pb-0.5">
-                {pard_data?.preferred_time || ""}
+                {pard_data?.preferred_time ? new Date(`1970-01-01T${pard_data.preferred_time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : ""}
               </span>
             )}
           </label>

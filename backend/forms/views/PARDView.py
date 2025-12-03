@@ -202,32 +202,6 @@ class PARDSubmitView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
-    def hasSubmittedPARD(self,student):
-        # Check if there's a submitted PARD submission
-        submission_exists = Submission.objects.filter(
-            student=student,
-            form_type="Psychosocial Assistance and Referral Desk",
-            status='submitted'
-        ).exists()
-
-        return submission_exists
-
-    def head(self, request):
-        """Check if logged-in user has submitted PARD form"""
-        try:
-            student = request.user.student
-            
-            # Check if there's a submitted PARD submission
-            submission_exists = self.hasSubmittedPARD(student)
-            
-            return Response({"has_submitted": submission_exists}, status=status.HTTP_200_OK)
-            
-        except Exception as e:
-            return Response(
-                {"error": f"An error occurred: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-    
     # Updates data from the admin side  
     def patch(self, request, submission_id):
         try: 

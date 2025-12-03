@@ -21,7 +21,12 @@ export const FormPublicPage = () => {
   const [pageLoading, setPageLoading] = useState(false);
   const { user, profileData, loading } = useContext(AuthContext);
   const [cardsPerRow, setCardsPerRow] = useState(4);
-  const [hasSubmittedPard, setHasSubmittedPard] = useState(false);
+  const [formStatuses, setFormStatuses] = useState({
+    pard: false,
+    scif: false,
+    'referral-form': false,
+    bis: false
+  });
   const { request } = useApiRequest();
 
 
@@ -38,16 +43,14 @@ export const FormPublicPage = () => {
     window.addEventListener("resize", handleResize);
     handleResize();
 
-    if (user) {
-      checkPardSubmission().then((hasSubmitted) => {
-        if (hasSubmitted) {
-          setHasSubmittedPard(true);
-        }
-      });
-    }
-
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      checkFormStatuses();
+    }
+  }, [user]);
 
   const getCardClasses = (index) => {
     const isFirstInRow = index % cardsPerRow === 0;
@@ -129,34 +132,22 @@ export const FormPublicPage = () => {
     navigate(`/forms/${form}`);
   };
 
-  const checkPardSubmission = async () => {
+  const checkFormStatuses = async () => {
+    try {
       const response = await request(
-        `http://localhost:8000/api/forms/psychosocial-assistance-and-referral-desk/check-submission/`,
+        `http://localhost:8000/api/forms/check-form-submission/`,
         {
-          method: "HEAD",
+          method: "GET",
           headers: { "Content-Type": "application/json" }
         }
       );
-      console.log("response", response);
-
-      if (response?.status === 404) return null;
-      // if (response?.status === 200) console.log("has submitted pard");
-      return response?.ok;
-    };
-
-  const createNewPardSubmission = async () => {
-    const response = await request(
-      `http://localhost:8000/api/forms/psychosocial-assistance-and-referral-desk/create-new/`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" }
+      
+      if (response?.ok) {
+        const data = await response.json();
+        setFormStatuses(data);
       }
-    );
-    
-    if (response?.ok) {
-      navigate(`/forms/pard`);
-    } else {
-      setToastMessage("Failed to create new submission");
+    } catch (error) {
+      console.error("Error fetching form statuses:", error);
     }
   };
 
@@ -233,18 +224,45 @@ export const FormPublicPage = () => {
                   </div>
                   <div className="flex justify-end mt-auto">
                     <button
-                      disabled={form.comingSoon}
+                      disabled={(() => {
+                        if (form.comingSoon) return true;
+                        
+                        // Disable BIS and SCIF if submitted
+                        let isSubmitted = false;
+                        if (form.id === "basic-information-sheet") isSubmitted = formStatuses.bis;
+                        else if (form.id === "student-cumulative-information-file") isSubmitted = formStatuses.scif;
+                        
+                        return (form.id === "basic-information-sheet" || form.id === "student-cumulative-information-file") && isSubmitted;
+                      })()}
                       className={`self-start px-3 sm:px-5 py-1.5 sm:py-[0.6rem] rounded-lg text-xs sm:text-[0.9rem] border transition-colors duration-300 ease-in-out 
                         ${
-                          form.comingSoon
+                          form.comingSoon || ((form.id === "basic-information-sheet" && formStatuses.bis) || (form.id === "student-cumulative-information-file" && formStatuses.scif))
                             ? "bg-gray-400 text-white cursor-not-allowed border-transparent"
                             : "bg-upgreen text-white hover:bg-green-700 hover:scale-105 duration-300 ease-in-out cursor-pointer border-transparent active:bg-white active:text-maroon-700 active:border-maroon-700"
                         }`}
                     >
-                      {index == 3 ?
-                        (hasSubmittedPard ? "Create a new submission" : "Fill Out") :
-                        (form.comingSoon ? "Coming Soon" : "Fill Out")
-                      }
+                      {(() => {
+                        if (form.comingSoon) return "Coming Soon";
+                        
+                        // Check if form is submitted based on form ID
+                        let isSubmitted = false;
+                        if (form.id === "basic-information-sheet") isSubmitted = formStatuses.bis;
+                        else if (form.id === "student-cumulative-information-file") isSubmitted = formStatuses.scif;
+                        else if (form.id === "pard") isSubmitted = formStatuses.pard;
+                        else if (form.id === "counseling-referral-slip") isSubmitted = formStatuses['referral-form'];
+                        
+                        // BIS and SCIF show "Submitted" when submitted
+                        if ((form.id === "basic-information-sheet" || form.id === "student-cumulative-information-file") && isSubmitted) {
+                          return "Submitted";
+                        }
+                        
+                        // PARD and referral show "Create a new submission" when submitted
+                        if ((form.id === "pard" || form.id === "counseling-referral-slip") && isSubmitted) {
+                          return "Create a new submission";
+                        }
+                        
+                        return "Fill Out";
+                      })()}
                     </button>
                   </div>
                 </div>
