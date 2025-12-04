@@ -10,6 +10,7 @@ import ToastMessage from "../components/ToastMessage";
 import ConfirmDialog from "../components/ConfirmDialog";
 import Loader from "../components/Loader";
 import { validatePhotoFile } from "../utils/photoValidation";
+import { formatDate } from "../utils/helperFunctions";
 import {
   validateEditableProfile,
   mergeProfileAndFormData,
@@ -811,9 +812,8 @@ const StudentSideInfo = ({
           <table className="dashboard-table">
             <thead>
               <tr>
-                <th>Form Type</th>
+                <th className="text-left">Form Type</th>
                 <th>Date Submitted</th>
-                <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -821,19 +821,12 @@ const StudentSideInfo = ({
               {submittedForms.map((form) => (
                 <tr key={form.id}>
                   <td>{form.form_type}</td>
-                  <td>
-                    {new Date(
+                  <td className="text-center">
+                    {formatDate(
                       form.submitted_on || form.saved_on
-                    ).toLocaleDateString()}
+                    )}
                   </td> 
-                  <td>
-                    <span
-                      className={`status-badge ${form.status.toLowerCase()}`}
-                    >
-                      {form.status}
-                    </span>
-                  </td>
-                  <td>
+                  <td className="text-center">
                     <button
                       className="view-button"
                       onClick={() =>

@@ -55,5 +55,6 @@ from .SerializerReferral import (
     GuestReferrerSerializer,
     ReferralSerializer,
     StudentReferrerSerializer, 
-    GuestReferralSerializer
+    GuestReferralSerializer,
+    AcknowledgementReceiptSerializer
 )

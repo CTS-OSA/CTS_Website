@@ -88,7 +88,7 @@ class PARDStatus(models.TextChoices):
     
 class ReferralStatus(models.TextChoices):
     UNREAD = 'unread', 'Unread'
-    PENDING = 'pending', 'Pending'
+    READ = 'read', 'Read'
     ACKNOWLEDGED = 'acknowledged', 'Acknowledged'
 
 DEGREE_TO_COLLEGE = {

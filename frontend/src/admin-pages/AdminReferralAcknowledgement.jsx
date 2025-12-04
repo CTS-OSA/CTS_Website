@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useApiRequest } from "../context/ApiRequestContext";
-import { AuthContext } from "../context/AuthContext";
 import DefaultLayout from "../components/DefaultLayout";
 import Button from "../components/UIButton";
 import FormField from "../components/FormField";
 import Loader from "../components/Loader";
+import { formatDate } from "../utils/helperFunctions";
+import ConfirmDialog from "../components/ConfirmDialog";
+import ToastMessage from "../components/ToastMessage";
 
 const RadioOption = ({ label, name, value, selectedValue, onChange }) => (
   <label className="flex items-start space-x-2 cursor-pointer group">
@@ -23,86 +25,114 @@ const RadioOption = ({ label, name, value, selectedValue, onChange }) => (
 
 export const AdminReferralAcknowledgement = () => {
   const { request } = useApiRequest();
-  const { profileData } = useContext(AuthContext);
   const navigate = useNavigate();
-  const { referralId } = useParams(); // This should now match submission_id
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
-  const [referralData, setReferralData] = useState(null);
-
+  const { submission_id } = useParams();
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [formData, setFormData] = useState({
     referredStudentName: "",
     referrerName: "",
-    toOffice: "",
+    referringDepartment: "",
+    referralDate: "",
     dateOfVisitation: "",
     attendingGSS: "",
     status: "",
     followUpCount: "",
-    referredToName: ""
+    referredToName: "",
   });
 
+  // Load Acknowledgement + Prefill data
   useEffect(() => {
-    const loadReferral = async () => {
+    const fetchData = async () => {
+      setLoading(true);
       try {
-        const response = await request(`/api/forms/referral-slip/${referralId}/`, {
-          method: "GET",
+        const response = await request(
+          `/api/forms/referrals/${submission_id}/acknowledgement/`,
+          { method: "GET" }
+        );
+        const data = await response.json();
+
+        setFormData({
+          referredStudentName: data.referred_person_name || "",
+          referrerName: data.referring_person_name || "",
+          referringDepartment: data.referring_department || "",
+          referralDate: formatDate(data.referral_date) || "",
+          referralDateRaw: data.referral_date || "",
+          dateOfVisitation: data.date_of_visitation || "",
+          attendingGSS: data.counselor_name || "",
+          status: data.status || "",
+          followUpCount: data.follow_up || "",
+          referredToName: data.referred_to || "",
+          counselor_name: data.counselor_name || "",
         });
-
-        if (response?.referral) {
-          const r = response.referral;
-          setReferralData(r);
-
-          const referredName = `${r.referred_person?.first_name || ""} ${r.referred_person?.last_name || ""}`.trim();
-          const referrerName = `${r.referrer?.first_name || ""} ${r.referrer?.last_name || ""}`.trim();
-
-          setFormData(prev => ({
-            ...prev,
-            referredStudentName: referredName,
-            referrerName: referrerName,
-          }));
-        }
       } catch (err) {
-        console.error("Failed to load referral data:", err);
-        alert("Failed to load referral information.");
+        alert("Failed to load acknowledgement information.");
       } finally {
         setLoading(false);
       }
     };
 
-    loadReferral();
-  }, [referralId, request]);
+    if (submission_id) fetchData();
+  }, [submission_id, request]);
 
+  // Input change handler
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: null }));
+    }
   };
 
+  // Status enum handler
   const handleStatusChange = (e) => {
     const selected = e.target.value;
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       status: selected,
       followUpCount: selected === "no_show" ? prev.followUpCount : "",
-      referredToName: selected === "referred" ? prev.referredToName : ""
+      referredToName: selected === "referred_to" ? prev.referredToName : "",
     }));
   };
 
+  // Validation
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.toOffice.trim()) {
-      newErrors.toOffice = "To: (Office/Department/College) is required";
-    }
     if (!formData.dateOfVisitation) {
       newErrors.dateOfVisitation = "Date of visitation is required";
     }
-    if (!formData.attendingGSS.trim()) {
-      newErrors.attendingGSS = "Attending GSS is required";
+
+    if (formData.dateOfVisitation) {
+      const visit = new Date(formData.dateOfVisitation);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); 
+
+      // Check if the visit date is in the future
+      if (visit > today) {
+        newErrors.dateOfVisitation =
+          "Date of visitation cannot be in the future.";
+      }
+
+      if (formData.referralDateRaw) {
+        const referral = new Date(formData.referralDateRaw);
+        if (visit < referral) {
+          newErrors.dateOfVisitation =
+            "Date of visitation cannot be earlier than the referral date.";
+        }
+      }
     }
+
     if (!formData.status) {
       newErrors.status = "Please select a case status";
     }
@@ -111,47 +141,55 @@ export const AdminReferralAcknowledgement = () => {
       newErrors.followUpCount = "Follow-up count is required";
     }
 
-    if (formData.status === "referred" && !formData.referredToName.trim()) {
-      newErrors.referredToName = "Please specify who the student was referred to";
+    if (formData.status === "referred_to" && !formData.referredToName.trim()) {
+      newErrors.referredToName =
+        "Please specify who the student was referred to";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleBack = () => {
-    navigate(`/admin/counseling-referral-slip/${referralId}`);
+  const handleConfirmSubmit = () => {
+    setShowConfirmDialog(true);
   };
 
+  const handleConfirmCancel = () => {
+    setShowConfirmDialog(false);
+  };
+
+  const handleConfirmAction = () => {
+    setShowConfirmDialog(false);
+    handleSubmit();
+  };
+  // Submit
   const handleSubmit = async () => {
-    if (!validateForm()) {
-      alert("Please fill in all required fields.");
-      return;
-    }
+    if (!validateForm()) return;
 
     setSubmitting(true);
 
+    const payload = {
+      date_of_visitation: formData.dateOfVisitation,
+      status: formData.status,
+      follow_up:
+        formData.status === "no_show" ? parseInt(formData.followUpCount) : null,
+      referred_to:
+        formData.status === "referred_to" ? formData.referredToName : null,
+    };
     try {
-      const payload = {
-        referral_id: parseInt(referralId),
-        referred_to_office: formData.toOffice,
-        date_of_visitation: formData.dateOfVisitation,
-        counselor_name: formData.attendingGSS,
-        status: formData.status,
-        follow_up: formData.status === "no_show" ? parseInt(formData.followUpCount) : null,
-        referred_to: formData.status === "referred" ? formData.referredToName : null
-      };
-
-      await request(`/api/forms/referral-slip/${referralId}/acknowledgement/`, {
+      await request(`/api/forms/referrals/${submission_id}/acknowledgement/`, {
         method: "POST",
         body: JSON.stringify(payload),
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
-
-      alert("Acknowledgement submitted successfully!");
-      navigate(`/admin/counseling-referral-slip/${referralId}`);
+      setShowSuccessToast(true);
+      setTimeout(() => {
+        navigate(`/admin/counseling-referral-slip/${submission_id}`, { state: { showSuccess: true } });
+      }, 2000);
     } catch (err) {
-      console.error("Failed to submit acknowledgement:", err);
-      alert("Submission failed.");
+      alert("Failed to save acknowledgement receipt.");
     } finally {
       setSubmitting(false);
     }
@@ -167,6 +205,7 @@ export const AdminReferralAcknowledgement = () => {
     );
   }
 
+
   return (
     <DefaultLayout variant="admin">
       <div className="absolute w-full h-[26em] left-0 top-0 bg-upmaroon -z-1"></div>
@@ -178,49 +217,35 @@ export const AdminReferralAcknowledgement = () => {
           </h1>
 
           <div className="bg-white rounded-[15px] p-8 w-full mx-auto mb-[70px] shadow-md">
-
             <div className="border-upmaroon px-4 py-3 mb-6">
               <h2 className="text-upmaroon text-xl font-bold">
                 REFERRED STUDENT COUNSELING DETAILS
               </h2>
             </div>
 
-            {/* Referred Student Name (Read-only) */}
-            <div className="mb-6">
-              <FormField
-                label="Referred Student Name"
-                name="referredStudentName"
-                value={formData.referredStudentName}
-                disabled
-                required
-              />
-            </div>
+            {/* Read-only fields */}
+            <FormField
+              label="Referred Student Name"
+              value={formData.referredStudentName}
+              disabled
+            />
+            <FormField
+              label="Referred By"
+              value={formData.referrerName}
+              disabled
+            />
+            <FormField
+              label="Department / Unit"
+              value={formData.referringDepartment}
+              disabled
+            />
+            <FormField
+              label="Referral Date"
+              value={formData.referralDate}
+              disabled
+            />
 
-            {/* Referrer Name (Read-only) */}
-            <div className="mb-6">
-              <FormField
-                label="Referrer Name"
-                name="referrerName"
-                value={formData.referrerName}
-                disabled
-                required
-              />
-            </div>
-
-            {/* To: Office/Department/College */}
-            <div className="mb-6">
-              <FormField
-                label="To: (Office / Department / College)"
-                name="toOffice"
-                value={formData.toOffice}
-                onChange={handleChange}
-                error={errors?.toOffice}
-                placeholder="Enter office, department, or college"
-                required
-              />
-            </div>
-
-            {/* Date + Counselor */}
+            {/* Visitation + Counselor */}
             <div className="grid lg:grid-cols-2 gap-4 mb-6">
               <FormField
                 label="Date of Visitation"
@@ -228,46 +253,86 @@ export const AdminReferralAcknowledgement = () => {
                 type="date"
                 value={formData.dateOfVisitation}
                 onChange={handleChange}
-                error={errors?.dateOfVisitation}
+                error={errors.dateOfVisitation}
                 required
               />
 
               <FormField
-                label="Attending GSS (Counselor Name)"
-                name="attendingGSS"
+                label="Attending GSS (Counselor Name)"  
                 value={formData.attendingGSS}
-                onChange={handleChange}
-                error={errors?.attendingGSS}
-                required
+                disabled
               />
             </div>
 
-            {/* Status */}
+            {/* STATUS OPTIONS */}
             <div className="mb-6">
               <h3 className="text-base font-semibold text-gray-800 mb-3">
-                Status of the case at hand: <span className="text-red-500">*</span>
+                Status of the case: <span className="text-red-500">*</span>
               </h3>
 
-              {errors?.status && (
-                <p className="text-red-500 text-sm mb-2">{errors.status}</p>
+              {errors.status && (
+                <p className="text-red-500 text-sm">{errors.status}</p>
               )}
 
               <div className="space-y-2">
-                <RadioOption label="Closed at Intake Interview" name="status" value="closed" selectedValue={formData.status} onChange={handleStatusChange} />
-                <RadioOption label="For Counseling" name="status" value="for_counseling" selectedValue={formData.status} onChange={handleStatusChange} />
-                <RadioOption label="For Psychological Testing" name="status" value="for_psych_test" selectedValue={formData.status} onChange={handleStatusChange} />
-                <RadioOption label="Counseling Sessions are on-going" name="status" value="ongoing" selectedValue={formData.status} onChange={handleStatusChange} />
-                <RadioOption label="Sessions Completed / Case Terminated" name="status" value="completed" selectedValue={formData.status} onChange={handleStatusChange} />
-                <RadioOption label="Student did not show up" name="status" value="no_show" selectedValue={formData.status} onChange={handleStatusChange} />
-                <RadioOption label="Referred to" name="status" value="referred" selectedValue={formData.status} onChange={handleStatusChange} />
+                <RadioOption
+                  label="Closed at Intake Interview"
+                  value="closed_intake"
+                  selectedValue={formData.status}
+                  name="status"
+                  onChange={handleStatusChange}
+                />
+                <RadioOption
+                  label="For Counseling"
+                  value="for_counseling"
+                  selectedValue={formData.status}
+                  name="status"
+                  onChange={handleStatusChange}
+                />
+                <RadioOption
+                  label="For Psychological Testing"
+                  value="for_psych_test"
+                  selectedValue={formData.status}
+                  name="status"
+                  onChange={handleStatusChange}
+                />
+                <RadioOption
+                  label="Counseling Sessions are on-going"
+                  value="counseling_ongoing"
+                  selectedValue={formData.status}
+                  name="status"
+                  onChange={handleStatusChange}
+                />
+                <RadioOption
+                  label="Sessions Completed / Case Terminated"
+                  value="counseling_completed"
+                  selectedValue={formData.status}
+                  name="status"
+                  onChange={handleStatusChange}
+                />
+                <RadioOption
+                  label="Student did not show up"
+                  value="no_show"
+                  selectedValue={formData.status}
+                  name="status"
+                  onChange={handleStatusChange}
+                />
+                <RadioOption
+                  label="Referred to"
+                  value="referred_to"
+                  selectedValue={formData.status}
+                  name="status"
+                  onChange={handleStatusChange}
+                />
               </div>
             </div>
 
-            {/* Follow-Up Input */}
+            {/* Conditional Inputs */}
             {formData.status === "no_show" && (
               <div className="mt-3 ml-4">
                 <label className="text-sm text-gray-700">
-                  Number of follow-ups made: <span className="text-red-500">*</span>
+                  Number of follow-ups made:{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -275,48 +340,65 @@ export const AdminReferralAcknowledgement = () => {
                   value={formData.followUpCount}
                   onChange={handleChange}
                   className={`w-32 px-3 py-1 border rounded-md ${
-                    errors?.followUpCount ? "border-red-500" : "border-gray-300"
+                    errors.followUpCount ? "border-red-500" : "border-gray-300"
                   }`}
                 />
-                {errors?.followUpCount && (
-                  <p className="text-red-500 text-sm">{errors.followUpCount}</p>
-                )}
               </div>
             )}
 
-            {/* Referred To */}
-            {formData.status === "referred" && (
+            {formData.status === "referred_to" && (
               <div className="mt-3 ml-4">
                 <input
                   type="text"
                   name="referredToName"
+                  placeholder="Enter name of person/office referred to *"
                   value={formData.referredToName}
                   onChange={handleChange}
-                  placeholder="Enter name of person/office referred to *"
                   className={`w-full px-3 py-2 border rounded-md ${
-                    errors?.referredToName ? "border-red-500" : "border-gray-300"
+                    errors.referredToName ? "border-red-500" : "border-gray-300"
                   }`}
                 />
-                {errors?.referredToName && (
-                  <p className="text-red-500 text-sm mt-1">{errors.referredToName}</p>
-                )}
               </div>
             )}
 
             {/* Buttons */}
             <div className="flex justify-end mt-8 pt-6 border-t space-x-3">
-              <Button variant="secondary" onClick={handleBack} disabled={submitting}>
+              <Button
+                variant="secondary"
+                onClick={() => navigate(-1)}
+                disabled={submitting}
+              >
                 Back
               </Button>
 
-              <Button variant="primary" onClick={handleSubmit} disabled={submitting}>
+              <Button
+                variant="primary"
+                onClick={handleConfirmSubmit}
+                disabled={submitting}
+              >
                 {submitting ? "Submitting..." : "Save"}
               </Button>
             </div>
-
           </div>
         </div>
       </div>
+       {showConfirmDialog && (
+        <ConfirmDialog
+          title="Confirm Submission"
+          message="You are about to submit the referral acknowledgement. Please ensure all information is correct before proceeding."
+          onConfirm={handleConfirmAction}
+          onCancel={handleConfirmCancel}
+          confirmLabel = 'Submit'
+          cancelLabel = 'Cancel'
+        />
+      )}
+      {showSuccessToast && (
+        <ToastMessage
+          message="Referral acknowledgement submitted successfully."
+          onClose={() => setShowSuccessToast(false)}
+          duration={5000}
+        />
+      )}
     </DefaultLayout>
   );
 };

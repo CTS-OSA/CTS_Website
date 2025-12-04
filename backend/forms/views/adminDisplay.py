@@ -45,7 +45,11 @@ def get_referral_detail(request, submission_id):
             {"error": "No referral exists for this submission."},
             status=status.HTTP_404_NOT_FOUND
         )
-
+        
+    if user.is_staff and referral.referral_status == 'unread':
+        referral.referral_status = 'read'
+        referral.save()
+    
     if user.is_staff:
         serializer = AdminReferralDetailSerializer(referral)
         return Response(serializer.data)

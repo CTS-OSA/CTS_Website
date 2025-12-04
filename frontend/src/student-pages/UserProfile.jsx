@@ -179,7 +179,7 @@ export const UserProfile = () => {
         <DefaultLayout variant="student">
           <div>
             <div className="bg-upmaroon w-full h-60 ">
-              <h1 className="text-[2rem] font-bold mb-[30px] text-white ml-15 pt-10">
+              <h1 className="text-[2rem] font-bold mb-[30px] text-white ml-15 pt-10 text-center">
                 MY PROFILE
               </h1>
             </div>

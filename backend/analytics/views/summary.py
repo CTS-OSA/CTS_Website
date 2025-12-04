@@ -94,10 +94,22 @@ def summary_data_view(request):
             "color": "#014421",
         },
         {
-            "title": "Referral Form",
-            "value": 3,
+            "title": "Counseling Referral Slip",
+            "value": Submission.objects.filter(
+                form_type='Counseling Referral Slip',
+                status='submitted'
+            ).count(),
             "subtitle": f"Submissions as of {today.strftime('%b %d')}",
             "color": "#1976D2",
+        },
+        {
+            "title": "Psychosocial Assistance and Referral Desk",
+            "value": Submission.objects.filter(
+                form_type='Psychosocial Assistance and Referral Desk',
+                status='submitted'
+            ).count(),
+            "subtitle": f"Submissions as of {today.strftime('%b %d')}",
+            "color": "#F56B1B",
         }
     ]
 
