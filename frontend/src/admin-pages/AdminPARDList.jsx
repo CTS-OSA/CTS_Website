@@ -23,6 +23,7 @@ export const AdminPARDList = () => {
 
   // raw and filtered submissions
   const [submissions, setSubmissions] = useState([]);
+  const [pard_data, setPardData] = useState([]);
   const [filtered, setFiltered] = useState([]);
 
   const [loadingData, setLoadingData] = useState(true);
@@ -32,9 +33,6 @@ export const AdminPARDList = () => {
   const [years, setYears] = useState([]);
   const [programs, setPrograms] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [deleteTarget, setDeleteTarget] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   // Fetch PARD submissions
   useEffect(() => {
@@ -64,12 +62,11 @@ export const AdminPARDList = () => {
 
   // Apply filters: Search for full name, student id
   useEffect(() => {
-    let temp = submissions.filter(({ student, submitted_on, pard_status }) => {
+    let temp = submissions.filter(({ student, submitted_on }) => {
       const fullName =
         `${student.first_name} ${student.last_name}`.toLowerCase();
       const studentId = student.student_number.toLowerCase();
       const searchText = filterText.toLowerCase();
-      const normalizedStatus = (pard_status || "").toLowerCase();
 
       if (
         filterText &&
@@ -86,12 +83,11 @@ export const AdminPARDList = () => {
           .split("T")[0];
         if (submissionDate !== selectedDate) return false;
       }
-      if (statusFilter && normalizedStatus !== statusFilter) return false;
       return true;
     });
     setFiltered(temp);
     setCurrentPage(1);
-  }, [filterText, years, programs, selectedDate, statusFilter, submissions]);
+  }, [filterText, years, programs, selectedDate, submissions]);
 
   // Reset filters
   const handleResetFilters = () => {
@@ -129,11 +125,7 @@ export const AdminPARDList = () => {
     }
   };
 
-  const getStatusRank = (status) => {
-    const normalized = (status || "").toLowerCase();
-    const idx = STATUS_ORDER.indexOf(normalized);
-    return idx === -1 ? STATUS_ORDER.length : idx;
-  };
+  const handleEmailView = () => {};
 
   // Sort filtered items
   const sorted = [...filtered].sort((a, b) => {
@@ -153,17 +145,6 @@ export const AdminPARDList = () => {
           `${a.student.current_year_level}-${a.student.degree_program}`.toLowerCase();
         bVal =
           `${b.student.current_year_level}-${b.student.degree_program}`.toLowerCase();
-        break;
-      case "status":
-        aVal = getStatusRank(a.pard_status);
-        bVal = getStatusRank(b.pard_status);
-        if (aVal === bVal) {
-          const aStatus = (a.pard_status || "").toLowerCase();
-          const bStatus = (b.pard_status || "").toLowerCase();
-          if (aStatus < bStatus) return sortConfig.direction === "asc" ? -1 : 1;
-          if (aStatus > bStatus) return sortConfig.direction === "asc" ? 1 : -1;
-          return 0;
-        }
         break;
       case "id":
         aVal = a.student.student_number.toLowerCase();
@@ -307,15 +288,7 @@ export const AdminPARDList = () => {
           onReset={handleResetFilters}
         />
 
-        <table className="pard-table">
-          <colgroup>
-            <col className="col-student-id" />
-            <col className="col-student-name" />
-            <col className="col-year-program" />
-            <col className="col-date" />
-            <col className="col-status" />
-            <col className="col-actions" />
-          </colgroup>
+        <table>
           <thead>
             <tr>
               <SortableTableHeader
@@ -346,17 +319,14 @@ export const AdminPARDList = () => {
                 onSort={handleSort}
                 onClearSort={handleClearSort}
               />
+              <th>Actions</th>
               <SortableTableHeader
                 label="Status"
                 sortKey="status"
                 currentSort={sortConfig}
                 onSort={handleSort}
                 onClearSort={handleClearSort}
-                align="center"
-                className="status-header"
-                menuItems={statusMenuItems}
               />
-              <th className="actions-column">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -439,16 +409,6 @@ export const AdminPARDList = () => {
             )}
           </tbody>
         </table>
-
-        {deleteTarget && (
-          <ConfirmDialog
-            title="Delete submission"
-            message={`Mark ${deleteTarget.student.first_name} ${deleteTarget.student.last_name}'s submission as deleted?`}
-            onConfirm={handleConfirmDelete}
-            onCancel={handleCancelDelete}
-            confirmLabel={isDeleting ? "Deleting..." : "Delete"}
-          />
-        )}
 
         {/* Pagination Controls */}
         {totalPages > 1 && (

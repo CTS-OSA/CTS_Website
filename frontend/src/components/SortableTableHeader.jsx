@@ -14,13 +14,9 @@ const SortableTableHeader = ({
   currentSort,
   onSort,
   onClearSort,
-  align = "left",
-  className = "",
-  menuItems = null,
 }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
-  const hasCustomMenu = Array.isArray(menuItems) && menuItems.length > 0;
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -31,29 +27,12 @@ const SortableTableHeader = ({
   };
 
   const handleSort = (direction) => {
-    if (onSort) {
-      onSort(sortKey, direction);
-    }
+    onSort(sortKey, direction);
     handleMenuClose();
   };
 
   const handleClearSort = () => {
-    if (onClearSort) {
-      onClearSort(sortKey);
-    }
-    handleMenuClose();
-  };
-
-  const handleLabelClick = () => {
-    if (onSort) {
-      onSort(sortKey);
-    }
-  };
-
-  const handleCustomMenuClick = (action) => {
-    if (typeof action === "function") {
-      action();
-    }
+    onClearSort(sortKey);
     handleMenuClose();
   };
 
@@ -61,17 +40,11 @@ const SortableTableHeader = ({
 
   return (
     <TableCell
-      className={className}
-      component="th"
-      scope="col"
-      align={align}
       sx={{
         backgroundColor: "#7B1113",
         color: "white",
         fontWeight: "bold",
         position: "relative",
-        verticalAlign: "middle",
-        padding: "0.75rem 1rem",
       }}
     >
       <div
@@ -79,15 +52,9 @@ const SortableTableHeader = ({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          gap: "0.5rem",
         }}
       >
-        <span
-          style={{ color: "white", cursor: onSort ? "pointer" : "default" }}
-          onClick={handleLabelClick}
-        >
-          {label}
-        </span>
+        <span style={{ color: "white" }}>{label}</span>
         <IconButton
           size="small"
           onClick={handleMenuOpen}
@@ -118,38 +85,16 @@ const SortableTableHeader = ({
             horizontal: "right",
           }}
         >
-          {hasCustomMenu ? (
-            <>
-              {menuItems.map(({ label: itemLabel, onClick, disabled }, idx) => (
-                <MenuItem
-                  key={`${itemLabel}-${idx}`}
-                  disabled={disabled}
-                  onClick={() => handleCustomMenuClick(onClick)}
-                >
-                  {itemLabel}
-                </MenuItem>
-              ))}
-              {isActive && onClearSort && (
-                <MenuItem onClick={handleClearSort}>
-                  <Clear fontSize="small" sx={{ mr: 1 }} /> Undo Sort
-                </MenuItem>
-              )}
-            </>
-          ) : (
-            <>
-              <MenuItem onClick={() => handleSort("asc")}>
-                <ArrowUpward fontSize="small" sx={{ mr: 1 }} /> Sort Ascending
-              </MenuItem>
-              <MenuItem onClick={() => handleSort("desc")}>
-                <ArrowDownward fontSize="small" sx={{ mr: 1 }} /> Sort
-                Descending
-              </MenuItem>
-              {isActive && (
-                <MenuItem onClick={handleClearSort}>
-                  <Clear fontSize="small" sx={{ mr: 1 }} /> Undo Sort
-                </MenuItem>
-              )}
-            </>
+          <MenuItem onClick={() => handleSort("asc")}>
+            <ArrowUpward fontSize="small" sx={{ mr: 1 }} /> Sort Ascending
+          </MenuItem>
+          <MenuItem onClick={() => handleSort("desc")}>
+            <ArrowDownward fontSize="small" sx={{ mr: 1 }} /> Sort Descending
+          </MenuItem>
+          {isActive && (
+            <MenuItem onClick={handleClearSort}>
+              <Clear fontSize="small" sx={{ mr: 1 }} /> Undo Sort
+            </MenuItem>
           )}
         </Menu>
       </div>
