@@ -206,6 +206,22 @@ const SCIF = () => {
     { label: "Certify & Submit" },
   ];
 
+  const formatErrorMessages = (errorData, parentKey = "") => {
+    if (!errorData) return [];
+    if (Array.isArray(errorData)) {
+      if (!errorData.length) return [];
+      const label = parentKey || "Error";
+      return [`${label}: ${errorData.join(", ")}`];
+    }
+    if (typeof errorData === "object") {
+      return Object.entries(errorData).flatMap(([key, value]) =>
+        formatErrorMessages(value, parentKey ? `${parentKey}.${key}` : key)
+      );
+    }
+    const label = parentKey || "Error";
+    return [`${label}: ${errorData}`];
+  };
+
   // ---------- Validation per step ----------
   const validateStep = (stepIndex, data) => {
     switch (stepIndex) {
@@ -367,14 +383,11 @@ const SCIF = () => {
 
         if (response?.data) {
           if (response.data.errors) {
-            const errorMessages = Object.entries(response.data.errors)
-              .map(([field, messages]) => {
-                if (Array.isArray(messages))
-                  return `${field}: ${messages.join(", ")}`;
-                return `${field}: ${messages}`;
-              })
-              .join(" | ");
-            errorMessage = errorMessages;
+            const flattened = formatErrorMessages(response.data.errors);
+            errorMessage =
+              flattened.length > 0
+                ? flattened.join(" | ")
+                : errorMessage;
           } else if (response.data.error) {
             errorMessage = response.data.error;
           } else if (response.data.message) {
@@ -445,10 +458,12 @@ const SCIF = () => {
     setError(null);
 
     try {
+      const normalizedNumberData = normalizeNumber(formData);
+      const normalizedData = normalizeList(normalizedNumberData);
       const result = await finalizeSubmission(
         submissionId,
         studentNumber,
-        formData
+        normalizedData
       );
 
       if (result.success) {
@@ -462,14 +477,9 @@ const SCIF = () => {
         let errorMessage = "Failed to submit form.";
 
         if (result.status === 400 && result.data.errors) {
-          const errorMessages = Object.entries(result.data.errors)
-            .map(([field, messages]) => {
-              if (Array.isArray(messages))
-                return `${field}: ${messages.join(", ")}`;
-              return `${field}: ${messages}`;
-            })
-            .join(" | ");
-          errorMessage = errorMessages;
+          const flattened = formatErrorMessages(result.data.errors);
+          errorMessage =
+            flattened.length > 0 ? flattened.join(" | ") : errorMessage;
         } else if (result.data?.error) {
           errorMessage = result.data.error;
         } else if (result.data?.message) {

@@ -183,11 +183,6 @@ const PARDProfileView = ({ profileData, formData }) => {
         >
           Return to Profile
         </Button>
-        {role === "admin" && (
-          <Button variant="success" onClick={handleSave} className="pdf-button">
-            Save
-          </Button>
-        )}
         <Button
           variant="primary"
           onClick={handleDownloadClick}
@@ -195,6 +190,11 @@ const PARDProfileView = ({ profileData, formData }) => {
         >
           Download as PDF
         </Button>
+        {role === "admin" && (
+          <Button variant="success" onClick={handleSave} className="pdf-button">
+            Save
+          </Button>
+        )}
       </div>
 
       <div className="pdf p-10" ref={pdfRef}>
@@ -226,7 +226,7 @@ const PARDProfileView = ({ profileData, formData }) => {
             ""
           )}
         </div>
-        <div className="section-title mt-2">I. DEMOGRAPHIC PROFILE</div>
+        <div className="section-title">I. DEMOGRAPHIC PROFILE</div>
         <div className="flex indented-section gap-3">
           <label>
             Name:{" "}
@@ -287,7 +287,15 @@ const PARDProfileView = ({ profileData, formData }) => {
             {role === "admin" ? (
               <>
                 <span className="border-b border-black flex-1 pb-0.5 pdf-text">
-                  {appointmentTime ? new Date(`1970-01-01T${appointmentTime}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : ""}
+                  {appointmentTime
+                    ? new Date(
+                        `1970-01-01T${appointmentTime}`
+                      ).toLocaleTimeString("en-US", {
+                        hour: "numeric",
+                        minute: "2-digit",
+                        hour12: true,
+                      })
+                    : ""}
                 </span>
                 <input
                   type="time"
@@ -298,7 +306,15 @@ const PARDProfileView = ({ profileData, formData }) => {
               </>
             ) : (
               <span className="border-b border-black flex-1 pb-0.5">
-                {pard_data?.preferred_time ? new Date(`1970-01-01T${pard_data.preferred_time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : ""}
+                {pard_data?.preferred_time
+                  ? new Date(
+                      `1970-01-01T${pard_data.preferred_time}`
+                    ).toLocaleTimeString("en-US", {
+                      hour: "numeric",
+                      minute: "2-digit",
+                      hour12: true,
+                    })
+                  : ""}
               </span>
             )}
           </label>
