@@ -53,6 +53,7 @@ import PARDProfilePage from "./student-pages/PARDProfilePage";
 import ReferralSlipProfilePage from "./student-pages/ReferralSlipProfilePage";
 import VerifyReferralPage from "./forms/ReferralSlip/VerifyGuestReferral";
 import AdminReferralAcknowledgement from "./admin-pages/AdminReferralAcknowledgement";
+import NotFound from "./pages/NotFound";
 
 function App() {
   return (
@@ -356,6 +357,7 @@ function App() {
           element={<ResetPassword />}
         />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
   );

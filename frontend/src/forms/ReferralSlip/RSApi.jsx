@@ -7,7 +7,6 @@ export const useFormApi = () => {
 
   // Create a new referral
   const submitReferral = async (formData) => {
-    console.log("Submitting referral:", formData);
     try {
       const response = await request(`${BASE_URL}/`, {
         method: "POST",
@@ -27,14 +26,16 @@ export const useFormApi = () => {
   };
 
   // Get a specific referral by ID
-  const getReferral = async (referralId) => {
+  const getReferral = async (submission_id) => {
     try {
-      const response = await request(`${BASE_URL}/${referralId}/`, {
+      const response = await request(`${BASE_URL}/${submission_id}/`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
 
-      if (response.status === 404) return null;
+      if (response.status === 404)
+      return { success: false, status: 404, data: null };
+
 
       const data = await response.json();
       if (!response.ok) {

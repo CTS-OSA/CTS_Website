@@ -64,13 +64,40 @@ export const FormPublicPage = () => {
 
   const handleCardClick = (form) => {
   if (form === "counseling-referral-slip") {
-    if (user) {
-      navigate(`/forms/${form}`);
-    } else {
-      navigate(`/forms/guest/${form}`);
-    }
+  // If not logged in → go to guest
+  if (!user) {
+    navigate(`/forms/guest/${form}`);
     return;
   }
+
+  // If logged in but profile incomplete → show modal
+  if (!loading && (!profileData || !profileData.is_complete)) {
+    setModalConfig({
+      title: "Complete Your Profile",
+      message: "Before accessing this form, please complete your student profile.",
+      buttons: [
+        {
+          label: "Set Up Profile",
+          onClick: () => {
+            setShowModal(false);
+            setPageLoading(true);
+            setTimeout(() => {
+              navigate("/setup-profile");
+            }, 500);
+          },
+          className: "login-btn",
+        },
+      ],
+    });
+    setShowModal(true);
+    return;
+  }
+
+  // Otherwise profile complete → allow access
+  navigate(`/forms/${form}`);
+  return;
+}
+
 
     if (!user) {
       setModalConfig({

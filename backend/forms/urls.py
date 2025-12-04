@@ -77,6 +77,8 @@ urlpatterns = [
     # Guest Submissions
     path("guest/create-referral-submission/", create_referral_submission, name="create_submission"),
     path("guest/verify-referral-submission/", verify_referral_submission, name="verify_submission"),
+    
+    #Student Referral Submissions
     path('student/counseling-referral-slip/', ReferralSubmissionView.as_view(), name='referral-create'),
     path('student/counseling-referral-slip/<int:referral_id>/', ReferralSubmissionView.as_view(), name='referral-detail'),
 ]
