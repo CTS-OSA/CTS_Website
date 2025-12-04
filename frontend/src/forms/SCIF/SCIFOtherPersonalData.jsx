@@ -12,6 +12,7 @@ const SCIFOtherPersonalData = ({
   setErrors,
 }) => {
   const { personality_traits, family_relationship, counseling_info } = data;
+  const getError = (key) => errors?.[key];
 
   const handleFieldChange = (section, field, rawValue, filterFn) => {
     if (readOnly) return;
@@ -97,6 +98,11 @@ const SCIFOtherPersonalData = ({
                         "degree_program_aspiration",
                         option.value
                       );
+                      clearError(
+                        errors,
+                        setErrors,
+                        "personality_traits.degree_program_aspiration"
+                      );
                       if (option.value === true) {
                         updateData("personality_traits", {
                           aspiration_explanation: "",
@@ -113,6 +119,11 @@ const SCIFOtherPersonalData = ({
                 </label>
               ))}
             </div>
+            {getError("personality_traits.degree_program_aspiration") && (
+              <p className="mt-2 text-[#D32F2F] text-xs italic">
+                {getError("personality_traits.degree_program_aspiration")}
+              </p>
+            )}
           </div>
         )}
 
@@ -238,21 +249,22 @@ const SCIFOtherPersonalData = ({
                         "closest_to",
                         relation.value
                       );
-                      if (errors?.["family_relationship.closest_to"]) {
-                        setErrors((prev) => {
-                          const {
-                            ["family_relationship.closest_to"]: _,
-                            ...rest
-                          } = prev;
-                          return rest;
-                        });
-                      }
+                      clearError(
+                        errors,
+                        setErrors,
+                        "family_relationship.closest_to"
+                      );
                     }}
                   />
                   {relation.label}
                 </label>
               ))}
             </div>
+            {getError("family_relationship.closest_to") && (
+              <p className="mt-2 text-[#D32F2F] text-xs italic">
+                {getError("family_relationship.closest_to")}
+              </p>
+            )}
 
             {family_relationship.closest_to === "Other" && (
               <FormField
@@ -288,6 +300,20 @@ const SCIFOtherPersonalData = ({
             <DisplayField
               label="Personal characteristics as a person"
               value={counseling_info.personal_characteristics}
+              onChange={(e) =>
+                handleFieldChange(
+                  "counseling_info.personal_characteristics",
+                  e.target.value,
+                  filterGeneralText
+                )
+              }
+              onFocus={() =>
+                clearError(
+                  errors,
+                  setErrors,
+                  "counseling_info.personal_characteristics"
+                )
+              }
             />
             <DisplayField
               label="To whom do you open up your problems?"
@@ -343,6 +369,7 @@ const SCIFOtherPersonalData = ({
                   "counseling_info.personal_characteristics"
                 )
               }
+              error={errors?.["counseling_info.personal_characteristics"]}
               required
             />
 
@@ -365,6 +392,7 @@ const SCIFOtherPersonalData = ({
                   "counseling_info.problem_confidant"
                 )
               }
+              error={errors?.["counseling_info.problem_confidant"]}
               required
             />
 
@@ -387,6 +415,7 @@ const SCIFOtherPersonalData = ({
                   "counseling_info.confidant_reason"
                 )
               }
+              error={errors?.["counseling_info.confidant_reason"]}
               required
             />
 
@@ -409,6 +438,7 @@ const SCIFOtherPersonalData = ({
                   "counseling_info.anticipated_problems"
                 )
               }
+              error={errors?.["counseling_info.anticipated_problems"]}
               required
             />
 
@@ -438,6 +468,11 @@ const SCIFOtherPersonalData = ({
                             counseling_counselor: "",
                             counseling_reason: "",
                           });
+                          [
+                            "counseling_info.counseling_location",
+                            "counseling_info.counseling_counselor",
+                            "counseling_info.counseling_reason",
+                          ].forEach((key) => clearError(errors, setErrors, key));
                         }
                       }}
                     />
@@ -461,6 +496,14 @@ const SCIFOtherPersonalData = ({
                       filterGeneralText
                     )
                   }
+                  onFocus={() =>
+                    clearError(
+                      errors,
+                      setErrors,
+                      "counseling_info.counseling_location"
+                    )
+                  }
+                  error={errors?.["counseling_info.counseling_location"]}
                   required
                 />
                 <FormField
@@ -475,6 +518,14 @@ const SCIFOtherPersonalData = ({
                       filterGeneralText
                     )
                   }
+                  onFocus={() =>
+                    clearError(
+                      errors,
+                      setErrors,
+                      "counseling_info.counseling_counselor"
+                    )
+                  }
+                  error={errors?.["counseling_info.counseling_counselor"]}
                   required
                 />
                 <FormField
@@ -489,6 +540,14 @@ const SCIFOtherPersonalData = ({
                       filterGeneralText
                     )
                   }
+                  onFocus={() =>
+                    clearError(
+                      errors,
+                      setErrors,
+                      "counseling_info.counseling_reason"
+                    )
+                  }
+                  error={errors?.["counseling_info.counseling_reason"]}
                   required
                 />
               </div>
