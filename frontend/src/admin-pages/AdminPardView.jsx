@@ -25,7 +25,7 @@ export const AdminPardView = () => {
         setFormData({
           pard_data: form.pard_data,
           submission: form.submission,
-          email: form.email
+          email: form.email,
         });
 
         console.log("Form", form.email);
