@@ -42,12 +42,12 @@ export const ForgotPassword = () => {
   const handleModalClose = () => {
     setShowMessageModal(false);
     if (!isError) {
-      navigate("/login");
+      navigate("/");
     }
   };
 
   const handleCancel = () => {
-    navigate("/login");
+    navigate("/");
   };
 
   return (

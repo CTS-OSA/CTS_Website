@@ -8,6 +8,7 @@ import Footer from "../components/Footer";
 import "./css_pages/loginPage.css";
 import Modal from "../components/Modal";
 import { Eye, EyeOff } from "react-feather";
+import NotFound from "./NotFound";
 
 const LoginPage = () => {
   const { login, authError } = useContext(AuthContext);
@@ -23,7 +24,9 @@ const LoginPage = () => {
   const [message, setMessage] = useState("");
   const [showMessageModal, setShowMessageModal] = useState(false);
   const role = new URLSearchParams(location.search).get("role");
-  const roleLabel = role === "admin" ? "Admin" : "Student";
+  if (role !== "admin") {
+    return <NotFound />;
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();

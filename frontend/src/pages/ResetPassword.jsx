@@ -61,7 +61,7 @@ export const ResetPassword = () => {
 
   const handleModalClose = () => {
     setShowMessageModal(false);
-    if (!isError) navigate("/login");
+    if (!isError) navigate("/");
   };
 
   return (
