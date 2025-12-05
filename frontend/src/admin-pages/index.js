@@ -13,3 +13,4 @@ export * from "./AdminReferralView";
 export * from "./AdminPARDList";
 export * from "./AdminPardView";
 export * from "./AdminReferralAcknowledgement";
+export * from "./SiteContentDashboard";
