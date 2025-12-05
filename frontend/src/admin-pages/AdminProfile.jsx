@@ -88,7 +88,7 @@ export const AdminProfile = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate("/login?role=student");
+      navigate("/login?role=admin");
     }
   }, [isAuthenticated, navigate]);
 
