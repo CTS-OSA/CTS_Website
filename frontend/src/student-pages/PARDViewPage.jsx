@@ -82,7 +82,7 @@ const PARDProfileView = ({ profileData, formData }) => {
     );
 
     const opt = {
-      filename: "Referral_Slip.pdf",
+      filename: "PARD.pdf",
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: {
         scale: 2,

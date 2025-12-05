@@ -326,7 +326,6 @@ const handleView = (form, isAdmin = false, studentId = null) => {
     if (imagePath && typeof imagePath === "string" && imagePath.trim() !== "") {
       photoUrl = `${imagePath}`;
     }
-    console.log("Photo URL:", photoUrl);
     setPhotoPreview(photoUrl);
     setValidationErrors({});
   }, [profileData]);
