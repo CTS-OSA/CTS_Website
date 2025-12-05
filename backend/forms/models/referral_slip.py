@@ -125,7 +125,7 @@ class AcknowledgementReceipt(models.Model):
     date_of_visitation = models.DateField()
     date_of_receipt = models.DateTimeField(default=timezone.now)
     status = models.CharField(max_length=30, choices=ReceiptStatus.choices)
-    follow_up = models.IntegerField(null=True, blank=True)
+    follow_up = models.PositiveIntegerField(null=True, blank=True)
     referred_to = models.CharField(max_length=50, null=True, blank=True)
 
     def clean(self):
