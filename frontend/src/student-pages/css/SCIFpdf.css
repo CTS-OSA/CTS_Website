@@ -448,6 +448,15 @@ textarea {
   line-height: 1.2;
 }
 
+.pdf input:disabled,
+.pdf textarea:disabled,
+.pdf select:disabled {
+  color: #000;
+  opacity: 1;
+  -webkit-text-fill-color: #000;
+  cursor: not-allowed;
+}
+
 .pdf .checkbox-list label {
   font-weight: 400;
 }
@@ -499,11 +508,6 @@ textarea {
   border: 1px solid black;
   padding: 10px;
   margin-top: 1rem;
-}
-
-.privacy-box a {
-  color: #0056b3;
-  text-decoration: underline;
 }
 
 /* Certify block */
@@ -615,13 +619,13 @@ textarea {
   width: 0.45rem;
   height: 0.45rem;
   border-radius: 50%;
-  background-color: #991b1b;
+  background-color: #4b5563;
   opacity: 0;
   transition: opacity 0.15s ease-in-out;
 }
 
 .custom-radio__indicator--checked {
-  border-color: #991b1b;
+  /* border-color: #991b1b; */
 }
 
 .custom-radio__indicator--checked .custom-radio__indicator-dot {
@@ -655,7 +659,7 @@ textarea {
 .custom-checkbox__indicator {
   width: 1rem;
   height: 1rem;
-  border: 2px solid #4b5563;
+  /* border: 2px solid #4b5563; */
   border-radius: 0.2rem;
   display: inline-flex;
   align-items: center;
@@ -677,8 +681,8 @@ textarea {
 }
 
 .custom-checkbox__indicator--checked {
-  background-color: #7b1113;
-  border-color: #7b1113;
+  /* background-color: #7b1113;
+  border-color: #7b1113; */
 }
 
 .custom-checkbox__indicator--checked .custom-checkbox__indicator-mark {

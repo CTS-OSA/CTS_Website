@@ -282,6 +282,14 @@ textarea {
 .pdf-mode .pdf-input,
 .pdf-mode select.pdf-input {
   display: none;
+  visibility: hidden;
+  border: none !important;
+  border-bottom: 1px solid transparent !important;
+  background-color: transparent !important;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .pdf-text {
