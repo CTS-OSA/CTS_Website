@@ -323,7 +323,6 @@ class PARDFormView(APIView):
                 submission_id=submission
             )
 
-            # FIX ME: IF THE STATUS IS COMPLETED, IT SHOULD ADD THE SCHEDULE DATE TO PARDSCHEDUlE            
             serializer = PARDSerializer(
                 pard_instance,
                 data=request.data,
@@ -336,20 +335,6 @@ class PARDFormView(APIView):
                     {"message": "Appointment updated successfully!"},
                     status=status.HTTP_200_OK
                 )
-            
-            # if pard_instance.status == 'completed':
-                
-            #     PARDSchedule.objects.create(
-            #         student=student, 
-            #         scheduled_date=,
-            #         scheduled_time=
-            #     )
-
-            #     serializer = PARDScheduleSerializer(
-            #         data=request.data, 
-            #         partial=True
-            #     )
-                
         except Exception as e:
             return Response(
                 {"error": f"An error occurred: {str(e)}"},

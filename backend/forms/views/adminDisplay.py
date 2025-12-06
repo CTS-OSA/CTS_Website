@@ -136,6 +136,9 @@ class AdminPARDList(APIView):
                 # Add PARD status only
                 try:
                     pard = PARD.objects.get(submission_id=submission)
+                    # Skip deleted PARD submissions
+                    if pard.status == 'deleted':
+                        continue
                     submission_data['pard_status'] = pard.status
                 except PARD.DoesNotExist:
                     submission_data['pard_status'] = None

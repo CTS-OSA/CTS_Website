@@ -130,32 +130,67 @@ def update_student_profile(request, student_id=None):
         return Response({'error': 'Student profile not found'}, status=status.HTTP_404_NOT_FOUND)
 
     student_data = request.data
-    is_partial = request.method == 'PATCH'
+    
+    permanent_address_data = None
+    if 'permanent_address' in student_data:
+        permanent_address_data = json.loads(student_data['permanent_address'])
+    
+    address_while_in_up_data = None
+    if 'address_while_in_up' in student_data:
+        address_while_in_up_data = json.loads(student_data['address_while_in_up'])
 
-    def get_or_create_address(address_data):
+    def get_or_create_address(existing_address, address_data):
+        """Merge existing address with updates and get or create the address record.
+        
+        This prevents shared address updates by:
+        1. Merging existing address fields with partial updates
+        2. Checking if the merged address exists in the database
+        3. Reusing existing address if found, otherwise creating new one
+        """
         if not address_data:
-            return None
+            return existing_address
+        
+        # Remove 'id' to prevent conflicts
         address_data = address_data.copy()
         address_data.pop('id', None)
-
+        
+        # Update existing address object with new values (in-memory only)
+        if existing_address:
+            for key, value in address_data.items():
+                setattr(existing_address, key, value)
+        
+        # Build complete address dict from existing + updates
+        full_address = {
+            'address_line_1': existing_address.address_line_1 if existing_address else address_data.get('address_line_1'),
+            'barangay': existing_address.barangay if existing_address else address_data.get('barangay'),
+            'city_municipality': existing_address.city_municipality if existing_address else address_data.get('city_municipality'),
+            'province': existing_address.province if existing_address else address_data.get('province'),
+            'region': existing_address.region if existing_address else address_data.get('region'),
+            'zip_code': existing_address.zip_code if existing_address else address_data.get('zip_code')
+        }
+        
+        # Override with new values from address_data
+        for key, value in address_data.items():
+            full_address[key] = value
+        
+        # Check if this exact address exists in DB, create if not
         try:
-            address = Address.objects.get(
-                address_line_1=address_data['address_line_1'],
-                barangay=address_data['barangay'],
-                city_municipality=address_data['city_municipality'],
-                province=address_data['province'],
-                region=address_data['region'],
-                zip_code=address_data['zip_code']
-            )
+            address = Address.objects.get(**full_address)
         except Address.DoesNotExist:
-            address = Address.objects.create(**address_data)
+            address = Address.objects.create(**full_address)
+        
         return address
 
-    
-    if 'permanent_address' in student_data:
-        student.permanent_address = get_or_create_address(student_data['permanent_address'])
-    if 'address_while_in_up' in student_data:
-        student.address_while_in_up = get_or_create_address(student_data['address_while_in_up'])
+    if permanent_address_data:
+        student.permanent_address = get_or_create_address(
+            student.permanent_address, 
+            permanent_address_data
+        )
+    if address_while_in_up_data:
+        student.address_while_in_up = get_or_create_address(
+            student.address_while_in_up, 
+            address_while_in_up_data
+        )
 
     updatable_fields = [
         'college', 'current_year_level', 'degree_program',
@@ -181,18 +216,9 @@ def update_student_profile(request, student_id=None):
         student_photo.save()
 
         changed_fields['photo'] = "updated"
+    
     student.save()
 
-    serializer = StudentSerializer(student)
-    details = (
-        f"Student ID: {student.student_number}, Name: {student.first_name} {student.last_name}. "
-        f"Changed fields: {changed_fields if changed_fields else 'None'}"
-    )
-    # log_action(
-    #     request,
-    #     "profile",
-    #     details
-    # )
     serializer = StudentSerializer(student)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
