@@ -39,26 +39,21 @@ export const UserProfile = () => {
   //   } catch (error) {}
   // };
 
-  const handleUpdateProfile = async (updatedData) => {
+  const handleUpdateProfile = async (changedFields) => {
     try {
       const formData = new FormData();
-      for (const key in updatedData) {
-        if (key === "photoFile") continue;
-
-        const value = updatedData[key];
-
-        if (typeof value === "object" && value !== null) {
-          for (const subKey in value) {
-            formData.append(`${key}.${subKey}`, value[subKey]);
-          }
+      
+      Object.entries(changedFields).forEach(([key, value]) => {
+        if (key === "photoFile") {
+          formData.append("photo", value);
+        } else if (typeof value === "object" && value !== null) {
+          formData.append(key, JSON.stringify(value));
         } else {
           formData.append(key, value);
         }
-      }
+      });
 
-      if (updatedData.photoFile) {
-        formData.append("photo", updatedData.photoFile);
-      }
+      console.log("SENT DATA", formData)
 
       const res = await request(
         "http://localhost:8000/api/forms/student/profile/update/",
