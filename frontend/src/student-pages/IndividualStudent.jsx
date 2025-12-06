@@ -10,6 +10,7 @@ import ToastMessage from "../components/ToastMessage";
 import ConfirmDialog from "../components/ConfirmDialog";
 import Loader from "../components/Loader";
 import { validatePhotoFile } from "../utils/photoValidation";
+import { formatDate } from "../utils/helperFunctions";
 import {
   validateEditableProfile,
   mergeProfileAndFormData,
@@ -211,26 +212,44 @@ const StudentSideInfo = ({
 
   const [photoPreview, setPhotoPreview] = useState(null);
 
-  const handleView = (form, isAdmin = false, studentId = null) => {
-    const slugify = (text) =>
-      text
-        .toLowerCase()
-        .replace(/\s+/g, "-")
-        .replace(/[^\w-]+/g, "");
-    const slug = slugify(form.form_type);
+const handleView = (form, isAdmin = false, studentId = null) => {
+  const slugify = (text) =>
+    text
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^\w-]+/g, "");
 
-    if (isAdmin && studentId) {
-      if (form.status === "submitted") {
-        navigate(`/admin/student-forms/${studentId}/${slug}/`);
+  const slug = slugify(form.form_type);
+
+  // Forms that should use special admin routing
+  const SPECIAL_ADMIN_FORMS = [
+    "psychosocial-assistance-and-referral-desk",
+    "counseling-referral-slip"
+  ];
+
+  // ADMIN VIEW
+  if (isAdmin && studentId) {
+    if (form.status === "submitted") {
+
+      // Special forms → different route
+      if (SPECIAL_ADMIN_FORMS.includes(slug)) {
+        navigate(`/admin/${slug}/${form.id}`);
+      } else {
+        // Default admin route
+        navigate(`/admin/student-forms/${studentId}/${slug}`);
       }
-    } else {
-     if (form.status === 'draft') {
-      navigate(`/forms/${slug}`);
-    } else if (form.status === 'submitted') {
-      navigate(`/submitted-forms/${slug}/${form.id}`);
     }
-    }
-  };
+    return;
+  }
+
+  // STUDENT VIEW
+  if (form.status === "draft") {
+    navigate(`/forms/${slug}`);
+  } else if (form.status === "submitted") {
+    navigate(`/submitted-forms/${slug}/${form.id}`);
+  }
+};
+
 
   const updateProfileData = (updatedFields) => {
     setFormData((prev) => ({
@@ -283,6 +302,7 @@ const StudentSideInfo = ({
 
   const handleConfirmDialog = async () => {
     if (confirmAction === "save") {
+      console.log("New data: ", formData);
       await onUpdate({ ...formData, photoFile });
       setToast("Profile updated successfully!");
       setValidationErrors({});
@@ -568,7 +588,7 @@ const StudentSideInfo = ({
                 />
                 <FormField
                   label="Landline Number"
-                  value={formData.landline_number || "None"}
+                  value={formData?.landline_number || "None"}
                   onChange={(e) =>
                     updateProfileData({ landline_number: e.target.value })
                   }
@@ -811,9 +831,8 @@ const StudentSideInfo = ({
           <table className="dashboard-table">
             <thead>
               <tr>
-                <th>Form Type</th>
+                <th className="text-left">Form Type</th>
                 <th>Date Submitted</th>
-                <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -821,19 +840,12 @@ const StudentSideInfo = ({
               {submittedForms.map((form) => (
                 <tr key={form.id}>
                   <td>{form.form_type}</td>
-                  <td>
-                    {new Date(
+                  <td className="text-center">
+                    {formatDate(
                       form.submitted_on || form.saved_on
-                    ).toLocaleDateString()}
+                    )}
                   </td> 
-                  <td>
-                    <span
-                      className={`status-badge ${form.status.toLowerCase()}`}
-                    >
-                      {form.status}
-                    </span>
-                  </td>
-                  <td>
+                  <td className="text-center">
                     <button
                       className="view-button"
                       onClick={() =>

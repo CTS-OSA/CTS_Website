@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import RSStudentDetails from "./RSStudentDetails";
 import RSRefferal from "./RSReferral";
 import RSReferrerGuest from "./RSReferrerGuest";
@@ -13,10 +13,14 @@ import StepIndicator from "../../components/StepIndicator";
 import RSPreview from "./RSPreview";
 import RSSubmit from "./RSSubmit";
 import ConfirmDialog from "../../components/ConfirmDialog";
+import { useContext } from "react";
+import { AuthContext } from "../../context/AuthContext";
 
 const ReferralSlip = () => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const isLoggedIn = false;
+  const { user } = useContext(AuthContext);
+  const isLoggedIn = !!user;
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -25,6 +29,12 @@ const ReferralSlip = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (user) {
+      navigate("/forms/counseling-referral-slip");
+    }
+  }, [user, navigate]);
 
   // Change to Referral Slip APIs
   const { finalizeGuestSubmission } = useFormApi();

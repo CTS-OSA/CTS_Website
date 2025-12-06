@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from forms.models import Referrer, Referral, AcknowledgementReceipt, Student, Submission, Counselor, ReferredPerson
 from django.core.exceptions import ValidationError
-
+from django.utils import timezone
 
 
 class StudentReferrerSerializer(serializers.ModelSerializer):
@@ -165,3 +165,104 @@ class ReferralSubmissionSerializer(serializers.Serializer):
             if not value.get(field):
                 raise serializers.ValidationError({field: "This field is required."})
         return value
+
+class AcknowledgementReceiptSerializer(serializers.ModelSerializer):
+        referred_person_name = serializers.SerializerMethodField()
+        referring_person_name = serializers.SerializerMethodField()
+        referring_department = serializers.SerializerMethodField()
+        referral_date = serializers.SerializerMethodField()
+        counselor_name = serializers.SerializerMethodField()
+
+        class Meta:
+            model = AcknowledgementReceipt
+            fields = [
+                "id",
+                "referral",
+                "counselor",
+                "date_of_visitation",
+                "date_of_receipt",
+                "status",
+                "follow_up",
+                "referred_to",
+
+                # Computed slip fields
+                "referred_person_name",
+                "referring_person_name",
+                "referring_department",
+                "referral_date",
+                "counselor_name",
+            ]
+            read_only_fields = [
+                "id",
+                "referral",
+                "counselor",
+                "date_of_receipt",
+                "referred_person_name",
+                "referring_person_name",
+                "referring_department",
+                "referral_date",
+                "counselor_name",
+            ]
+
+        # ---- STUDENT BEING ATTENDED TO ----
+        def get_referred_person_name(self, obj):
+            rp = obj.referral.referred_person
+            return f"{rp.first_name} {rp.last_name}"
+
+        # ---- REFERRER NAME ----
+        def get_referring_person_name(self, obj):
+            ref = obj.referral.referrer
+
+            # student referrer
+            if ref.student:
+                s = ref.student
+                return f"{s.first_name} {s.last_name}"
+
+            # guest referrer
+            return f"{ref.first_name} {ref.last_name}"
+        
+
+        # ---- REFERRER DEPARTMENT / UNIT ----
+        def get_referring_department(self, obj):
+            ref = obj.referral.referrer
+
+            if ref.student:
+                return ref.student.degree_program
+            return ref.department_unit
+
+        # ---- DATE REFERRED ----
+        def get_referral_date(self, obj):
+            return obj.referral.referral_date
+
+        # ---- COUNSELOR NAME ----
+        def get_counselor_name(self, obj):
+            # If AcknowledgementReceipt exists, use its counselor
+            if obj.counselor:
+                return f"{obj.counselor.first_name} {obj.counselor.last_name}"
+            
+            # Otherwise, use the logged-in admin's counselor (from context)
+            request = self.context.get("request")
+            if request and hasattr(request.user, "counselor"):
+                c = request.user.counselor
+                return f"{c.first_name} {c.last_name}"
+
+            return ""
+         # ---- CREATE METHOD ----
+        def create(self, validated_data):
+            referral = self.context.get('referral')
+            counselor = self.context.get('counselor')
+            date_of_receipt = timezone.now()
+
+            return AcknowledgementReceipt.objects.create(
+                referral=referral,
+                counselor=counselor,
+                date_of_receipt=date_of_receipt,
+                **validated_data
+            )
+
+        # ---- UPDATE METHOD ----
+        def update(self, instance, validated_data):
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+            instance.save()
+            return instance

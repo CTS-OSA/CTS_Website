@@ -13,6 +13,8 @@ import { formatDate } from "../utils/helperFunctions";
 import "./css/studentList.css";
 import { Eye } from "lucide-react";
 
+const STATUS_ORDER = ["read", "unread", "acknowledged"];
+
 export const AdminReferral = () => {
   const navigate = useNavigate();
   const { request } = useApiRequest();
@@ -28,7 +30,8 @@ export const AdminReferral = () => {
   const [years, setYears] = useState([]);
   const [programs, setPrograms] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
-
+  const [statusFilter, setStatusFilter] = useState("");
+  
   // Sorting state
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
@@ -38,10 +41,10 @@ export const AdminReferral = () => {
 
   // Apply filters
   useEffect(() => {
-    const temp = submissions.filter(({ referred_person, referral_date }) => {
+    const temp = submissions.filter(({ referred_person, referral_date, referral_status }) => {
       const searchText = filterText.toLowerCase();
-
-      if (filterText) {
+      const normalizedStatus = (referral_status || "").toLowerCase();
+      if (filterText) { 
         const fullName = `${referred_person?.name || ""}`.toLowerCase();
         if (!fullName.includes(searchText) && !(referred_person?.id || "").toString().includes(searchText)) {
           return false;
@@ -56,12 +59,13 @@ export const AdminReferral = () => {
         if (dateStr !== selectedDate) return false;
       }
 
+      if (statusFilter && normalizedStatus !== statusFilter) return false;
       return true;
     });
 
     setFiltered(temp);
     setCurrentPage(1);
-  }, [filterText, years, programs, selectedDate, submissions]);
+  }, [filterText, years, programs, selectedDate, statusFilter, submissions]);
 
   const handleResetFilters = () => {
     setFilterText("");
@@ -77,6 +81,11 @@ export const AdminReferral = () => {
     new Set(submissions.map((s) => s.referred_person?.degree_program).filter(Boolean))
   );
 
+  const getStatusRank = (status) => {
+    const normalized = (status || "").toLowerCase();
+    const idx = STATUS_ORDER.indexOf(normalized);
+    return idx === -1 ? STATUS_ORDER.length : idx;
+  };
   const handleSort = (key, direction = null) => {
     setSortConfig((prev) => {
       if (direction) return { key, direction };
@@ -110,6 +119,17 @@ export const AdminReferral = () => {
           ? `${b.referred_person.year_level}-${b.referred_person.degree_program}`.toLowerCase()
           : "";
         break;
+      case "status":
+        aVal = getStatusRank(a.pard_status);
+        bVal = getStatusRank(b.pard_status);
+        if (aVal === bVal) {
+          const aStatus = (a.pard_status || "").toLowerCase();
+          const bStatus = (b.pard_status || "").toLowerCase();
+          if (aStatus < bStatus) return sortConfig.direction === "asc" ? -1 : 1;
+          if (aStatus > bStatus) return sortConfig.direction === "asc" ? 1 : -1;
+          return 0;
+        }
+        break;
       default:
         return 0;
     }
@@ -136,7 +156,6 @@ export const AdminReferral = () => {
         data.sort((a, b) => new Date(b.referral_date) - new Date(a.referral_date));
         setSubmissions(data);
         setFiltered(data);
-         console.log(data);
       } catch (err) {
         setError("Error fetching data. Please try again.");
       } finally {
@@ -157,7 +176,7 @@ export const AdminReferral = () => {
     const normalized = (status || "").toLowerCase();
     switch (normalized) {
       case "completed":
-      case "resolved":
+      case "acknowledged":
         return "bg-upgreen text-white";
       case "in-progress":
       case "read":
@@ -173,6 +192,23 @@ export const AdminReferral = () => {
         return "bg-gray-200 text-gray-800";
     }
   };
+
+    const statusMenuItems = [
+    ...STATUS_ORDER.map((status) => ({
+      label: status.charAt(0).toUpperCase() + status.slice(1),
+      onClick: () => setStatusFilter((prev) => (prev === status ? "" : status)),
+    })),
+    {
+      label: "Clear Filter",
+      onClick: () => {
+        setStatusFilter("");
+        if (sortConfig.key === "status") {
+          handleClearSort("status");
+        }
+      },
+      disabled: sortConfig.key !== "status" && !statusFilter,
+    },
+  ];
 
   return (
     <DefaultLayout variant="admin">
@@ -228,10 +264,13 @@ export const AdminReferral = () => {
               />
               <SortableTableHeader
                 label="Status"
-                sortKey="name"
+                sortKey="status"
                 currentSort={sortConfig}
                 onSort={handleSort}
                 onClearSort={handleClearSort}
+                align="center"
+                className="status-header"
+                menuItems={statusMenuItems}
               />
               <th className="actions-column">Actions</th>
             </tr>

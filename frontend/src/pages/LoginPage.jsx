@@ -7,11 +7,14 @@ import NavBar from "../components/NavBar";
 import Footer from "../components/Footer";
 import "./css_pages/loginPage.css";
 import Modal from "../components/Modal";
+import { Eye, EyeOff } from "react-feather";
+import NotFound from "./NotFound";
 
 const LoginPage = () => {
   const { login, authError } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -21,7 +24,9 @@ const LoginPage = () => {
   const [message, setMessage] = useState("");
   const [showMessageModal, setShowMessageModal] = useState(false);
   const role = new URLSearchParams(location.search).get("role");
-  const roleLabel = role === "admin" ? "Admin" : "Student";
+  if (role !== "admin") {
+    return <NotFound />;
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -88,19 +93,33 @@ const LoginPage = () => {
                       required
                     />
                   </div>
-                  <div className="mt-3">
+                  <div className="mt-3 relative">
                     <FormField
                       label="Password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       name="password"
                       required
                     />
+                    {/* Eye icon */}
+                    <button
+                      type="button"
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                      disabled={!password}
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 ${
+                        password
+                          ? "text-gray-500 cursor-pointer"
+                          : "text-gray-300 cursor-not-allowed"
+                      }`}
+                      onClick={() => password && setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
                   </div>
-                  <div className="mt-3">
-
-                  </div>
+                  <div className="mt-3"></div>
                   <SubmitButton
                     text={loading ? "Logging in..." : "Log In"}
                     disabled={loading}

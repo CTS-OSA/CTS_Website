@@ -3,12 +3,14 @@ import FormField from "./FormField";
 import "../pages/css_pages/SignUp.css";
 import Modal from "./Modal";
 import "./css/Modal.css";
-import { X } from "react-feather";
+import { X, Eye, EyeOff } from "react-feather";
 
-
-export default function SignUpModal ({ onClose, onSwitchToLogin }) {
+export default function SignUpModal({ onClose, onSwitchToLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showRePassword, setShowRePassword] = useState(false);
+
   const [rePassword, setRePassword] = useState("");
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
@@ -147,94 +149,142 @@ export default function SignUpModal ({ onClose, onSwitchToLogin }) {
 
   return (
     <>
-        <div className="fixed inset-0 bg-black/50 z-40"></div>
-        {/* Modal container */}
-        <div className="fixed top-20 left-1/2 right-1/2 w-[80%] h-[50%] transform -translate-x-1/2 
-          bg-white text-gray-900 rounded-3xl shadow-lg z-50 fade-in-up
-            sm:w-[80%] sm:h-1/9 md:w-[65%] lg:w-[45%]">
-            
-            <section className="bg-white p-10 sm:p-12 md:p-14 relative flex flex-col justify-center items-center overflow-y-auto rounded-2xl">
-                <button className="absolute right-0 top-0 m-5 cursor-pointer" onClick={onClose}>
-                    <X />
-                </button>
+      <div className="fixed inset-0 bg-black/50 z-40"></div>
+      {/* Modal container */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 sm:px-6">
+        <div className="w-full max-w-[620px] sm:max-w-[720px] bg-white text-gray-900 rounded-3xl shadow-lg fade-in-up">
+          <section className="bg-white p-6 sm:p-10 md:p-12 relative flex flex-col justify-center items-center overflow-y-auto rounded-2xl max-h-[85vh]">
+            <button
+              className="absolute right-0 top-0 m-5 cursor-pointer"
+              onClick={onClose}
+            >
+              <X />
+            </button>
 
-                <h2 className="font-sans text-xl font-bold text-[#7B1113] text-center mt-5">Create Account</h2>
-                {/* FORM AREA */}
-                <form className="p-0 bg-transparent shadow-none w-full max-w-[470px] mt-10" onSubmit={handleSubmit}>
-                  <div className="mb-3">
-                    <FormField
-                      label="Email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      name="email"
-                      required
-                      error={formErrors.email}
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <FormField
-                      label="Password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      name="password"
-                      required
-                      error={formErrors.password}
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <FormField
-                      label="Confirm Password"
-                      type="password"
-                      value={rePassword}
-                      onChange={(e) => setRePassword(e.target.value)}
-                      name="rePassword"
-                      required
-                      error={formErrors.rePassword}
-                    />
-                  </div>
+            <h2 className="font-sans text-xl font-bold text-[#7B1113] text-center mt-5">
+              Create Account
+            </h2>
+            {/* FORM AREA */}
+            <form
+              className="p-0 bg-transparent shadow-none w-full max-w-[470px] mt-10"
+              onSubmit={handleSubmit}
+            >
+              <div className="mb-3">
+                <FormField
+                  label="Email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  name="email"
+                  required
+                  error={formErrors.email}
+                />
+              </div>
+              <div className="mb-3 relative">
+                <FormField
+                  label="Password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  name="password"
+                  required
+                  error={formErrors.password}
+                  className="pr-10"
+                />
 
-                  <button type="submit" className="submit-button">
-                      Sign Up
-                  </button>
-                  <div className="text-center text-sm text-gray-600 mt-2 leading-[1.6]">
-                      Already have an account? <button type="button" onClick={onSwitchToLogin} className="text-red-900 underline bg-transparent border-none cursor-pointer">Log in</button>
-                  </div>
-                </form>
-            </section>
-
-        </div>
-            {isLoading && (
-            <Modal>
-                <div className="modal-message-with-spinner">
-                <div className="loading-spinner" />
-                <p className="loading-text text-upmaroon">Signing up... Please wait.</p>
-                </div>
-            </Modal>
-            )}
-
-            {showMessageModal && !isLoading && (
-            <Modal>
-              <div className="modal-message-with-spinner">
-                <p className="loading-text text-upmaroon" style={{ fontWeight: "bold" }}>
-                    {isError ? "Error" : "Success"}
-                </p>
-                <p className="text-[#333]">{message}</p>
+                {/* Eye icon */}
                 <button
-                    className="okay-button"
-                    onClick={() => {
-                      setShowMessageModal(false);
-                      if (!isError) {
-                        onClose();
-                      }
-                    }}
+                  type="button"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  disabled={!password}
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 ${
+                    password ? "text-gray-500 cursor-pointer" : "text-gray-300 cursor-not-allowed"
+                  }`}
+                  onClick={() => password && setShowPassword(!showPassword)}
                 >
-                    OK
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-            </Modal>
-            )}
-  </>
+              <div className="mb-3 relative">
+                <FormField
+                  label="Confirm Password"
+                  type={showRePassword ? "text" : "password"}
+                  value={rePassword}
+                  onChange={(e) => setRePassword(e.target.value)}
+                  name="rePassword"
+                  required
+                  error={formErrors.rePassword}
+                  className="pr-10"
+                />
+
+                {/* Eye icon */}
+                <button
+                  type="button"
+                  aria-label={
+                    showRePassword ? "Hide confirm password" : "Show confirm password"
+                  }
+                  disabled={!rePassword}
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 ${
+                    rePassword ? "text-gray-500 cursor-pointer" : "text-gray-300 cursor-not-allowed"
+                  }`}
+                  onClick={() => rePassword && setShowRePassword(!showRePassword)}
+                >
+                  {showRePassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+
+              <button type="submit" className="submit-button">
+                Sign Up
+              </button>
+              <div className="text-center text-sm text-gray-600 mt-2 leading-[1.6]">
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  onClick={onSwitchToLogin}
+                  className="text-red-900 underline bg-transparent border-none cursor-pointer"
+                >
+                  Log in
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      </div>
+      {isLoading && (
+        <Modal>
+          <div className="modal-message-with-spinner">
+            <div className="loading-spinner" />
+            <p className="loading-text text-upmaroon">
+              Signing up... Please wait.
+            </p>
+          </div>
+        </Modal>
+      )}
+
+      {showMessageModal && !isLoading && (
+        <Modal>
+          <div className="modal-message-with-spinner">
+            <p
+              className="loading-text text-upmaroon"
+              style={{ fontWeight: "bold" }}
+            >
+              {isError ? "Error" : "Success"}
+            </p>
+            <p className="text-[#333]">{message}</p>
+            <button
+              className="okay-button"
+              onClick={() => {
+                setShowMessageModal(false);
+                if (!isError) {
+                  onClose();
+                }
+              }}
+            >
+              OK
+            </button>
+          </div>
+        </Modal>
+      )}
+    </>
   );
-};
+}

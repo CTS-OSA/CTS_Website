@@ -10,9 +10,19 @@ import { AuthContext } from "../context/AuthContext";
 import { useApiRequest } from "../context/ApiRequestContext";
 import BackToTopButton from "../components/BackToTop";
 import Loader from "../components/Loader";
-import { formatDateOnly } from "../utils/helperFunctions";
+import { formatDate, formatDateOnly } from "../utils/helperFunctions";
 import upLogo from "../assets/UPMin_logo.png";
 import up28thLogo from "../assets/UP-28th-logo.png";
+
+const statusLabels = {
+  closed_intake: "Closed at Intake Interview",
+  for_counseling: "For Counseling",
+  for_psych_test: "For Psychological Testing",
+  counseling_ongoing: "Counseling Sessions are on-going",
+  counseling_completed: "Sessions Completed / Case Terminated",
+  no_show: "Student did not show up",
+  referred_to: "Referred To",
+};
 
 const ReferralSlipProfileView = ({
   profileData,
@@ -20,7 +30,6 @@ const ReferralSlipProfileView = ({
   isAdmin = false,
 }) => {
   const pdfRef = useRef();
-  const { role } = useContext(AuthContext);
   const { request } = useApiRequest();
   const navigate = useNavigate();
   const { submission_id } = useParams();
@@ -81,8 +90,7 @@ const ReferralSlipProfileView = ({
         referred_person_gender:
           formData?.referral?.referred_person?.gender || "",
         reason_for_referral: formData?.referral?.reason_for_referral || "",
-        initial_actions_taken:
-          formData?.referral?.initial_actions_taken || "",
+        initial_actions_taken: formData?.referral?.initial_actions_taken || "",
         referral_date: formData?.referral?.referral_date
           ? formatDateOnly(formData.referral.referral_date)
           : "",
@@ -92,29 +100,34 @@ const ReferralSlipProfileView = ({
 
   // Fetch acknowledgement data if it exists
   useEffect(() => {
-    const fetchAcknowledgement = async () => {
-      if (!submission_id) return;
+    if (formData?.referral?.referral_status === "acknowledged") {
+      const fetchAck = async () => {
+        try {
+          const response = await request(
+            `/api/forms/referrals/${submission_id}/acknowledgement/`
+          );
 
-      try {
-        const response = await request(
-          `/api/forms/referral-slip/${submission_id}/acknowledgement/`,
-          { method: "GET" }
-        );
+          if (!response.ok) {
+            throw new Error("Failed to fetch acknowledgement data");
+          }
 
-        if (response?.acknowledgement) {
-          setAcknowledgementData(response.acknowledgement);
+          const data = await response.json();
+          setAcknowledgementData(data);
+          console.log("Acknowledgement fetched: ", data);
+        } catch (err) {
+          // console.error("ERROR loading acknowledgement:", err);
+        } finally {
+          setLoading(false);
         }
-      } catch (err) {
-        // No acknowledgement exists yet, that's okay
-        console.log("No acknowledgement data found");
-      } finally {
-        setLoading(false);
-      }
-    };
+      };
+      fetchAck();
+    } else {
+      setAcknowledgementData(null);
+      setLoading(false);
+    }
+  }, [submission_id, formData]);
 
-    fetchAcknowledgement();
-  }, [submission_id, request]);
-
+  console.log(formData.referral.referral_status);
   const handleDownloadClick = () => {
     setShowDownloadConfirm(true);
   };
@@ -132,12 +145,48 @@ const ReferralSlipProfileView = ({
 
   const handleDownload = async () => {
     const element = pdfRef.current;
+    
+    // Create a scoped style tag that only applies to this element
+    const styleTag = document.createElement("style");
+    styleTag.id = "pdf-render-styles";
+    styleTag.innerHTML = `
+      #referral-pdf-container.pdf-mode .inlineBlockBorder {
+        vertical-align: bottom;
+        padding-bottom: 8px;
+      }
+
+      #referral-pdf-container.pdf-mode .inlineBlockBorderEmpty:empty {
+        padding-top: 10px;
+        padding-bottom: 8px;
+      }
+
+      #referral-pdf-container.pdf-mode .reason-initial {
+        margin-top: 10px;
+      }
+
+      #referral-pdf-container.pdf-mode .page-break {
+        page-break-before: always; 
+        break-before: page;    
+      }
+
+      #referral-pdf-container.pdf-mode .avoid-break {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+    `;
+    
+    // Inject the style tag
+    document.head.appendChild(styleTag);
+    
+    // Add the pdf-mode class
     element.classList.add("pdf-mode");
 
     if (document.fonts && document.fonts.ready) {
       try {
         await document.fonts.ready;
-      } catch (e) {}
+      } catch (e) {
+        // silent
+      }
     }
 
     const imgs = Array.from(element.querySelectorAll("img"));
@@ -149,6 +198,7 @@ const ReferralSlipProfileView = ({
     );
 
     const opt = {
+      margin: [0.5, 0.5, 0.5, 0.5], 
       filename: "Referral_Slip_Complete.pdf",
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: {
@@ -162,7 +212,10 @@ const ReferralSlipProfileView = ({
     };
 
     await html2pdf().set(opt).from(element).save();
+    
+    // Clean up
     element.classList.remove("pdf-mode");
+    document.head.removeChild(styleTag);
   };
 
   const handleProceedToAcknowledgement = () => {
@@ -172,13 +225,13 @@ const ReferralSlipProfileView = ({
 
   const getStatusLabel = (status) => {
     const statusMap = {
-      closed: "Closed at Intake Interview",
+      closed_intake: "Closed at Intake Interview",
       for_counseling: "For Counseling",
       for_psych_test: "For Psychological Testing",
-      ongoing: "Counseling Sessions are on-going",
-      completed: "Sessions Completed / Case Terminated",
+      counseling_ongoing: "Counseling Sessions are on-going",
+      counseling_completed: "Sessions Completed / Case Terminated",
       no_show: "Student did not show up",
-      referred: "Referred to",
+      referred_to: "Referred to",
     };
     return statusMap[status] || status;
   };
@@ -187,7 +240,15 @@ const ReferralSlipProfileView = ({
 
   return (
     <>
-      <div className="pdf-buttons" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem', gap: '0.5rem' }}>
+      <div
+        className="pdf-buttons"
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          marginBottom: "1rem",
+          gap: "0.5rem",
+        }}
+      >
         <Button
           variant="primary"
           onClick={handleDownloadClick}
@@ -200,9 +261,10 @@ const ReferralSlipProfileView = ({
       {/* MAIN PDF VIEW */}
       <div className="flex justify-center w-full">
         <div
+          id="referral-pdf-container"
           ref={pdfRef}
           className="w-[8.5in] bg-white p-8 leading-tight"
-          style={{ fontSize: "11px", width: "816px", minHeight: "1056px" }}
+          style={{ fontSize: "11px", width: "720px", minHeight: "1056px" }}
         >
           {/* ==== HEADER SECTION ==== */}
           <div className="grid grid-cols-[auto_1fr_auto] items-center mb-4">
@@ -293,7 +355,7 @@ const ReferralSlipProfileView = ({
             {/* REASONS */}
             <div>
               <span className="font-semibold">Reason(s) for Referral:</span>
-              <p className="border border-black min-h-20 p-2 whitespace-pre-wrap">
+              <p className="border border-black min-h-20 p-2 whitespace-pre-wrap align-top reason-initial">
                 {formState.reason_for_referral}
               </p>
             </div>
@@ -301,7 +363,7 @@ const ReferralSlipProfileView = ({
             {/* INITIAL ACTIONS */}
             <div>
               <span className="font-semibold">Initial Actions Taken:</span>
-              <p className="border border-black min-h-20 p-2 whitespace-pre-wrap">
+              <p className="border border-black min-h-20 p-2 whitespace-pre-wrap align-top reason-initial">
                 {formState.initial_actions_taken}
               </p>
             </div>
@@ -352,136 +414,183 @@ const ReferralSlipProfileView = ({
             </div>
 
             {/* ==== ACKNOWLEDGEMENT SECTION (if exists) ==== */}
-            {acknowledgementData && (
-              <>
-                <div className="border-t-2 border-black my-6"></div>
-                
-                <h3 className="font-bold text-[13px] text-center mb-4">
-                  REFERRAL ACKNOWLEDGEMENT SLIP
-                </h3>
 
-                <div className="space-y-4">
-                  {/* To: Field */}
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold">To:</span>
-                    <span className="border-b border-black flex-1 pb-0.5">
-                      {acknowledgementData.referred_to_office || "_______________"}
+            <div className="border-t-2 border-black my-3"></div>
+            <h3 className="font-bold text-[13px] text-center mb-4">
+              REFERRAL ACKNOWLEDGEMENT SLIP
+            </h3>
+
+            <div className="space-y-1">
+              {/* To: Field */}
+              <div className="flex items-center gap-2 avoid-break">
+                <span className="font-semibold">To:</span>
+                <span
+                  className={`border-b border-black px-2 min-w-[300px] inline-block align-bottom inlineBlockBorderEmpty inlineBlockBorder ${
+                    acknowledgementData?.referring_person_name
+                      ? "pb-1"
+                      : "pt-[10px] pb-1"
+                  }`}
+                >
+                  {acknowledgementData?.referring_person_name || ""}
+                </span>
+                <span className="text-[9px]">(Referring Person / Unit)</span>
+              </div>
+
+              <div className="flex items-center gap-2 avoid-break">
+                <span
+                  className={`border-b border-black px-2 min-w-[300px] inline-block inlineBlockBorderEmpty inlineBlockBorder ml-[21px] ${
+                    acknowledgementData?.referring_department ? "" : "pt-[10px]"
+                  }`}
+                >
+                  {acknowledgementData?.referring_department || ""}
+                </span>
+                <span className="text-[9px]">
+                  (Office / Department / College)
+                </span>
+              </div>
+
+              {/* Confirmation text */}
+              <div className="mt-3 leading-relaxed avoid-break">
+                <p className="text-[11px]">
+                  This is to confirm that{" "}
+                  <span className="border-b border-black px-2 min-w-[200px] inline-block inlineBlockBorderEmpty inlineBlockBorder">
+                    {acknowledgementData?.referred_person_name}
+                  </span>{" "}
+                  whom you referred to us on{" "}
+                  <span className="border-b border-black px-2 min-w-[200px] inline-block inlineBlockBorderEmpty inlineBlockBorder"> 
+                    {acknowledgementData?.referral_date
+                      ? formatDate(acknowledgementData.referral_date)
+                      : ""}
+                  </span>{" "}
+                  has visited CTS-OSA on{" "}
+                  <span className="border-b border-black px-2 min-w-[200px] inline-block inlineBlockBorderEmpty inlineBlockBorder">
+                    {acknowledgementData?.referral_date
+                      ? formatDateOnly(acknowledgementData.date_of_visitation)
+                      : ""}
+                  </span>{" "}
+                  and is being attended to by{" "}
+                  <span className="border-b border-black px-2 min-w-[160px] inline-block inlineBlockBorderEmpty inlineBlockBorder">
+                    {acknowledgementData?.counselor_name}
+                  </span>
+                  .
+                </p>
+              </div>
+
+              {/* Status Checklist */}
+              <div className="mt-4 avoid-break">
+                <p className="font-semibold mb-2">
+                  Kindly refer to the checklist below on the status of the case
+                  at hand.
+                </p>
+
+                <div className="space-y-1 text-[10px]">
+                  <div className="flex items-center gap-2 avoid-break">
+                    <span
+                      className={
+                        acknowledgementData?.status === "closed_intake" ? "☑" : "☐"
+                      }
+                    >
+                      {acknowledgementData?.status === "closed_intake" ? "☑" : "☐"}
                     </span>
-                    <span className="text-[9px]">(Referring Person / Unit)</span>
+                    <span>Closed at Intake Interview</span>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className="border-b border-black flex-1 pb-0.5 ml-8"></span>
-                    <span className="text-[9px]">(Office / Department / College)</span>
+                    <span>
+                      {acknowledgementData?.status === "for_counseling"
+                        ? "☑"
+                        : "☐"}
+                    </span>
+                    <span>For Counseling</span>
                   </div>
 
-                  {/* Confirmation text */}
-                  <div className="mt-4">
-                    <p className="text-[11px]">
-                      This is to confirm that{" "}
-                      <span className="border-b border-black px-2">
-                        {formState.referred_person_first_name} {formState.referred_person_last_name}
-                      </span>{" "}
-                      whom you referred to us on{" "}
-                      <span className="border-b border-black px-2">
-                        {formState.referral_date}
-                      </span>{" "}
-                      and is being attended to by{" "}
-                      <span className="border-b border-black px-2">
-                        {acknowledgementData.counselor_name}
-                      </span>.
-                    </p>
+                  <div className="flex items-center gap-2">
+                    <span>
+                      {acknowledgementData?.status === "for_psych_test"
+                        ? "☑"
+                        : "☐"}
+                    </span>
+                    <span>For Psychological testing</span>
                   </div>
 
-                  {/* Status Checklist */}
-                  <div className="mt-4">
-                    <p className="font-semibold mb-2">
-                      Kindly refer to the checklist below on the status of the case at hand.
-                    </p>
-
-                    <div className="space-y-1 text-[10px]">
-                      <div className="flex items-center gap-2">
-                        <span className={acknowledgementData.status === 'closed' ? '☑' : '☐'}>
-                          {acknowledgementData.status === 'closed' ? '☑' : '☐'}
-                        </span>
-                        <span>Closed at Intake Interview</span>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span>{acknowledgementData.status === 'for_counseling' ? '☑' : '☐'}</span>
-                        <span>For Counseling</span>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span>{acknowledgementData.status === 'for_psych_test' ? '☑' : '☐'}</span>
-                        <span>For Psychological testing</span>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span>{acknowledgementData.status === 'ongoing' ? '☑' : '☐'}</span>
-                        <span>Counseling Sessions are on-going</span>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span>{acknowledgementData.status === 'completed' ? '☑' : '☐'}</span>
-                        <span>Sessions Completed / Case Terminated</span>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span>{acknowledgementData.status === 'no_show' ? '☑' : '☐'}</span>
-                        <span>
-                          Student did not show up ----- Number of follow-ups made by the Counselor:{" "}
-                          <span className="border-b border-black px-2">
-                            {acknowledgementData.follow_up || "___"}
-                          </span>
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span>{acknowledgementData.status === 'referred' ? '☑' : '☐'}</span>
-                        <span>
-                          Referred to{" "}
-                          <span className="border-b border-black px-2">
-                            {acknowledgementData.referred_to || "_______________"}
-                          </span>
-                        </span>
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <span>
+                      {acknowledgementData?.status === "counseling_ongoing" ? "☑" : "☐"}
+                    </span>
+                    <span>Counseling Sessions are on-going</span>
                   </div>
 
-                  {/* Thank you */}
-                  <p className="mt-4 text-[11px]">Thank you.</p>
-
-                  {/* Signatures */}
-                  <div className="grid grid-cols-2 gap-8 mt-6">
-                    <div className="text-center">
-                      <div className="border-b border-black mb-1 pb-8"></div>
-                      <p className="font-semibold text-[10px]">Attending GSS</p>
-                    </div>
-
-                    <div className="text-center">
-                      <div className="border-b border-black mb-1 pb-8"></div>
-                      <p className="font-semibold text-[10px]">OSA Director</p>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <span>
+                      {acknowledgementData?.status === "counseling_completed" ? "☑" : "☐"}
+                    </span>
+                    <span>Sessions Completed / Case Terminated</span>
                   </div>
 
-                  {/* Date */}
-                  <div className="flex items-center gap-2 mt-4">
-                    <span className="font-semibold">Date:</span>
-                    <span className="border-b border-black w-60 pb-0.5">
-                      {acknowledgementData.date_of_visitation ? 
-                        formatDateOnly(acknowledgementData.date_of_visitation) : ""}
+                  <div className="flex items-center gap-2">
+                    <span>
+                      {acknowledgementData?.status === "no_show" ? "☑" : "☐"}
+                    </span>
+                    <span>
+                      Student did not show up ----- Number of follow-ups made by
+                      the Counselor:{" "}
+                      <span className="border-b border-black px-2 min-w-[150px] inline-block inlineBlockBorderEmpty inlineBlockBorder">
+                        {acknowledgementData?.follow_up || ""}
+                      </span>
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span>
+                      {acknowledgementData?.status === "referred_to" ? "☑" : "☐"}
+                    </span>
+                    <span>
+                      Referred to{" "}
+                      <span className="border-b border-black px-2 min-w-[150px] inline-block inlineBlockBorderEmpty inlineBlockBorder">
+                        {acknowledgementData?.referred_to || ""}
+                      </span>
                     </span>
                   </div>
                 </div>
-              </>
-            )}
+              </div>
+
+              {/* Thank you */}
+              <p className="mt-4 text-[11px] avoid-break">Thank you.</p>
+
+              {/* Signatures */}
+              <div className="grid grid-cols-2 gap-8 mt-6 avoid-break">
+                {/* Attending GSS */}
+                <div className="text-center">
+                  <div className="border-b border-black pb-1 w-full"></div>
+                  <p className="font-semibold text-[10px]">Attending GSS</p>
+                </div>
+
+                {/* Noted by */}
+                <div className="text-center">
+                  <div className="flex items-center space-x-2">
+                    <p className="whitespace-nowrap">Noted by:</p>
+                    <div className="border-b border-black flex-grow pb-1"></div>
+                  </div>
+                  <p className="font-semibold text-[10px]">OSA Director</p>
+                </div>
+              </div>
+
+              {/* Date */}
+              <div className="flex items-center gap-2 mt-4 avoid-break">
+                <span className="font-semibold">Date:</span>
+                <span className="border-b border-black w-60 pb-0.5">
+                  {acknowledgementData?.date_of_receipt
+                    ? formatDateOnly(acknowledgementData?.date_of_receipt)
+                    : ""}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* ADMIN-ONLY NAVIGATION BUTTON */}
-      {isAdmin && !acknowledgementData && (
+      {isAdmin && formData.referral.referral_status != 'acknowledged' && (
         <div className="flex justify-center mt-6 mb-8">
           <Button
             variant="primary"

@@ -10,7 +10,7 @@ from .views.SCIFEditView import SCIFEditView
 from .views.PARDView import PARDSubmitView, PARDFormView, PARDStatusView
 from .views.AdminProfileView import get_counselor_profile, update_counselor_profile, create_counselor_profile
 from .views.GuestSubmissionView import create_referral_submission, verify_referral_submission
-from .views.ReferralViewSet import ReferralSubmissionView
+from .views.ReferralViewSet import ReferralSubmissionView, AcknowledgementReceiptView
 from .views.FormStatusView import FormStatusView
 
 app_name= 'forms'
@@ -72,10 +72,13 @@ urlpatterns = [
 
     # Referral ViewSet
     path("admin/referrals/<int:submission_id>/", get_referral_detail, name="admin-referral-detail"),
+    path("referrals/<int:submission_id>/acknowledgement/", AcknowledgementReceiptView.as_view(), name="acknowledgement-receipt",),
 
     # Guest Submissions
     path("guest/create-referral-submission/", create_referral_submission, name="create_submission"),
     path("guest/verify-referral-submission/", verify_referral_submission, name="verify_submission"),
+    
+    #Student Referral Submissions
     path('student/counseling-referral-slip/', ReferralSubmissionView.as_view(), name='referral-create'),
     path('student/counseling-referral-slip/<int:referral_id>/', ReferralSubmissionView.as_view(), name='referral-detail'),
 ]

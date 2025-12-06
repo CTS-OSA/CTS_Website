@@ -147,7 +147,7 @@ export const AdminDashboardNew = () => {
       <div className="min-h-screen w-full px-4 sm:px-8 py-6 bg-gray-50">
         <div className="space-y-8">
           {/* Summary cards */}
-          <div className="grid grid-cols-4 gap-6">
+          <div className="grid grid-cols-5 gap-6 ">
             {summaryData.map((item, index) => (
               <SummaryCard
                 key={index}
@@ -158,7 +158,7 @@ export const AdminDashboardNew = () => {
               />
             ))}
           </div>
-          <div className="flex flex-col lg:flex-row gap-6 pt-4 pr-4 pl-4 pb-0">
+          <div className="flex flex-col lg:flex-row gap-6 pr-4 pl-4 pb-0">
             <div className="flex flex-col gap-6 w-full lg:w-1/2">
               {/* Referral Table */}
               <div className="bg-white rounded-lg shadow p-4 flex-1 flex flex-col">
@@ -167,7 +167,7 @@ export const AdminDashboardNew = () => {
                   <button
                     onClick={() => navigate("/admin-referral-list")}
                     aria-label="Go to Referral list"
-                    className="text-upmaroon hover:scale-110 transform transition-colors duration-200"
+                    className="text-upmaroon hover:scale-110 transform transition-colors duration-200 cursor-pointer"
                   >
                     <MoveRight />
                   </button>
@@ -230,7 +230,7 @@ export const AdminDashboardNew = () => {
                   <button
                     onClick={() => navigate("/admin-pard-list")}
                     aria-label="Go to PARD list"
-                    className="text-upmaroon hover:scale-110 transform transition-colors duration-200"
+                    className="text-upmaroon hover:scale-110 transform transition-colors duration-200 cursor-pointer"
                   >
                     <MoveRight />
                   </button>

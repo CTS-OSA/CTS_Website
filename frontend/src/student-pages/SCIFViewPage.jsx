@@ -1,4 +1,10 @@
-import React, { useContext, useRef, useState, useEffect } from "react";
+import React, {
+  useContext,
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 // import "./css/pdfStyle.css";
 import "./css/SCIFpdf.css";
 // import "../forms/SetupProfile/css/multistep.css";
@@ -16,10 +22,7 @@ import { AuthContext } from "../context/AuthContext";
 import { useApiRequest } from "../context/ApiRequestContext";
 import BackToTopButton from "../components/BackToTop";
 import { useEnumChoices } from "../utils/enumChoices";
-import {
-  getProfilePhotoUrl,
-  getProfileInitials,
-} from "../utils/profileUtils";
+import { getProfilePhotoUrl, getProfileInitials } from "../utils/profileUtils";
 
 const INTEGER_ONLY_FIELDS = new Set([
   "birth_rank",
@@ -97,7 +100,6 @@ const normalizeScholarshipEntries = (value) => {
   return value.map((entry) => safeTrim(entry)).filter(Boolean);
 };
 
-
 const toBoolean = (value) => {
   if (typeof value === "boolean") return value;
   if (typeof value === "string") {
@@ -121,6 +123,10 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
   const [downloadToast, setDownloadToast] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const canEdit = role === "admin" || isAdmin;
+  const canViewPsychSections = role === "admin" || isAdmin;
+  const psychStorageKey = profileData?.student_number
+    ? `scif_psychometric_${profileData.student_number}`
+    : null;
   const errorAliasMap = {
     "father.first_name": "father_name",
     "father.last_name": "father_name",
@@ -146,6 +152,31 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
   errorAliasMap["guardian.relationship_to_guardian"] =
     "guardian_relationship_to_guardian";
   errorAliasMap["guardian.language_dialect"] = "guardian_language_dialect";
+  const loadPsychometricCache = useCallback(() => {
+    if (!psychStorageKey || typeof window === "undefined") return null;
+    try {
+      const cached = localStorage.getItem(psychStorageKey);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  }, [psychStorageKey]);
+
+  const savePsychometricCache = useCallback(
+    (rows) => {
+      if (!psychStorageKey || typeof window === "undefined") return;
+      try {
+        if (rows && rows.length) {
+          localStorage.setItem(psychStorageKey, JSON.stringify(rows));
+        } else {
+          localStorage.removeItem(psychStorageKey);
+        }
+      } catch {
+        // ignore storage errors
+      }
+    },
+    [psychStorageKey]
+  );
   const [formState, setFormState] = useState({
     family_data: {
       student_number: "",
@@ -274,6 +305,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       counseling_reason: "",
       submission: "",
     },
+    psychometric_data: [],
     privacy_consent: {
       student_number: "",
       has_consented: false,
@@ -295,6 +327,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       counseling_info,
       guidance_notes,
       scholarship,
+      psychometric_data,
     } = formData;
 
     const father = family_data?.father;
@@ -311,6 +344,27 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       : scholarship?.scholarships_and_assistance
       ? [scholarship.scholarships_and_assistance]
       : [];
+
+    const psychometricEntries = Array.isArray(psychometric_data)
+      ? psychometric_data.map((entry) => ({
+          id: entry?.id ?? null,
+          testing_date: entry?.testing_date || "",
+          test_name: entry?.test_name || "",
+          raw_score: entry?.raw_score || "",
+          percentile: entry?.percentile || "",
+          classification: entry?.classification || "",
+        }))
+      : [];
+    let initialPsychometric =
+      psychometricEntries && psychometricEntries.length > 0
+        ? psychometricEntries
+        : [];
+    if (initialPsychometric.length === 0) {
+      const cached = loadPsychometricCache();
+      if (Array.isArray(cached) && cached.length > 0) {
+        initialPsychometric = cached;
+      }
+    }
 
     const preparedState = {
       // Personal Information
@@ -432,14 +486,15 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       counseling_reason: counseling_info.counseling_reason || "",
 
       // Additional Notes
-      scholarships_and_assistance:
-        scholarship.scholarships_and_assistance || [],
+      psychometric_data: initialPsychometric,
+      scholarships_and_assistance: scholarshipsArray,
       guidance_notes: guidance_notes?.notes || "",
     };
 
     setFormState(preparedState);
     seniorHighRecordRef.current = seniorHighRecord || null;
-  }, [formData, profileData]);
+    savePsychometricCache(initialPsychometric);
+  }, [formData, profileData, loadPsychometricCache, savePsychometricCache]);
 
   const handleDownloadClick = () => {
     setShowDownloadConfirm(true);
@@ -509,6 +564,64 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       ...prev,
       scholarships_and_assistance: updated,
     }));
+  };
+
+  const handlePsychometricChange = (index, field, value) => {
+    if (!canEdit) return;
+    setFormState((prev) => {
+      const nextRows = Array.isArray(prev.psychometric_data)
+        ? [...prev.psychometric_data]
+        : [];
+      nextRows[index] = {
+        ...nextRows[index],
+        [field]: value,
+      };
+      savePsychometricCache(nextRows);
+      return {
+        ...prev,
+        psychometric_data: nextRows,
+      };
+    });
+  };
+
+  const handleAddPsychometricRow = () => {
+    if (!canEdit) return;
+    setFormState((prev) => {
+      const existing = Array.isArray(prev.psychometric_data)
+        ? prev.psychometric_data
+        : [];
+      const updated = [
+        ...existing,
+        {
+          id: null,
+          testing_date: "",
+          test_name: "",
+          raw_score: "",
+          percentile: "",
+          classification: "",
+        },
+      ];
+      savePsychometricCache(updated);
+      return {
+        ...prev,
+        psychometric_data: updated,
+      };
+    });
+  };
+
+  const handleRemovePsychometricRow = (index) => {
+    if (!canEdit) return;
+    setFormState((prev) => {
+      const nextRows = Array.isArray(prev.psychometric_data)
+        ? [...prev.psychometric_data]
+        : [];
+      nextRows.splice(index, 1);
+      savePsychometricCache(nextRows);
+      return {
+        ...prev,
+        psychometric_data: nextRows,
+      };
+    });
   };
 
   const flattenErrors = (errorData) => {
@@ -590,6 +703,10 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       zip_code: safeTrim(formState.permanent_address_zip_code),
     },
   });
+
+  const psychometricRows = Array.isArray(formState.psychometric_data)
+    ? formState.psychometric_data
+    : [];
 
   const buildScifPayload = () => {
     const father = splitFullName(formState.father_name);
@@ -2735,106 +2852,216 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             </div>
           </div>
         </div>
-        <div className="SCIF-section" style={{ pageBreakAfter: "always" }}>
-          <div className="section-title">
-            PSYCHOMETRIC DATA (Leave it blank)
+        {canViewPsychSections && (
+          <div className="SCIF-section" style={{ pageBreakAfter: "always" }}>
+            <div className="section-title">Psychometric Data</div>
+            {psychometricRows.length === 0 ? (
+              <p className="text-sm text-[#525252]">
+                No psychometric data recorded.
+              </p>
+            ) : (
+              <table className="psychometric-table">
+                <thead>
+                  <tr>
+                    <th>Date of Testing</th>
+                    <th>Name of Test</th>
+                    <th>Raw Score</th>
+                    <th>Percentile/IQ</th>
+                    <th>Classification</th>
+                    {canEdit && <th>Actions</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {psychometricRows.map((row, idx) => (
+                    <tr key={row.id ?? idx}>
+                      <td>
+                        {canEdit ? (
+                          <input
+                            type="date"
+                            className="w-full px-2 py-1 text-xs border border-[#D4D4D4] rounded"
+                            value={row.testing_date || ""}
+                            onChange={(e) =>
+                              handlePsychometricChange(
+                                idx,
+                                "testing_date",
+                                e.target.value
+                              )
+                            }
+                          />
+                        ) : row.testing_date ? (
+                          new Date(row.testing_date).toLocaleDateString()
+                        ) : (
+                          ""
+                        )}
+                      </td>
+                      <td>
+                        {canEdit ? (
+                          <input
+                            type="text"
+                            className="w-full px-2 py-1 text-xs border border-[#D4D4D4] rounded"
+                            value={row.test_name || ""}
+                            onChange={(e) =>
+                              handlePsychometricChange(
+                                idx,
+                                "test_name",
+                                e.target.value
+                              )
+                            }
+                          />
+                        ) : (
+                          row.test_name || ""
+                        )}
+                      </td>
+                      <td>
+                        {canEdit ? (
+                          <input
+                            type="text"
+                            className="w-full px-2 py-1 text-xs border border-[#D4D4D4] rounded"
+                            value={row.raw_score || ""}
+                            onChange={(e) =>
+                              handlePsychometricChange(
+                                idx,
+                                "raw_score",
+                                e.target.value
+                              )
+                            }
+                          />
+                        ) : (
+                          row.raw_score || ""
+                        )}
+                      </td>
+                      <td>
+                        {canEdit ? (
+                          <input
+                            type="text"
+                            className="w-full px-2 py-1 text-xs border border-[#D4D4D4] rounded"
+                            value={row.percentile || ""}
+                            onChange={(e) =>
+                              handlePsychometricChange(
+                                idx,
+                                "percentile",
+                                e.target.value
+                              )
+                            }
+                          />
+                        ) : (
+                          row.percentile || ""
+                        )}
+                      </td>
+                      <td>
+                        {canEdit ? (
+                          <input
+                            type="text"
+                            className="w-full px-2 py-1 text-xs border border-[#D4D4D4] rounded"
+                            value={row.classification || ""}
+                            onChange={(e) =>
+                              handlePsychometricChange(
+                                idx,
+                                "classification",
+                                e.target.value
+                              )
+                            }
+                          />
+                        ) : (
+                          row.classification || ""
+                        )}
+                      </td>
+                      {canEdit && (
+                        <td>
+                          <button
+                            type="button"
+                            className="text-[#B91C1C] text-xs underline"
+                            onClick={() => handleRemovePsychometricRow(idx)}
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            {canEdit && (
+              <button
+                type="button"
+                className="text-upmaroon text-xs font-semibold mt-3 underline"
+                onClick={handleAddPsychometricRow}
+              >
+                + Add Psychometric Record
+              </button>
+            )}
           </div>
-          <table className="psychometric-table">
-            <thead>
-              <tr>
-                <th>Date of Testing</th>
-                <th>Name of Test</th>
-                <th>Raw Score</th>
-                <th>Percentile/IQ</th>
-                <th>Classification</th>
-              </tr>
-            </thead>
-            <tbody>
-              {/* Example hardcoded rows */}
-              <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-              <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div className="SCIF-section">
-          <div className="section-title">
-            GUIDANCE SERVICES SPECIALIST’ NOTES: (Leave it blank)
-          </div>
-          <textarea
-            className="guidance-notes"
-            rows={5}
-            readOnly={!canEdit}
-            placeholder="____________________________________________________________________________________________&#10;____________________________________________________________________________________________&#10;____________________________________________________________________________________________"
-            value={formState.guidance_notes || ""}
-            onChange={(e) =>
-              handleFieldChange("guidance_notes", e.target.value)
-            }
-          />
-        </div>
-        <div className="font-bold mb-5">Privacy Statement: </div>
-        <div className="font-bold text-upmaroon mt-5 text-justify">
-          The University of the Philippines takes your privacy seriously and we
-          are committed to protecting your personal information. For the UP
-          Privacy Policy, please visit{" "}
-          <a
-            href="https://privacy.up.edu.ph"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            https://privacy.up.edu.ph
-          </a>
-        </div>
-        <div className="flex justify-between">
-          <CustomCheckbox
-            name="has_consented"
-            value="true"
-            checked={privacy_consent.has_consented === true}
-            onChange={() => {}}
-            disabled
-          />
-
-          <span className="text-justify -ml-50 mt-4">
-            I have read the University of the Philippines' Privacy Notice for
-            Students. I understand that for the UP System to carry out its
-            mandate under the 1987 Constitution, the UP Charter, and other laws,
-            the University must necessarily process my personal and sensitive
-            personal information. Therefore, I recognize the authority of the
-            University of the Philippines to process my personal and sensitive
-            personal information, pursuant to the UP Privacy Notice and
-            applicable laws.
-          </span>
-        </div>
-
-        <div className="flex justify-between gap-4">
-          <label className="field-md">
-            Name of Student:{" "}
-            <input type="text" value={formState.name} readOnly />
-          </label>
-          <label>
-            Signature of Student: <input type="text" readOnly={!canEdit} />
-          </label>
-          <label>
-            Date Signed:{" "}
-            <input
-              type="date"
-              value={new Date(submission.submitted_on).toLocaleDateString(
-                "en-CA"
-              )}
-              readOnly
+        )}
+        <div style={{ pageBreakInside: "avoid" }}>
+          <div className="SCIF-section">
+            <div className="section-title">
+              GUIDANCE SERVICES SPECIALIST’ NOTES: (Leave it blank)
+            </div>
+            <textarea
+              className="guidance-notes"
+              rows={5}
+              readOnly={!canEdit}
+              placeholder="____________________________________________________________________________________________&#10;____________________________________________________________________________________________&#10;____________________________________________________________________________________________"
+              value={formState.guidance_notes || ""}
+              onChange={(e) =>
+                handleFieldChange("guidance_notes", e.target.value)
+              }
             />
-          </label>
+          </div>
+          <div className="font-bold mb-5">Privacy Statement: </div>
+          <div className="font-bold text-upmaroon mt-5 text-justify">
+            The University of the Philippines takes your privacy seriously and
+            we are committed to protecting your personal information. For the UP
+            Privacy Policy, please visit{" "}
+            <a
+              href="https://privacy.up.edu.ph"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              https://privacy.up.edu.ph
+            </a>
+          </div>
+          <div className="flex justify-between">
+            <CustomCheckbox
+              name="has_consented"
+              value="true"
+              checked={privacy_consent.has_consented === true}
+              onChange={() => {}}
+              disabled
+            />
+
+            <span className="text-justify -ml-50 mt-4">
+              I have read the University of the Philippines' Privacy Notice for
+              Students. I understand that for the UP System to carry out its
+              mandate under the 1987 Constitution, the UP Charter, and other
+              laws, the University must necessarily process my personal and
+              sensitive personal information. Therefore, I recognize the
+              authority of the University of the Philippines to process my
+              personal and sensitive personal information, pursuant to the UP
+              Privacy Notice and applicable laws.
+            </span>
+          </div>
+
+          <div className="flex justify-between gap-4">
+            <label className="field-md">
+              Name of Student:{" "}
+              <input type="text" value={formState.name} readOnly />
+            </label>
+            <label>
+              Signature of Student: <input type="text" readOnly={!canEdit} />
+            </label>
+            <label>
+              Date Signed:{" "}
+              <input
+                type="date"
+                value={new Date(submission.submitted_on).toLocaleDateString(
+                  "en-CA"
+                )}
+                readOnly
+              />
+            </label>
+          </div>
         </div>
       </div>
       <BackToTopButton />

@@ -6,6 +6,7 @@ import FormField from "../components/FormField";
 import Modal from "../components/Modal";
 import "../components/css/Modal.css";
 import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "react-feather";
 
 export const ChangePassword = () => {
   const { request } = useApiRequest();
@@ -13,6 +14,9 @@ export const ChangePassword = () => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [reNewPassword, setReNewPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showReNewPassword, setShowReNewPassword] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -91,32 +95,92 @@ export const ChangePassword = () => {
         <div className="reset-password">
           <h2 className="form-title">CHANGE PASSWORD</h2>
           <form onSubmit={handleSubmit} className="-mt-4">
-            <FormField
-              label="Current Password"
-              type="password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              required={true}
-              name="currentPassword"
-            />
+            <div className="relative">
+              <FormField
+                label="Current Password"
+                type={showCurrentPassword ? "text" : "password"}
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                required
+                name="currentPassword"
+              />
 
-            <FormField
-              label="New Password"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              required={true}
-              name="newPassword"
-            />
+              <button
+                type="button"
+                aria-label={
+                  showCurrentPassword ? "Hide password" : "Show password"
+                }
+                disabled={!currentPassword}
+                className={`absolute right-3 top-1/2 -translate-y-1/2 ${
+                  currentPassword
+                    ? "text-gray-500 cursor-pointer"
+                    : "text-gray-300 cursor-not-allowed"
+                }`}
+                onClick={() =>
+                  currentPassword &&
+                  setShowCurrentPassword(!showCurrentPassword)
+                }
+              >
+                {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
 
-            <FormField
-              label="Confirm New Password"
-              type="password"
-              value={reNewPassword}
-              onChange={(e) => setReNewPassword(e.target.value)}
-              required={true}
-              name="reNewPassword"
-            />
+            <div className="relative">
+              <FormField
+                label="New Password"
+                type={showNewPassword ? "text" : "password"}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                name="newPassword"
+              />
+
+              <button
+                type="button"
+                aria-label={showNewPassword ? "Hide password" : "Show password"}
+                disabled={!newPassword}
+                className={`absolute right-3 top-1/2 -translate-y-1/2 ${
+                  newPassword
+                    ? "text-gray-500 cursor-pointer"
+                    : "text-gray-300 cursor-not-allowed"
+                }`}
+                onClick={() =>
+                  newPassword && setShowNewPassword(!showNewPassword)
+                }
+              >
+                {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+
+            <div className="relative">
+              <FormField
+                label="Confirm New Password"
+                type={showReNewPassword ? "text" : "password"}
+                value={reNewPassword}
+                onChange={(e) => setReNewPassword(e.target.value)}
+                required
+                name="reNewPassword"
+              />
+
+              <button
+                type="button"
+                aria-label={
+                  showReNewPassword ? "Hide password" : "Show password"
+                }
+                disabled={!reNewPassword}
+                className={`absolute right-3 top-1/2 -translate-y-1/2 ${
+                  reNewPassword
+                    ? "text-gray-500 cursor-pointer"
+                    : "text-gray-300 cursor-not-allowed"
+                }`}
+                onClick={() =>
+                  reNewPassword && setShowReNewPassword(!showReNewPassword)
+                }
+              >
+                {showReNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+
             <button
               type="submit"
               className="bg-upmaroon mt-2 rounded-md text-white font-roboto p-2 w-full cursor-pointer"

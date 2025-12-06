@@ -1,25 +1,25 @@
 import React from "react";
-import { Lock } from "react-feather";
+import { AlertCircle } from "react-feather";
 import { Link } from "react-router-dom";
 
-const Unauthorized = () => {
+const NotFound = () => {
   return (
     <div className="verified-page">
       <div className="content-container">
 
-        {/* Different icon */}
-        <Lock className="alert-icon" size={90} />
+        <AlertCircle className="alert-icon" size={90} />
 
-        <h2>Access Denied</h2>
+        <h2>404: Page Not Found</h2>
 
-        <p>You do not have permission to view this page.</p>
+        <p>Sorry, the page you're looking for doesn't exist.</p>
 
         <Link to="/" className="continue-button">
           Return Home
         </Link>
+
       </div>
     </div>
   );
 };
 
-export default Unauthorized;
+export default NotFound;

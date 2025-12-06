@@ -5,9 +5,9 @@ import SubmitButton from "../components/SubmitButton";
 import { AuthContext } from "../context/AuthContext";
 import "../pages/css_pages/loginPage.css";
 import Modal from "../components/Modal";
-import { X } from "react-feather";
+import { X, Eye, EyeOff } from "react-feather";
 
-export default function LoginModal ({ onClose, onSwitchToSignup}) {
+export default function LoginModal({ onClose, onSwitchToSignup }) {
   const { login, authError } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,6 +16,7 @@ export default function LoginModal ({ onClose, onSwitchToSignup}) {
   const [isError, setIsError] = useState(false);
   const [message, setMessage] = useState("");
   const [showMessageModal, setShowMessageModal] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
 
@@ -54,84 +55,115 @@ export default function LoginModal ({ onClose, onSwitchToSignup}) {
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-40"></div>
-        <div className="fixed top-20 left-1/2 right-1/2 w-4/5 h-3/5 transform -translate-x-1/2 
-          bg-white text-gray-900 rounded-3xl shadow-lg z-50 fade-in-up
-          sm:w-[80%] sm:h-1/9 md:w-[65%] lg:w-[45%]
-          ">
-          <section 
-            className="bg-white p-10 sm:p-12 md:p-14 relative flex flex-col justify-center items-center overflow-y-auto rounded-2xl">
-            <button className="absolute right-0 top-0 m-5 cursor-pointer" onClick={onClose}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 sm:px-6">
+        <div className="w-full max-w-[620px] sm:max-w-[700px] bg-white text-gray-900 rounded-3xl shadow-lg fade-in-up">
+          <section className="bg-white p-6 sm:p-10 md:p-12 relative flex flex-col justify-center items-center overflow-y-auto rounded-2xl max-h-[85vh]">
+            <button
+              className="absolute right-0 top-0 m-5 cursor-pointer"
+              onClick={onClose}
+            >
               <X />
             </button>
-            <h2 className="font-sans text-xl font-bold text-[#7B1113] text-center mt-5">Log in to your account</h2>
-            <form className="p-0 bg-transparent shadow-none w-full max-w-[460px] mt-10" onSubmit={handleSubmit}>
-                <div className="mb-3">
-                  <FormField
-                    label="Email Address"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    name="email"
-                    required
-                  />
-                </div>
-                <div className="mb-3">
-                  <FormField
-                    label="Password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    name="password"
-                    required
-                  />
-                </div>
-              <div className="text-xs text-gray-600 -mt-3 mb-3 underline">
+            <h2 className="font-sans text-xl font-bold text-[#7B1113] text-center mt-5">
+              Log in to your account
+            </h2>
+            <form
+              className="p-0 bg-transparent shadow-none w-full max-w-[460px] mt-10"
+              onSubmit={handleSubmit}
+            >
+              <div className="mb-3">
+                <FormField
+                  label="Email Address"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  name="email"
+                  required
+                />
+              </div>
+              <div className="mb-3 relative">
+                <FormField
+                  label="Password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  name="password"
+                  required
+                  className="pr-10"
+                />
+
+                {/* Eye icon */}
+                <button
+                  type="button"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  disabled={!password}
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 ${
+                    password
+                      ? "text-gray-500 cursor-pointer"
+                      : "text-gray-300 cursor-not-allowed"
+                  }`}
+                  onClick={() => password && setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              <SubmitButton
+                text={loading ? "Logging in..." : "Log In"}
+                disabled={loading}
+              />
+              <div className="text-xs text-gray-600 -mt-1 mb-3 underline text-center">
                 <Link to="/forgot-password">Forgot password?</Link>
               </div>
-                <SubmitButton
-                  text={loading ? "Logging in..." : "Log In"}
-                  disabled={loading}
-                />
+              <hr className="opacity-30" />
               <div className="text-center text-sm text-gray-600 mt-2 leading-[1.6]">
                 <br />
-                  <span className="text-sm text-gray-600">
-                    Don’t have an account? <button type="button" onClick={onSwitchToSignup} className="text-red-900 underline bg-transparent border-none cursor-pointer">Sign up</button>
-                  </span>
+                <span className="text-sm text-gray-600">
+                  Don’t have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={onSwitchToSignup}
+                    className="text-red-900 underline bg-transparent border-none cursor-pointer"
+                  >
+                    Sign up
+                  </button>
+                </span>
               </div>
             </form>
           </section>
         </div>
-        {loading && (
-          <Modal>
-            <div className="modal-message-with-spinner">
-              <div className="loading-spinner" />
-              <p className="loading-text text-upmaroon">Logging in... Please wait.</p>
-            </div>
-          </Modal>
-        )}
+      </div>
+      {loading && (
+        <Modal>
+          <div className="modal-message-with-spinner">
+            <div className="loading-spinner" />
+            <p className="loading-text text-upmaroon">
+              Logging in... Please wait.
+            </p>
+          </div>
+        </Modal>
+      )}
 
-        {showMessageModal && !loading && (
-          <Modal>
-            <div className="modal-message-with-spinner">
-              <p className="loading-text text-upmaroon font-bold">
-                {isError ? "Error" : "Success"}
-              </p>
-              <p className="text-[#333]">{message}</p>
-              <button
-                className="okay-button"
-                onClick={() => {
-                  setShowMessageModal(false);
-                  if (!isError) {
-                    onClose();
-                  }
-                }}
-              >
-                OK
-              </button>
-            </div>
-          </Modal>
-        )}
+      {showMessageModal && !loading && (
+        <Modal>
+          <div className="modal-message-with-spinner">
+            <p className="loading-text text-upmaroon font-bold">
+              {isError ? "Error" : "Success"}
+            </p>
+            <p className="text-[#333]">{message}</p>
+            <button
+              className="okay-button"
+              onClick={() => {
+                setShowMessageModal(false);
+                if (!isError) {
+                  onClose();
+                }
+              }}
+            >
+              OK
+            </button>
+          </div>
+        </Modal>
+      )}
     </>
   );
-};
-
+}

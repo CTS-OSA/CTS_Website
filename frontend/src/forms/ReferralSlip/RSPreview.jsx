@@ -9,7 +9,10 @@ const RSPreview = ({ formData, profileData, onClose }) => {
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <button className="modal-close" onClick={onClose}>
+        <button
+          onClick={onClose}
+          className="sticky top-2 right-2 float-right bg-white rounded-full w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition z-50 text-3xl leading-none"
+        >
           ×
         </button>
 
