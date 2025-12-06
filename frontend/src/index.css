@@ -24,18 +24,18 @@ input[type="radio"] {
 
 input,
 select {
-  background-color: #f9fafb;
+  background-color: #f9f9f9;
 }
 
 label {
   font-family: Roboto;
-  color: #7b1113;
+  /* color: #7b1113; */
 }
 
 /* Date picker */
 input[type="date"] {
   color: #111827;
-  background-color: #fff;
+  background-color: #f9f9f9;
   border: 1px solid #d1d5db;
   border-radius: 0.5rem;
   padding: 0.625rem 0.75rem;
@@ -59,4 +59,3 @@ input[type="date"]:focus {
 .pdf-mode .pb-0\.5 {
   padding-bottom: 8px !important;
 }
-
