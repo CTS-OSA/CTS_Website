@@ -220,6 +220,7 @@ class AcknowledgementReceiptSerializer(serializers.ModelSerializer):
 
             # guest referrer
             return f"{ref.first_name} {ref.last_name}"
+        
 
         # ---- REFERRER DEPARTMENT / UNIT ----
         def get_referring_department(self, obj):

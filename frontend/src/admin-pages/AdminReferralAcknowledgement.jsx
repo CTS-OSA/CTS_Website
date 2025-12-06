@@ -116,13 +116,13 @@ export const AdminReferralAcknowledgement = () => {
     if (formData.dateOfVisitation) {
       const visit = new Date(formData.dateOfVisitation);
       const today = new Date();
-      today.setHours(0, 0, 0, 0); 
+      const visitDateOnly = new Date(visit.getFullYear(), visit.getMonth(), visit.getDate());
+      const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-      // Check if the visit date is in the future
-      if (visit > today) {
-        newErrors.dateOfVisitation =
-          "Date of visitation cannot be in the future.";
+      if (visitDateOnly > todayDateOnly) {
+        newErrors.dateOfVisitation = "Date of visitation cannot be in the future.";
       }
+
 
       if (formData.referralDateRaw) {
         const referral = new Date(formData.referralDateRaw);
@@ -137,8 +137,12 @@ export const AdminReferralAcknowledgement = () => {
       newErrors.status = "Please select a case status";
     }
 
-    if (formData.status === "no_show" && !formData.followUpCount) {
-      newErrors.followUpCount = "Follow-up count is required";
+    if (formData.status === "no_show") {
+      if (!formData.followUpCount) {
+        newErrors.followUpCount = "Follow-up count is required";
+      } else if (!/^[1-9]\d*$/.test(formData.followUpCount)) {
+        newErrors.followUpCount = "Follow-up count must be a positive integer";
+      }
     }
 
     if (formData.status === "referred_to" && !formData.referredToName.trim()) {
@@ -186,7 +190,9 @@ export const AdminReferralAcknowledgement = () => {
       });
       setShowSuccessToast(true);
       setTimeout(() => {
-        navigate(`/admin/counseling-referral-slip/${submission_id}`, { state: { showSuccess: true } });
+        navigate(`/admin/counseling-referral-slip/${submission_id}`, {
+          state: { showSuccess: true },
+        });
       }, 2000);
     } catch (err) {
       alert("Failed to save acknowledgement receipt.");
@@ -204,7 +210,6 @@ export const AdminReferralAcknowledgement = () => {
       </DefaultLayout>
     );
   }
-
 
   return (
     <DefaultLayout variant="admin">
@@ -258,7 +263,7 @@ export const AdminReferralAcknowledgement = () => {
               />
 
               <FormField
-                label="Attending GSS (Counselor Name)"  
+                label="Attending GSS (Counselor Name)"
                 value={formData.attendingGSS}
                 disabled
               />
@@ -337,8 +342,17 @@ export const AdminReferralAcknowledgement = () => {
                 <input
                   type="number"
                   name="followUpCount"
+                  min="1"
+                  step="1"
                   value={formData.followUpCount}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    const value = e.target.value;
+
+                    // allow empty so user can delete input
+                    if (value === "" || /^[1-9]\d*$/.test(value)) {
+                      handleChange(e);
+                    }
+                  }}
                   className={`w-32 px-3 py-1 border rounded-md ${
                     errors.followUpCount ? "border-red-500" : "border-gray-300"
                   }`}
@@ -382,14 +396,14 @@ export const AdminReferralAcknowledgement = () => {
           </div>
         </div>
       </div>
-       {showConfirmDialog && (
+      {showConfirmDialog && (
         <ConfirmDialog
           title="Confirm Submission"
           message="You are about to submit the referral acknowledgement. Please ensure all information is correct before proceeding."
           onConfirm={handleConfirmAction}
           onCancel={handleConfirmCancel}
-          confirmLabel = 'Submit'
-          cancelLabel = 'Cancel'
+          confirmLabel="Submit"
+          cancelLabel="Cancel"
         />
       )}
       {showSuccessToast && (

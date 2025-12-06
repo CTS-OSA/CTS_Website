@@ -1,0 +1,218 @@
+<!-- {% load i18n %}
+{% autoescape on %}
+
+{% block subject %}
+{% blocktrans %}Referral Acknowledgement Receipt{% endblocktrans %}
+{% endblock subject %}
+
+{% block text_body %}
+
+{% blocktrans %}Good day!{% endblocktrans %}
+
+{% blocktrans %}
+Thank you for submitting a Counseling Referral Slip at {{ site_name }}.
+Below is the official Acknowledgement Receipt issued by the Counseling and Testing Section (CTS-OSA).
+Please keep this document for your records.
+{% endblocktrans %}
+
+{% trans "Referring Person:" %} {{ referring_person_name }}
+{% trans "Department/Unit:" %} {{ referring_department }}
+{% trans "Referred Student:" %} {{ referred_person_name }}
+{% trans "Date of Referral:" %} {{ referral_date }}
+{% trans "Date of Visitation:" %} {{ date_of_visitation }}
+{% trans "Counselor Attending:" %} {{ counselor_name }}
+
+{% trans "Status:" %} {{ status }}
+
+{% trans "Thank you." %}
+{% endblock text_body %}
+
+
+{% block html_body %} -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>{% trans "Referral Acknowledgement Receipt" %}</title>
+</head>
+
+<body style="margin:0; padding:0; background:#f4f4f4; font-family:Arial, sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+<tr><td align="center">
+
+<table width="600" cellpadding="0" cellspacing="0"
+       style="background:#fff; border-radius:8px; padding:40px;
+              box-shadow:0 0 10px rgba(0,0,0,0.1);">
+
+  <!-- ICON -->
+  <tr>
+    <td align="center" style="padding-bottom:20px;">
+      <div style="width:60px; height:60px; border-radius:50%; background:#7B1113;
+                  color:white; font-size:30px; line-height:60px; font-weight:bold;">
+        ✓
+      </div>
+    </td>
+  </tr>
+
+  <!-- TITLE -->
+  <tr>
+    <td align="center" style="font-size:24px; font-weight:bold; padding-bottom:20px; color:#333;">
+      {% trans "Referral Acknowledgement Receipt" %}
+    </td>
+  </tr>
+
+  <!-- INTRO -->
+  <tr>
+    <td style="font-size:15px; color:#555; text-align:center; padding:0 20px;">
+      {% blocktrans with site_name=site_name %}
+      Good day!  
+      Thank you for submitting a Counseling Referral Slip at {{ site_name }}.  
+      Below is the official Acknowledgement Receipt issued by the Counseling and Testing Section (CTS-OSA).  
+      Please keep this document for your records.
+      {% endblocktrans %}
+    </td>
+  </tr>
+
+  <tr><td style="height:30px;"></td></tr>
+
+  <!-- MAIN RECEIPT -->
+  <tr>
+    <td>
+      <h3 style="text-align:center; font-size:16px; font-weight:bold;">
+        {% trans "OFFICIAL ACKNOWLEDGEMENT RECEIPT" %}
+      </h3>
+
+      <table width="100%" style="font-size:14px; line-height:1.5; margin-top:20px;">
+
+        <!-- REFERRING PERSON -->
+        <tr><td style="font-weight:bold;">{% trans "To:" %}</td></tr>
+        <tr><td style="border-bottom:1px solid #000; padding:4px 0;">
+          {{ referring_person_name }}
+        </td></tr>
+
+        <tr><td style="border-bottom:1px solid #000; padding:4px 0; margin-top:10px;">
+          {{ referring_department }}
+        </td></tr>
+
+        <tr><td style="height:20px;"></td></tr>
+
+        <!-- CONFIRMATION TEXT -->
+        <tr><td>
+          {% blocktrans %}
+          This is to confirm that <strong>{{ referred_person_name }}</strong>,
+          whom you referred to us on <strong>{{ referral_date }}</strong>,
+          has visited CTS-OSA on <strong>{{ date_of_visitation }}</strong>
+          and is being attended to by <strong>{{ counselor_name }}</strong>.
+          {% endblocktrans %}
+        </td></tr>
+
+        <tr><td style="height:25px;"></td></tr>
+
+        <!-- STATUS SECTION -->
+        <tr><td style="font-weight:bold; margin-bottom:8px;">{% trans "Case Status:" %}</td></tr>
+
+        <tr><td style="padding-left:10px; font-size:14px; line-height:1.6;">
+
+          <!-- CLOSED INTAKE -->
+          <div>
+            {% if status == "closed_intake" %}✓{% else %}☐{% endif %}
+            {% trans "Closed at Intake Interview" %}
+          </div>
+
+          <!-- FOR COUNSELING -->
+          <div>
+            {% if status == "for_counseling" %}✓{% else %}☐{% endif %}
+            {% trans "For Counseling" %}
+          </div>
+
+          <!-- FOR PSYCH TEST -->
+          <div>
+            {% if status == "for_psych_test" %}✓{% else %}☐{% endif %}
+            {% trans "For Psychological Testing" %}
+          </div>
+
+          <!-- COUNSELING ONGOING -->
+          <div>
+            {% if status == "counseling_ongoing" %}✓{% else %}☐{% endif %}
+            {% trans "Counseling Sessions are on-going" %}
+          </div>
+
+          <!-- COUNSELING COMPLETED -->
+          <div>
+            {% if status == "counseling_completed" %}✓{% else %}☐{% endif %}
+            {% trans "Sessions Completed / Case Terminated" %}
+          </div>
+
+          <!-- NO SHOW -->
+          <div>
+            {% if status == "no_show" %}✓{% else %}☐{% endif %}
+            {% trans "Student did not show up — Number of follow-ups:" %}
+            <span style="border-bottom:1px solid #000; padding:0 40px;">
+              {{ follow_up|default:"" }}
+            </span>
+          </div>
+
+          <!-- REFERRED TO -->
+          <div>
+            {% if status == "referred_to" %}✓{% else %}☐{% endif %}
+            {% trans "Referred to" %}
+            <span style="border-bottom:1px solid #000; padding:0 40px;">
+              {{ referred_to|default:"" }}
+            </span>
+          </div>
+
+        </td></tr>
+
+        <tr><td style="height:25px;"></td></tr>
+
+        <!-- CLOSING -->
+        <tr><td>{% trans "Thank you." %}</td></tr>
+
+        <tr><td style="height:30px;"></td></tr>
+
+        <!-- SIGNATURES -->
+        <tr><td>
+          <table width="100%">
+            <tr>
+              <td style="text-align:center;">
+                <div style="border-bottom:1px solid #000; height:18px;"></div>
+                <div style="font-size:12px; font-weight:bold;">{% trans "Attending GSS" %}</div>
+              </td>
+              <td style="text-align:center;">
+                <div style="border-bottom:1px solid #000; height:18px;"></div>
+                <div style="font-size:12px; font-weight:bold;">{% trans "OSA Director (Noted by)" %}</div>
+              </td>
+            </tr>
+          </table>
+        </td></tr>
+
+        <tr><td style="height:20px;"></td></tr>
+
+        <!-- DATE -->
+        <tr><td>
+          <strong>{% trans "Date:" %}</strong> {{ date_of_receipt }}
+        </td></tr>
+
+      </table>
+    </td>
+  </tr>
+
+  <!-- FOOTER -->
+  <tr>
+    <td align="center" style="padding-top:40px; font-size:12px; color:#aaa;">
+      © {{ year|default:"2025" }} {{ site_name }} — {% trans "All rights reserved." %}<br>
+      {% trans "You received this email because a referral you issued has been acknowledged." %}
+    </td>
+  </tr>
+
+</table>
+
+</td></tr>
+</table>
+
+</body>
+</html>
+<!-- 
+{% endblock html_body %}
+{% endautoescape %} -->
