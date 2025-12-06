@@ -274,7 +274,6 @@ const handleView = (form, isAdmin = false, studentId = null) => {
 
   const handleUpdate = async () => {
     const mergedData = mergeProfileAndFormData(profileData, formData);
-    
     if (errors.photo || !profileData.photo) {
       setToast( "Please upload a valid profile photo before saving.");
       setValidationErrors((prev) => ({
@@ -300,10 +299,40 @@ const handleView = (form, isAdmin = false, studentId = null) => {
     setShowConfirm(true);
   };
 
+  const getChangedFields = (original, updated) => {
+    const changes = {};
+    
+    Object.keys(updated).forEach((key) => {
+      if (typeof updated[key] === 'object' && updated[key] !== null && !Array.isArray(updated[key])) {
+        const nestedChanges = {};
+        
+        Object.keys(updated[key]).forEach((nestedKey) => {
+          if (original[key]?.[nestedKey] !== updated[key][nestedKey]) {
+            nestedChanges[nestedKey] = updated[key][nestedKey];
+          }
+        });
+
+        if (Object.keys(nestedChanges).length > 0) {
+          changes[key] = nestedChanges;
+        }
+
+      } else if (original[key] !== updated[key]) {
+        changes[key] = updated[key];
+      }
+    });
+    console.log("Changed", changes);
+
+    // FIX ME: CURENTLY I HAVE UPDATED THE PATCH DATA WHERE DATA NEEDED TO BE CHANGED IS ONLY PASSED ON BACKEN
+    return changes;
+  };
+
   const handleConfirmDialog = async () => {
     if (confirmAction === "save") {
-      console.log("New data: ", formData);
-      await onUpdate({ ...formData, photoFile });
+      const changedFields = getChangedFields(profileData, formData);
+      if (photoFile) {
+        changedFields.photoFile = photoFile;
+      }
+      await onUpdate(changedFields);
       setToast("Profile updated successfully!");
       setValidationErrors({});
     } else if (confirmAction === "cancel") {
