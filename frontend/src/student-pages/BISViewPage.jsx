@@ -711,7 +711,7 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
           </label>
         </div>
         <h5>Privacy Statement: </h5>
-        <div className="font-bold text-upmaroon mt-5 text-justify">
+        <div className="font-bold mt-5 text-justify">
           The University of the Philippines takes your privacy seriously and we
           are committed to protecting your personal information. For the UP
           Privacy Policy, please visit{" "}
