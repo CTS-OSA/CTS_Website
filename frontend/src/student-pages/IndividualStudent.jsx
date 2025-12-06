@@ -212,26 +212,44 @@ const StudentSideInfo = ({
 
   const [photoPreview, setPhotoPreview] = useState(null);
 
-  const handleView = (form, isAdmin = false, studentId = null) => {
-    const slugify = (text) =>
-      text
-        .toLowerCase()
-        .replace(/\s+/g, "-")
-        .replace(/[^\w-]+/g, "");
-    const slug = slugify(form.form_type);
+const handleView = (form, isAdmin = false, studentId = null) => {
+  const slugify = (text) =>
+    text
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^\w-]+/g, "");
 
-    if (isAdmin && studentId) {
-      if (form.status === "submitted") {
-        navigate(`/admin/student-forms/${studentId}/${slug}/`);
+  const slug = slugify(form.form_type);
+
+  // Forms that should use special admin routing
+  const SPECIAL_ADMIN_FORMS = [
+    "psychosocial-assistance-and-referral-desk",
+    "counseling-referral-slip"
+  ];
+
+  // ADMIN VIEW
+  if (isAdmin && studentId) {
+    if (form.status === "submitted") {
+
+      // Special forms → different route
+      if (SPECIAL_ADMIN_FORMS.includes(slug)) {
+        navigate(`/admin/${slug}/${form.id}`);
+      } else {
+        // Default admin route
+        navigate(`/admin/student-forms/${studentId}/${slug}`);
       }
-    } else {
-     if (form.status === 'draft') {
-      navigate(`/forms/${slug}`);
-    } else if (form.status === 'submitted') {
-      navigate(`/submitted-forms/${slug}/${form.id}`);
     }
-    }
-  };
+    return;
+  }
+
+  // STUDENT VIEW
+  if (form.status === "draft") {
+    navigate(`/forms/${slug}`);
+  } else if (form.status === "submitted") {
+    navigate(`/submitted-forms/${slug}/${form.id}`);
+  }
+};
+
 
   const updateProfileData = (updatedFields) => {
     setFormData((prev) => ({
@@ -284,6 +302,7 @@ const StudentSideInfo = ({
 
   const handleConfirmDialog = async () => {
     if (confirmAction === "save") {
+      console.log("New data: ", formData);
       await onUpdate({ ...formData, photoFile });
       setToast("Profile updated successfully!");
       setValidationErrors({});
@@ -569,7 +588,7 @@ const StudentSideInfo = ({
                 />
                 <FormField
                   label="Landline Number"
-                  value={formData.landline_number || "None"}
+                  value={formData?.landline_number || "None"}
                   onChange={(e) =>
                     updateProfileData({ landline_number: e.target.value })
                   }
