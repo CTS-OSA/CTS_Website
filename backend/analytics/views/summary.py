@@ -128,7 +128,38 @@ def recent_submissions_view(request):
 
     except Exception as e:
         return Response({'error': str(e)}, status=500)
+   
+   
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def recent_bis_submissions_view(request):
+    try:
+        submissions = (
+            Submission.objects
+            .filter(status="submitted", form_type="Basic Information Sheet")
+            .order_by('-submitted_on')[:8]
+        )
+        serializer = RecentSubmissionSerializer(submissions, many=True)
+        return Response(serializer.data, status=200)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
     
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def recent_scif_submissions_view(request):
+    try:
+        submissions = (
+            Submission.objects
+            .filter(status="submitted", form_type="Student Cumulative Information File")
+            .order_by('-submitted_on')[:8]
+        )
+        serializer = RecentSubmissionSerializer(submissions, many=True)
+        return Response(serializer.data, status=200)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+        
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def recent_drafts_view(request):
