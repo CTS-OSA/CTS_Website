@@ -15,7 +15,7 @@ const RSReferrer = ({ profileData }) => {
         REFERRER DETAILS
       </h2>
 
-      <div className="grid lg:grid-cols-2 gap-4 pb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
         <FormField
           label="Referrer's Last Name"
           value={profileData.last_name || ""}
@@ -36,7 +36,7 @@ const RSReferrer = ({ profileData }) => {
         />
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4 pb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
         <FormField
           label="Email Address"
           type="email"

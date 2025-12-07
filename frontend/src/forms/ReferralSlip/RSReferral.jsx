@@ -1,11 +1,7 @@
 import React from "react";
-import "../SetupProfile/css/multistep.css";
 import { clearError } from "../../utils/helperFunctions";
 import FormField from "../../components/FormField";
 import { filterGeneralText } from "../../utils/inputFilters";
-const ALPHA_REGEX = /^[A-Za-z\s]*$/;
-const ALPHA_SPACE_REGEX = /[^A-Za-z\s]/g;
-const ALPHA_NUM_COMMA_DASH_REGEX = /[^A-Za-z0-9\s,-]/g;
 
 const RSRefferal = ({
   formData,
@@ -35,12 +31,16 @@ const RSRefferal = ({
   };
 
   return (
-    <div>
-      <fieldset disabled={readOnly}>
-        <h2 className="text-upmaroon text-2xl font-bold">REFERRAL DETAILS</h2>
+    <div className="space-y-6">
+      <fieldset disabled={readOnly} className="space-y-6">
+        <h2 className="text-upmaroon text-2xl font-bold">
+          REFERRAL DETAILS
+        </h2>
 
-        <div className="form-row full-width">
-          <label className="form-label">Reason for Referral</label>
+        <div className="space-y-2">
+          <label className="block text-sm font-semibold text-gray-800">
+            Reason for Referral
+          </label>
           <FormField
             type="textarea"
             name="reason_for_referral"
@@ -51,8 +51,10 @@ const RSRefferal = ({
           />
         </div>
 
-        <div className="form-row full-width">
-          <label className="form-label">Initial Actions Taken</label>
+        <div className="space-y-2">
+          <label className="block text-sm font-semibold text-gray-800">
+            Initial Actions Taken
+          </label>
           <FormField
             type="textarea"
             name="initial_actions_taken"

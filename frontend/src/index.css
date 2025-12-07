@@ -44,6 +44,10 @@ input[type="date"] {
   appearance: none;
 }
 
+input[type="date"]:disabled {
+  color: oklch(70.7% 0.022 261.325);
+}
+
 input[type="date"]::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
 }

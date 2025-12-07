@@ -20,36 +20,31 @@ const SCIFCredentials = ({ data }) => {
         STUDENT CREDENTIALS
       </h2>
 
-      <div className="grid grid-cols-1 gap-6 mb-6">
-        <div className="flex flex-col items-center gap-2 mt-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-center gap-6 mb-6 mt-4">
+        <div className="flex justify-center sm:justify-start w-full sm:w-auto">
           <div
-            className="bigger_avatar shadow-md"
+            className="bigger_avatar shadow-md overflow-hidden flex items-center justify-center bg-gray-100 border border-gray-300"
             style={{
               borderRadius: "1rem",
-              width: "220px",
-              height: "220px",
-              overflow: "hidden",
+              width: "min(220px, 65vw)",
+              height: "min(220px, 65vw)",
+              maxWidth: "220px",
+              maxHeight: "220px",
+              minWidth: "140px",
+              minHeight: "140px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: "#f3f4f6",
-              border: "1px solid #d1d5db",
             }}
           >
             {photoUrl ? (
               <img
                 src={photoUrl}
                 alt={`${data.first_name || ""} ${data.last_name || ""} ID`}
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                className="w-full h-full object-cover"
               />
             ) : (
-              <span
-                style={{
-                  fontSize: "2.5rem",
-                  fontWeight: 600,
-                  color: "#6b7280",
-                }}
-              >
+              <span className="text-3xl sm:text-4xl font-semibold text-gray-500">
                 {initials}
               </span>
             )}

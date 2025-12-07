@@ -1,7 +1,14 @@
 import React from "react";
-import FormField from "../../components/FormField";
+import BaseFormField from "../../components/FormField";
 
 const SCIFScholarships = ({ data, updateData, readOnly = false }) => {
+  const FormField = (props) => (
+    <BaseFormField
+      {...props}
+      disabled={props.disabled ?? readOnly}
+    />
+  );
+
   const handleRawChange = (newValue) => {
     if (readOnly) return;
     updateData({ scholarships_and_assistance: newValue });

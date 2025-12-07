@@ -2,7 +2,7 @@ import React from "react";
 import FormField from "../../components/FormField";
 
 const PARDPsychAssessment = ({ formData, setFormData, errors = {}, setErrors }) => {
-    
+
     const profession = ["Psychologist", "Psychiatrist", "General Physician", "Not yet"]
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -12,44 +12,44 @@ const PARDPsychAssessment = ({ formData, setFormData, errors = {}, setErrors }) 
 
             // Handle checkbox for diagnosed_by
             if (type === "checkbox" && name === "diagnosed_by") {
-            const prevSelected = prevAssessment.diagnosed_by || [];
-            let updatedSelection;
+                const prevSelected = prevAssessment.diagnosed_by || [];
+                let updatedSelection;
 
-            if (checked) {
-                // Add to array
-                updatedSelection = [...prevSelected, value];
-            } else {
-                // Remove from array
-                updatedSelection = prevSelected.filter((item) => item !== value);
-            }
+                if (checked) {
+                    // Add to array
+                    updatedSelection = [...prevSelected, value];
+                } else {
+                    // Remove from array
+                    updatedSelection = prevSelected.filter((item) => item !== value);
+                }
 
-            return {
-                ...prev,
-                pard_psych_assessment: {
-                ...prevAssessment,
-                diagnosed_by: updatedSelection,
-                },
-            };
+                return {
+                    ...prev,
+                    pard_psych_assessment: {
+                        ...prevAssessment,
+                        diagnosed_by: updatedSelection,
+                    },
+                };
             }
 
             // Handle other field types normally
             return {
-            ...prev,
-            pard_psych_assessment: {
-                ...prevAssessment,
-                [name]: value,
-            },
+                ...prev,
+                pard_psych_assessment: {
+                    ...prevAssessment,
+                    [name]: value,
+                },
             };
         });
 
         // Clear field-specific error if any
         if (errors[name]) {
             setErrors((prev) => ({
-            ...prev,
-            [name]: null,
+                ...prev,
+                [name]: null,
             }));
         }
-        };
+    };
 
 
     return (
@@ -58,15 +58,15 @@ const PARDPsychAssessment = ({ formData, setFormData, errors = {}, setErrors }) 
                 PSYCHOSOCIAL ASSESSMENT
             </h3>
 
-            <h4 className="text-sm md:text-base mb-5">Chief complaint(s)/problems/concerns/disturbances:</h4>
+            <h4 className="text-sm md:text-base mb-5">Chief complaint(s)/ problems/ concerns/ disturbances:</h4>
 
             <hr />
 
             {/* Form section */}
-            <div className="grid grid-cols-2 gap-10 mt-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-3">
                 <div>
                     <label className="text-sm sm:text-base">
-                        Started when (attacks or episodes):    
+                        Started when (attacks or episodes):
                     </label>
                     <FormField
                         type="date"
@@ -82,8 +82,8 @@ const PARDPsychAssessment = ({ formData, setFormData, errors = {}, setErrors }) 
                     </label>
                     <div className="flex gap-4 mt-2">
                         <div className="flex items-center gap-2">
-                            <input 
-                                type="radio" 
+                            <input
+                                type="radio"
                                 id="medication_yes"
                                 name="is_currently_on_medication"
                                 value="yes"
@@ -93,8 +93,8 @@ const PARDPsychAssessment = ({ formData, setFormData, errors = {}, setErrors }) 
                             <label htmlFor="medication_yes">Yes</label>
                         </div>
                         <div className="flex items-center gap-2">
-                            <input 
-                                type="radio" 
+                            <input
+                                type="radio"
                                 id="medication_no"
                                 name="is_currently_on_medication"
                                 value="no"
@@ -107,9 +107,9 @@ const PARDPsychAssessment = ({ formData, setFormData, errors = {}, setErrors }) 
                     {errors.is_currently_on_medication && <div className="text-[#D32F2F] text-xs  italic">{errors.is_currently_on_medication}</div>}
                 </div>
             </div>
-            <div className="grid grid-cols-2 gap-3 mt-3">
-            
-                <div className="col-span-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+
+                <div className="md:col-span-2">
                     <FormField
                         label="Symptoms observed"
                         type="text"
@@ -135,10 +135,10 @@ const PARDPsychAssessment = ({ formData, setFormData, errors = {}, setErrors }) 
                     />
                     {errors.communication_platform && <div className="text-[#D32F2F] text-xs  italic">{errors.communication_platform}</div>}
                 </div>
-                
+
                 <div>
                     <label className="text-sm sm:text-base">
-                        If you have been diagnosed, when?   
+                        If you have been diagnosed, when?
                     </label>
                     <FormField
                         type="date"
@@ -151,7 +151,7 @@ const PARDPsychAssessment = ({ formData, setFormData, errors = {}, setErrors }) 
 
                 <div>
                     <label className="text-sm sm:text-base">
-                        Have been diagnosed by: 
+                        Have been diagnosed by:
                     </label>
 
                     {/* CHECKBOX SECTION*/}

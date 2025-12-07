@@ -35,7 +35,7 @@ const PARDDemogProfile = ({ formData, setFormData, errors = {}, setErrors }) => 
             </h3>
 
             {/* Form section */}
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <FormField
                         label="Surname"

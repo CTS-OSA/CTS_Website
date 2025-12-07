@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import FormField from "../../components/FormField";
+import BaseFormField from "../../components/FormField";
 import Button from "../../components/UIButton";
 import { useEnumChoices } from "../../utils/enumChoices";
 import {
@@ -93,6 +93,13 @@ const SCIFPreviousSchoolRecord = ({
   setErrors,
   sameAsPrimaryStorageKey,
 }) => {
+  const FormField = (props) => (
+    <BaseFormField
+      {...props}
+      disabled={props.disabled ?? readOnly}
+    />
+  );
+
   const [schoolRecords, setSchoolRecords] = useState(() =>
     ensureRequiredRecords(data?.records || [])
   );

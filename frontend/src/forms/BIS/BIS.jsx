@@ -300,7 +300,7 @@ const BISForm = () => {
           <div className="bg-white rounded-[15px] p-4 sm:p-6 lg:p-8 shadow-md box-border w-full max-w-5xl mx-auto mb-16 -mt-12 sm:-mt-16">
             <div className="flex flex-col lg:flex-row w-full items-stretch gap-6">
               {/* Step Indicator */}
-              <div className="w-full lg:w-1/3 lg:bg-upmaroon rounded-lg p-4 -mb-4 lg:mb-0">
+              <div className="w-full lg:w-1/2 xl:w-1/3 lg:bg-upmaroon rounded-lg p-4 -mb-4 lg:mb-0">
                 <StepIndicator steps={steps} currentStep={step} />
               </div>
 
