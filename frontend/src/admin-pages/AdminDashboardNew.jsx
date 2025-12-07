@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useMemo } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import GroupedBarChart from "../components/GroupedBarChart";
 import SummaryCard from "../components/SummaryCard";
@@ -15,7 +15,8 @@ export const AdminDashboardNew = () => {
   const navigate = useNavigate();
   const [barData, setBarData] = useState([]);
   const [summaryData, setSummaryData] = useState([]);
-  const [recentSubmissions, setRecentSubmissions] = useState([]);
+  const [BISrecentSubmissions, setBISRecentSubmissions] = useState([]);
+  const [SCIFrecentSubmissions, setSCIFRecentSubmissions] = useState([]);
   const [referralData, setReferralData] = useState([]);
   const [totalStudents, setTotalStudents] = useState(0);
   const [pardSubmissions, setPardSubmissions] = useState([]);
@@ -42,12 +43,15 @@ export const AdminDashboardNew = () => {
     }
   };
 
-  const filteredSortedRows = recentSubmissions
+const filterAndSortRows = (rows, filterText, selectedFilters, sortField, sortDirection) => {
+  return rows
     .filter((row) => {
+      // Check if any value matches the filter text
       const matchesText = Object.values(row).some((val) =>
         String(val).toLowerCase().includes(filterText.toLowerCase())
       );
 
+      // Check if row matches selected filters
       const matchesFilters = Object.entries(selectedFilters).every(
         ([key, values]) => {
           if (values.length === 0) return true;
@@ -63,14 +67,34 @@ export const AdminDashboardNew = () => {
       if (!sortField) return 0;
       const aVal = a[sortField];
       const bVal = b[sortField];
-      return sortDirection === "asc"
-        ? aVal > bVal
-          ? 1
-          : -1
-        : aVal < bVal
-        ? 1
-        : -1;
+      if (sortDirection === "asc") return aVal > bVal ? 1 : -1;
+      return aVal < bVal ? 1 : -1;
     });
+};
+
+  const filteredBISSortedRows = useMemo(
+    () =>
+      filterAndSortRows(
+        BISrecentSubmissions,
+        filterText,
+        selectedFilters,
+        sortField,
+        sortDirection
+      ),
+    [BISrecentSubmissions, filterText, selectedFilters, sortField, sortDirection]
+  );
+
+  const filteredSCIFSortedRows = useMemo(
+    () =>
+      filterAndSortRows(
+        SCIFrecentSubmissions,
+        filterText,
+        selectedFilters,
+        sortField,
+        sortDirection
+      ),
+    [SCIFrecentSubmissions, filterText, selectedFilters, sortField, sortDirection]
+  );
 
   useEffect(() => {
     if (!role) return;
@@ -109,10 +133,11 @@ export const AdminDashboardNew = () => {
 
     (async () => {
       try {
-        const [barRes, summaryRes, recentRes] = await Promise.all([
+        const [barRes, summaryRes, recentBISRes, recentSCIFRes] = await Promise.all([
           request("/api/dashboard/bar-data/"),
           request("/api/dashboard/summary/"),
-          request("/api/dashboard/recent-submissions/"),
+          request("/api/dashboard/recent-bis-submissions/"),
+          request("/api/dashboard/recent-scif-submissions/"),
         ]);
 
         if (barRes.ok) {
@@ -126,9 +151,14 @@ export const AdminDashboardNew = () => {
           setSummaryData(json.summary || []);
         }
 
-        if (recentRes.ok) {
-          const json = await recentRes.json();
-          setRecentSubmissions(json || []);
+        if (recentBISRes.ok) {
+          const json = await recentBISRes.json();
+          setBISRecentSubmissions(json || []);
+        }
+
+        if (recentSCIFRes.ok) {
+          const json = await recentSCIFRes.json();
+          setSCIFRecentSubmissions(json || []);
         }
         await Promise.all([fetchReferrals(), fetchPardForms()]);
       } catch (err) {
@@ -161,7 +191,7 @@ export const AdminDashboardNew = () => {
           <div className="flex flex-col lg:flex-row gap-6 pr-4 pl-4 pb-0">
             <div className="flex flex-col gap-6 w-full lg:w-1/2">
               {/* Referral Table */}
-              <div className="bg-white rounded-lg shadow p-4 flex-1 flex flex-col">
+              <div className="bg-white rounded-lg shadow p-4 flex-1 flex flex-col h-[760px]">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold">Referral Forms</h2>
                   <button
@@ -290,11 +320,21 @@ export const AdminDashboardNew = () => {
               </div>
             </div>
 
-            {/* Recent Submissions Table */}
-            <div className="bg-white p-6 rounded-lg shadow w-full lg:w-3/5 flex-1 flex flex-col">
+            {/* BIS Submissions Table */}
+            <div className="flex flex-col gap-6 w-full lg:w-1/2">
+            <div className="bg-white rounded-lg shadow p-4 flex-1 flex flex-col h-[760px]">
+             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold mb-4 ">
-                Recent Submissions
+                Recent Basic Information Sheet Submissions
               </h2>
+              <button
+                    onClick={() => navigate("/admin-bis-list")}
+                    aria-label="Go to Referral list"
+                    className="text-upmaroon hover:scale-110 transform transition-colors duration-200 cursor-pointer"
+                  >
+                    <MoveRight />
+                  </button>
+                  </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm border-collapse">
                   <thead className="bg-white-100 border-b border-t border-gray-300">
@@ -303,21 +343,19 @@ export const AdminDashboardNew = () => {
                         Submitted by
                       </th>
                       <th className="text-left py-2 px-3 font-medium">Date</th>
-                      <th className="text-left py-2 px-3 font-medium">Form</th>
                       <th className="text-left py-2 px-3 font-medium">
                         Action
                       </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredSortedRows.slice(0, 10).map((row, idx) => (
+                    {filteredBISSortedRows.slice(0, 5).map((row, idx) => (
                       <tr
                         key={idx}
                         className="border-b border-gray-200 hover:bg-gray-50"
                       >
                         <td className="py-2 px-3">{row.student_name}</td>
-                        <td className="py-2 px-3">{row.submitted_on}</td>
-                        <td className="py-2 px-3">{row.form_type}</td>
+                        <td className="py-2 px-3">{formatDate(row.submitted_on)}</td>
                         <td className="py-2 px-3">
                           <button
                             onClick={() => handleRowClick({ row })}
@@ -332,6 +370,58 @@ export const AdminDashboardNew = () => {
                 </table>
               </div>
             </div>
+
+            {/* SCIF Submissions Table */}
+            <div className="bg-white rounded-lg shadow p-4 flex-1 flex flex-col">
+             <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold mb-4 ">
+                Recent Student Cumulative Information File Submissions
+              </h2>
+              <button
+                    onClick={() => navigate("/admin-scif-list")}
+                    aria-label="Go to Referral list"
+                    className="text-upmaroon hover:scale-110 transform transition-colors duration-200 cursor-pointer"
+                  >
+                    <MoveRight />
+                  </button>
+                  </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm border-collapse">
+                  <thead className="bg-white-100 border-b border-t border-gray-300">
+                    <tr>
+                      <th className="text-left py-2 px-3 font-medium">
+                        Submitted by
+                      </th>
+                      <th className="text-left py-2 px-3 font-medium">Date</th>
+                      <th className="text-left py-2 px-3 font-medium">
+                        Action
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredSCIFSortedRows.slice(0, 5).map((row, idx) => (
+                      <tr
+                        key={idx}
+                        className="border-b border-gray-200 hover:bg-gray-50"
+                      >
+                        <td className="py-2 px-3">{row.student_name}</td>
+                        <td className="py-2 px-3">{formatDate(row.submitted_on)}</td>
+                        <td className="py-2 px-3">
+                          <button
+                            onClick={() => handleRowClick({ row })}
+                            className="text-upmaroon border border-upmaroon px-3 py-1 rounded-md hover:bg-upmaroon hover:text-white transition-colors duration-200"
+                          >
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+</div>
+
           </div>
           {/* Bar Chart */}
           <div className="flex gap-6 p-3">
