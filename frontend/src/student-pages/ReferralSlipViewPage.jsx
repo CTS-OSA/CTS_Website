@@ -113,7 +113,6 @@ const ReferralSlipProfileView = ({
 
           const data = await response.json();
           setAcknowledgementData(data);
-          console.log("Acknowledgement fetched: ", data);
         } catch (err) {
           // console.error("ERROR loading acknowledgement:", err);
         } finally {
@@ -127,7 +126,6 @@ const ReferralSlipProfileView = ({
     }
   }, [submission_id, formData]);
 
-  console.log(formData.referral.referral_status);
   const handleDownloadClick = () => {
     setShowDownloadConfirm(true);
   };

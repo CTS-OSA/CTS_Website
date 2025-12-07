@@ -17,8 +17,6 @@ const VerifyReferralPage = () => {
   const calledRef = useRef(false);
 
   useEffect(() => {
-    console.log("Pending ID:", pendingId);
-    console.log("Token:", token);
     const verifyReferral = async () => {
       try {
         const response = await request("http://localhost:8000/api/forms/guest/verify-referral-submission/", {
@@ -36,11 +34,9 @@ const VerifyReferralPage = () => {
         } else {
           const errorMsg = data.error || "Verification failed. The link may be invalid or expired.";
           setMessage(errorMsg);
-          console.log(response);
           setIcon(<AlertCircle className="alert-icon" size={80} />);
         }
       } catch (error) {
-        console.log(error);
         setMessage("An error occurred during verification.");
         setIcon(<AlertCircle className="alert-icon" size={80} />);
       } finally {

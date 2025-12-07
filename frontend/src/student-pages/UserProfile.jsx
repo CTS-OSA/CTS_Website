@@ -53,7 +53,6 @@ export const UserProfile = () => {
         }
       });
 
-      console.log("SENT DATA", formData)
 
       const res = await request(
         "http://localhost:8000/api/forms/student/profile/update/",

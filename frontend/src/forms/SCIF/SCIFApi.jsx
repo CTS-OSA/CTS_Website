@@ -99,8 +99,6 @@ export const useFormApi = () => {
         studentNumber,
         formData
       );
-      console.log("Draft payload:", JSON.stringify(formData, null, 2));
-      console.log("Draft response:", draftResponse);
 
       if (!draftResponse.ok) {
         const draftError = await draftResponse.json();

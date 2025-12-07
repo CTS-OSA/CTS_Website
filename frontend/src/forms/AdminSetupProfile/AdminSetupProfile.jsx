@@ -151,10 +151,6 @@ const AdminSetupProfile = () => {
       }
     });
 
-    for (const [key, value] of payload.entries()) {
-      console.log(key, value);
-    }
-
     try {
       setLoading(true);
       const response = await apiRequest(
