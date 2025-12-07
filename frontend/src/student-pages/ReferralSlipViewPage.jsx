@@ -114,7 +114,7 @@ const ReferralSlipProfileView = ({
           const data = await response.json();
           setAcknowledgementData(data);
         } catch (err) {
-          // console.error("ERROR loading acknowledgement:", err);
+          console.error("Error loading acknowledgement:", err);
         } finally {
           setLoading(false);
         }
