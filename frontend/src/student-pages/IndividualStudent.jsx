@@ -365,9 +365,9 @@ const handleView = (form, isAdmin = false, studentId = null) => {
 
   return (
     <div>
-      <div className="lg:flex gap-8 mb-8 border-b-gray">
-        <div className="lg:w-[30%] w-2/3 xs:w-full justify-center mx-auto p-6 text-center overflow-y-auto">
-          <div className="relative w-50 h-50 mx-auto flex items-center justify-center rounded-2xl overflow-hidden shadow-lg border-2 border-upmaroon group">
+      <div className="flex flex-col lg:flex-row gap-6 mb-8 border-b-gray">
+        <div className="w-full lg:w-1/3 max-w-md mx-auto p-6 text-center overflow-visible">
+          <div className="relative w-32 h-32 sm:w-36 sm:h-36 md:w-44 md:h-44 mx-auto flex items-center justify-center rounded-2xl overflow-hidden shadow-lg border-2 border-upmaroon group">
             {photoPreview ? (
               <img
                 src={photoPreview}
@@ -492,7 +492,7 @@ const handleView = (form, isAdmin = false, studentId = null) => {
           </div>
         </div>
 
-        <div className="w-[70%] bg-white rounded-xl p-8 overflow-y-auto mx-auto">
+        <div className="w-full lg:w-2/3 bg-white rounded-xl p-6 sm:p-8 overflow-visible">
           <div className="flex flex-col gap-6">
             <div>
               <h2 className="text-[1.2rem] font-semibold mb-3 text-upmaroon lg:text-left text-center">
@@ -854,37 +854,37 @@ const handleView = (form, isAdmin = false, studentId = null) => {
         {submittedForms.length === 0 ? (
           <p>No submitted forms yet.</p>
         ) : (
-          <table className="dashboard-table">
-            <thead>
-              <tr>
-                <th className="text-left">Form Type</th>
-                <th>Date Submitted</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {submittedForms.map((form) => (
-                <tr key={form.id}>
-                  <td>{form.form_type}</td>
-                  <td className="text-center">
-                    {formatDate(
-                      form.submitted_on || form.saved_on
-                    )}
-                  </td> 
-                  <td className="text-center">
-                    <button
-                      className="view-button"
-                      onClick={() =>
-                        handleView(form, isAdmin, profileData.student_number)
-                      }
-                    >
-                      VIEW
-                    </button>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="dashboard-table min-w-full">
+              <thead>
+                <tr>
+                  <th className="text-left">Form Type</th>
+                  <th>Date Submitted</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {submittedForms.map((form) => (
+                  <tr key={form.id}>
+                    <td>{form.form_type}</td>
+                    <td className="text-center">
+                      {formatDate(form.submitted_on || form.saved_on)}
+                    </td>
+                    <td className="text-center">
+                      <button
+                        className="view-button"
+                        onClick={() =>
+                          handleView(form, isAdmin, profileData.student_number)
+                        }
+                      >
+                        VIEW
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
       {showConfirm && (
