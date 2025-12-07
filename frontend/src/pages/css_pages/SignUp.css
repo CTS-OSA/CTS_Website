@@ -6,7 +6,7 @@
 
 .signup {
   position: relative;
-  background: #7B1113;
+  background: #7b1113;
   background-size: cover;
   flex-grow: 1;
   overflow: hidden;
@@ -30,14 +30,14 @@
 .signup__left.fade-in-up {
   width: 50%;
   color: white;
-  font-family: 'Optima', sans-serif;
+  font-family: "Optima", sans-serif;
   display: flex;
   align-items: center;
 }
 
 .signup__right.fade-in-up {
-  width: 80%;
-  padding: 4rem;
+  width: 30%;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -47,16 +47,16 @@
   box-sizing: border-box;
   overflow-y: auto;
   border-radius: 16px;
-  margin-top: 70px;
   margin-bottom: 80px;
+  margin-right: 300px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .signup__header {
-  font-family: 'Arial', sans-serif;
+  font-family: "Arial", sans-serif;
   font-size: 1.75rem;
   font-weight: 700;
-  color: #7B1113;
+  color: #7b1113;
   margin-bottom: 1rem;
   text-align: center;
 }
@@ -76,7 +76,7 @@
 }
 
 .message.error {
-  color: #7B1113;
+  color: #7b1113;
   background-color: #ffe6e6;
   border: 1px solid #ffcccc;
   padding: 10px;
@@ -86,7 +86,7 @@
 }
 
 .hero-title {
-  font-family: 'Helvetica', sans-serif;
+  font-family: "Helvetica", sans-serif;
   font-size: 3rem;
   max-width: 900px;
   line-height: 1.2;
@@ -98,20 +98,16 @@
 }
 
 .highlighted-text {
-  font-family: 'Helvetica', sans-serif;
+  font-family: "Helvetica", sans-serif;
   font-size: 4.5rem;
   font-weight: 900;
-  color: #7B1113;
+  color: #7b1113;
   letter-spacing: 1px;
   display: inline-block;
-  text-shadow:
-    -1px -1px 0 #ffffff,
-     1px -1px 0 #ffffff,
-    -1px  1px 0 #ffffff,
-     1px  1px 0 #ffffff;
+  text-shadow: -1px -1px 0 #ffffff, 1px -1px 0 #ffffff, -1px 1px 0 #ffffff,
+    1px 1px 0 #ffffff;
   filter: drop-shadow(2px 2px 6px rgba(0, 0, 0, 0.4));
 }
-
 
 @media (max-width: 960px) {
   .signup__content {
@@ -159,12 +155,12 @@
 }
 
 .signup__links a {
-  color: #7B1113;
+  color: #7b1113;
   text-decoration: underline;
   font-weight: 500;
 }
 
 .signup__links a:hover {
-  color: #7B1113;
+  color: #7b1113;
   text-decoration: underline;
 }
