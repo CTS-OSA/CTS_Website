@@ -422,19 +422,15 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
   };
 
   const handleSubmitClick = () => {
-    console.log("handleSubmitClick called, formState.support:", formState.support);
 
     // Run validation before showing modal
     const apiData = mapFormStateToAPI();
-    console.log("apiData.student_support.support:", apiData.student_support.support);
     
     const validationErrors = {};
     Object.assign(validationErrors, validatePreferences(apiData));
     Object.assign(validationErrors, validateSupport(apiData));
     Object.assign(validationErrors, validateSocioEconomicStatus(apiData));
     Object.assign(validationErrors, validateScholasticStatus(apiData));
-
-    console.log("validationErrors:", validationErrors);
 
     if (Object.keys(validationErrors).length > 0) {
       const fieldErrors = {};

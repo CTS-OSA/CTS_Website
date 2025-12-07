@@ -193,7 +193,6 @@ const ReferralSlip = () => {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      console.log("Submitting form with data:", formData);
       const result = await submitReferral(formData);
 
       if (result.success) {

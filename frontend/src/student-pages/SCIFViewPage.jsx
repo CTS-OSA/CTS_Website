@@ -1768,7 +1768,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     } else {
       payload.previous_school_record = [];
     }
-    console.log("Payload:", payload);
 
     return payload;
   };
@@ -1836,8 +1835,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     }
 
     setErrors(newErrors);
-    console.log("Validation errors:", newErrors);
-    console.log("Form state:", formState);
     if (Object.keys(newErrors).length > 0) {
       setDownloadToast("Please fix the highlighted fields.");
       return;
@@ -1845,9 +1842,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
 
     const profilePayload = buildStudentProfilePayload();
     const scifPayload = buildScifPayload();
-
-    // const submissionId = formData?.submission?.id;
-    // console.log("Submission ID:", submissionId);
 
     if (!submissionId) {
       setDownloadToast(
@@ -1956,7 +1950,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       setDownloadToast(data?.message || "Changes saved successfully.");
     } catch (error) {
       console.error("Error updating form:", error);
-      console.log("Id:", submissionId);
       setDownloadToast("Failed to update form.");
     } finally {
       setIsSaving(false);
