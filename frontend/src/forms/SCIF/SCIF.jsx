@@ -281,25 +281,25 @@ const SCIF = () => {
             },
             siblings: Array.isArray(response.siblings)
               ? response.siblings.map((s) => ({
-                  ...s,
-                  submission: newSubmissionId,
-                  students: s.students?.length ? s.students : [studentNumber],
-                }))
+                ...s,
+                submission: newSubmissionId,
+                students: s.students?.length ? s.students : [studentNumber],
+              }))
               : prev.siblings,
             previous_school_record: {
               records: Array.isArray(response.previous_school_record?.records)
                 ? response.previous_school_record.records.map((r) => ({
-                    ...r,
-                    submission: newSubmissionId,
-                    student_number: studentNumber,
-                  }))
+                  ...r,
+                  submission: newSubmissionId,
+                  student_number: studentNumber,
+                }))
                 : Array.isArray(response.previous_school_record)
-                ? response.previous_school_record.map((r) => ({
+                  ? response.previous_school_record.map((r) => ({
                     ...r,
                     submission: newSubmissionId,
                     student_number: studentNumber,
                   }))
-                : prev.previous_school_record.records,
+                  : prev.previous_school_record.records,
               sameAsPrimary:
                 response.previous_school_record?.sameAsPrimary ||
                 prev.previous_school_record.sameAsPrimary,
@@ -521,7 +521,7 @@ const SCIF = () => {
               {/* Left sidebar - maroon background with StepIndicator */}
               <div className="bg-white rounded-[15px] p-8 w-full mx-auto mb-[70px] shadow-md box-border">
                 <div className="flex lg:flex-row flex-col w-full items-stretch">
-                  <div className="lg:w-1/3 lg:bg-upmaroon rounded-lg p-4 pt-10">
+                  <div className="lg:w-1/2 lg:bg-upmaroon rounded-lg p-4 pt-10">
                     <StepIndicator steps={steps} currentStep={step} />
                   </div>
 

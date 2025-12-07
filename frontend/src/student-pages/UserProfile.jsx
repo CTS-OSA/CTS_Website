@@ -42,7 +42,7 @@ export const UserProfile = () => {
   const handleUpdateProfile = async (changedFields) => {
     try {
       const formData = new FormData();
-      
+
       Object.entries(changedFields).forEach(([key, value]) => {
         if (key === "photoFile") {
           formData.append("photo", value);
@@ -174,7 +174,7 @@ export const UserProfile = () => {
         <DefaultLayout variant="student">
           <div>
             <div className="bg-upmaroon w-full h-60 ">
-              <h1 className="text-[2rem] font-bold mb-[30px] text-white ml-15 pt-10 text-center">
+              <h1 className="text-[2rem] font-bold mb-[30px] text-white pt-10 text-center">
                 MY PROFILE
               </h1>
             </div>

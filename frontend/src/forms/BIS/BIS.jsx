@@ -40,7 +40,7 @@ const BISForm = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     socio_economic_status: {
       student_number: "",
@@ -285,29 +285,27 @@ const BISForm = () => {
         <div className="absolute w-full left-0 -z-1"></div>
 
         {/* Main Form */}
-        <div className="relative flex flex-col min-h-screen">
-          <div className="mx-auto w-3/4 flex flex-col items-center"></div>
-          
+        <div className="relative flex flex-col min-h-screen bg-neutral-50">
           {/* Header Section */}
-          <div className="flex flex-col justify-center bg-upmaroon w-full h-60 text-white text-center">
-            <h1 className="font-bold text-4xl -mt-10">
+          <div className="flex flex-col justify-center bg-upmaroon w-full text-white text-center py-10 sm:py-14 px-4">
+            <h1 className="font-bold text-2xl sm:text-3xl lg:text-4xl">
               Basic Information Sheet
             </h1>
-            <p className="text-lg mt-2 px-4">
+            <p className="text-sm sm:text-lg mt-3 mb-5 max-w-4xl mx-auto">
               Please provide the information carefully and sincerely. The data will be kept confidential.
             </p>
           </div>
 
           {/* Form Container */}
-          <div className="bg-white rounded-[15px] p-8 shadow-md box-border w-3/4 mx-auto mb-[70px] -mt-15">
-            <div className="flex lg:flex-row flex-col w-full items-stretch">
+          <div className="bg-white rounded-[15px] p-4 sm:p-6 lg:p-8 shadow-md box-border w-full max-w-5xl mx-auto mb-16 -mt-12 sm:-mt-16">
+            <div className="flex flex-col lg:flex-row w-full items-stretch gap-6">
               {/* Step Indicator */}
-              <div className="lg:w-1/3 lg:bg-upmaroon rounded-lg p-4 pt-10">
+              <div className="w-full lg:w-1/3 lg:bg-upmaroon rounded-lg p-4 -mb-4 lg:mb-0">
                 <StepIndicator steps={steps} currentStep={step} />
               </div>
 
               {/* Form Content */}
-              <div className="main-form p-4 w-full flex flex-col">
+              <div className="main-form p-2 sm:p-4 w-full flex flex-col">
                 <div className="flex-1">
                   {!showConfirmation ? (
                     <>
@@ -395,7 +393,7 @@ const BISForm = () => {
                 {/* Buttons Section */}
                 {!showConfirmation && (
                   <div className="flex justify-end mt-auto">
-                    <div className="main-form-buttons">
+                    <div className="flex gap-1 justify-end mt-5">
                       {/* Step 1: Only 'Next' button */}
                       {step === 1 && !loading && (
                         <Button variant="primary" onClick={handleNextStep}>
