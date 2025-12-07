@@ -406,6 +406,13 @@ const SCIF = () => {
 
   // ---------- Navigation ----------
   const handleNextStep = () => {
+    const nextStep = Math.min(step + 1, steps.length);
+    if (readOnly) {
+      setErrors(null);
+      setError(null);
+      setStep(nextStep);
+      return;
+    }
     const currentData = normalizeNumber(formData);
     const normalizedData = normalizeList(currentData);
     const validationErrors = validateStep(step, normalizedData);
@@ -431,12 +438,12 @@ const SCIF = () => {
 
     setErrors(null);
     setError(null);
-    setStep((prev) => Math.min(prev + 1, steps.length));
+    setStep(nextStep);
   };
 
   const handlePreviousStep = () => {
     setError(null);
-    setStep((prev) => Math.max(0, prev - 1));
+    setStep((prev) => Math.max(1, prev - 1));
   };
 
   // ---------- Preview & Submit ----------
@@ -521,7 +528,7 @@ const SCIF = () => {
               {/* Left sidebar - maroon background with StepIndicator */}
               <div className="bg-white rounded-[15px] p-8 w-full mx-auto mb-[70px] shadow-md box-border">
                 <div className="flex lg:flex-row flex-col w-full items-stretch">
-                  <div className="lg:w-1/2 lg:bg-upmaroon rounded-lg p-4 pt-10">
+                  <div className="lg:w-1/2 xl:w-1/3 lg:bg-upmaroon rounded-lg p-4 pt-10">
                     <StepIndicator steps={steps} currentStep={step} />
                   </div>
 

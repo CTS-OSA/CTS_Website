@@ -17,7 +17,7 @@ import ConfirmDialog from "../../components/ConfirmDialog";
 
 const ReferralSlip = () => {
   const { profileData } = useContext(AuthContext);
-  const isLoggedIn = !!profileData; 
+  const isLoggedIn = !!profileData;
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -49,6 +49,14 @@ const ReferralSlip = () => {
       initial_actions_taken: "",
     },
   });
+
+  const steps = [
+    { label: "Student Details" },
+    { label: "Referral Details" },
+    { label: "Referrer Information" },
+    { label: "Certify, Preview, and Submit" },
+  ];
+  const totalSteps = steps.length;
 
   const rules = {
     referral: {
@@ -168,10 +176,10 @@ const ReferralSlip = () => {
 
     setError(null);
     setErrors({});
-    setStep((prev) => prev + 1);
+    setStep((prev) => Math.min(prev + 1, totalSteps));
   };
 
-  const handlePreviousStep = () => setStep((prev) => prev - 1);
+  const handlePreviousStep = () => setStep((prev) => Math.max(1, prev - 1));
 
   const handlePreview = () => {
     setIsPreviewOpen(true);
@@ -221,39 +229,31 @@ const ReferralSlip = () => {
     }
   };
 
-  const steps = [
-    { label: "Student Details" },
-    { label: "Referral Details" },
-    { label: "Referrer Information" },
-    { label: "Certify, Preview, and Submit" },
-  ];
-
   return (
     <>
       <DefaultLayout variant="student">
         {/* Background rectangle */}
-        <div className="absolute w-full h-[26em] left-0 top-0 bg-upmaroon -z-1"></div>
+        <div className="absolute w-full h-[26em] left-0 top-0 bg-upmaroon -z-10"></div>
         {/* Main Form */}
         <div className="relative flex flex-col min-h-screen">
-          <div className="mt-[30px] mx-auto w-3/4 flex flex-col items-center">
-            <div className="main-form-info">
-              <h1 className="left-1/2 text-center font-bold text-[2rem] text-white">
+          <div className="mt-10 mx-auto w-11/12 lg:w-3/4 max-w-5xl flex flex-col items-center">
+            <div className="w-full text-center text-white mb-6 px-2">
+              <h1 className="font-bold text-3xl lg:text-4xl">
                 Counseling Referral Slip
               </h1>
-              <p className="text-center text-white my-5 text-base w-full max-w-2xl mx-auto whitespace-normal">
-                {" "}
+              <p className="mt-4 text-sm lg:text-base w-full max-w-2xl mx-auto">
                 Refers a student for counseling services to address personal,
                 academic, or behavioral concerns
               </p>
             </div>
 
             {/* Main Form - Steps and Fields */}
-            <div className="bg-white rounded-[15px] p-8 w-full mx-auto mb-[70px] shadow-md box-border">
-              <div className="flex lg:flex-row flex-col w-full items-stretch">
-                <div className="lg:w-1/3 lg:bg-upmaroon rounded-lg p-4 pt-10">
+            <div className="bg-white rounded-[15px] p-4 sm:p-8 w-full mx-auto mb-16 shadow-md box-border">
+              <div className="flex flex-col lg:flex-row w-full items-stretch gap-6">
+                <div className="w-full lg:w-1/2 xl:w-1/3 lg:bg-upmaroon rounded-lg p-4 lg:p-6">
                   <StepIndicator steps={steps} currentStep={step} />
                 </div>
-                <div className="main-form p-4 w-full flex flex-col">
+                <div className="main-form w-full flex flex-col">
                   <div className="flex-1">
                     {!showConfirmation ? (
                       <>
@@ -276,7 +276,7 @@ const ReferralSlip = () => {
                           />
                         )}
                         {step === 3 && <RSReferrer profileData={profileData} />}
-                        {step === 4 && <RSSubmit />}
+                        {step === 4 && <RSSubmit formData={formData} />}
                       </>
                     ) : (
                       <ReferralSubmissionConfirmation isLoggedIn={isLoggedIn} />
@@ -290,72 +290,48 @@ const ReferralSlip = () => {
                   </div>
 
                   {/* Buttons Section */}
-                  <div className="flex justify-end mt-auto">
-                    <div className="main-form-buttons">
-                      {/* Step 1: 'Next' button */}
-                      {step === 1 && !loading && (
-                        <>
-                          <Button variant="primary" onClick={handleNextStep}>
-                            {" "}
-                            Next{" "}
-                          </Button>
-                        </>
+                  {!showConfirmation && (
+                    <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center gap-3 mt-6">
+                      {step > 1 && (
+                        <Button
+                          variant="secondary"
+                          onClick={handlePreviousStep}
+                          disabled={loading}
+                        >
+                          Back
+                        </Button>
                       )}
 
-                      {step >= 2 && step <= 3 && !loading && (
+                      {step < totalSteps ? (
+                        <Button
+                          variant="primary"
+                          onClick={handleNextStep}
+                          disabled={loading}
+                        >
+                          Next
+                        </Button>
+                      ) : (
                         <>
-                          <Button
-                            variant="secondary"
-                            onClick={handlePreviousStep}
-                          >
-                            {" "}
-                            Back{" "}
-                          </Button>
-                          <Button
-                            variant="primary"
-                            onClick={handleNextStep}
-                            style={{ marginLeft: "0.5rem" }}
-                          >
-                            {" "}
-                            Next{" "}
-                          </Button>
-                        </>
-                      )}
-
-                      {/* Step 4: 'Back', 'Save Draft', 'Preview', and 'Submit' buttons */}
-                      {step === 4 && !loading && (
-                        <>
-                          <Button
-                            variant="secondary"
-                            onClick={handlePreviousStep}
-                          >
-                            {" "}
-                            Back{" "}
-                          </Button>
                           <Button
                             variant="tertiary"
                             onClick={handlePreview}
-                            style={{ marginLeft: "0.5rem" }}
+                            disabled={loading}
                           >
-                            {" "}
-                            Preview{" "}
+                            Preview
                           </Button>
                           {!readOnly && (
                             <Button
                               variant="primary"
                               onClick={handleConfirmSubmit}
-                              style={{ marginLeft: "0.5rem" }}
+                              disabled={loading}
                             >
-                              Submit
+                              {loading ? "Submitting..." : "Submit"}
                             </Button>
                           )}
                         </>
                       )}
-
-                      {/* Loading Indicator */}
-                      {loading && <div>Loading...</div>}
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>

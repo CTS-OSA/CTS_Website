@@ -16,11 +16,11 @@ const SCIFCertify = ({ data, updateData, showError, readOnly = false }) => {
   };
 
   return (
-    <div className="form-section">
-      <fieldset className="form-section" disabled={readOnly}>
-        <h2 className="step-title text-upmaroon">Privacy Statement</h2>
+    <div className="form-section w-full">
+      <fieldset className="space-y-4 w-full" disabled={readOnly}>
+        <h2 className="text-upmaroon text-2xl font-semibold">Privacy Statement</h2>
 
-        <p className="privacy-description mb-4">
+        <p className="privacy-description mb-4 text-sm sm:text-base leading-relaxed text-gray-700 text-justify">
           The University of the Philippines takes your privacy seriously and we
           are committed to protecting your personal information. For the UP
           Privacy Policy, please visit{" "}
@@ -35,17 +35,17 @@ const SCIFCertify = ({ data, updateData, showError, readOnly = false }) => {
           .
         </p>
 
-        <div className="certify-agreement flex flex-col gap-2">
-          <label className="form-label flex items-start gap-3">
+        <div className="certify-agreement flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+          <label className="form-label flex flex-col sm:flex-row sm:items-start gap-3 text-gray-800">
             <input
               type="checkbox"
               name="has_consented"
               checked={hasConsented}
               onChange={handleConsentChange}
-              className="mt-2 ml-2 h-5 w-5 border-gray-300 rounded"
+              className="h-5 w-5 border-gray-300 rounded text-upmaroon accent-upmaroon sm:mt-1"
               disabled={readOnly}
             />
-            <span className="text-sm leading-relaxed">
+            <span className="text-xs sm:text-sm lg:text-base leading-relaxed flex-1">
               I have read the University of the Philippines’ Privacy Notice for
               Students. I understand that for the UP System to carry out its
               mandate under the 1987 Constitution, the UP Charter, and other

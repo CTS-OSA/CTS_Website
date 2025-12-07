@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import FormField from "../../components/FormField";
+import BaseFormField from "../../components/FormField";
 import Button from "../../components/UIButton";
 import { clearError } from "../../utils/helperFunctions";
 import {
@@ -15,6 +15,13 @@ const SCIFFamilyData = ({
   errors,
   setErrors,
 }) => {
+  const FormField = (props) => (
+    <BaseFormField
+      {...props}
+      disabled={props.disabled ?? readOnly}
+    />
+  );
+
   const { family_data, siblings } = data;
 
   const [languageInput, setLanguageInput] = useState(
@@ -265,11 +272,11 @@ const SCIFFamilyData = ({
       </small>
 
       {/* Father Section */}
-      <section className="p-6 border border-gray-200 rounded-xl bg-gray-50">
-        <div className="flex items-center justify-between mb-4">
+      <section className="p-4 border border-gray-200 rounded-xl bg-gray-50">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
           <p className="text-lg font-semibold text-gray-700">FATHER</p>
-          <div className="flex gap-6">
-            <label className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-4 sm:justify-end">
+            <label className="flex items-center gap-2 text-sm sm:text-base">
               <input
                 type="checkbox"
                 checked={isFatherDeceased}
@@ -277,10 +284,11 @@ const SCIFFamilyData = ({
                   handleParentToggle("father", "deceased", e.target.checked)
                 }
                 disabled={readOnly}
+                className="h-4 w-4 text-upmaroon accent-upmaroon"
               />
               <span className="text-gray-700">Deceased</span>
             </label>
-            <label className="flex items-center space-x-2">
+            <label className="flex items-center gap-2 text-sm sm:text-base">
               <input
                 type="checkbox"
                 checked={isFatherNone}
@@ -288,6 +296,7 @@ const SCIFFamilyData = ({
                   handleParentToggle("father", "none", e.target.checked)
                 }
                 disabled={readOnly}
+                className="h-4 w-4 text-upmaroon accent-upmaroon"
               />
               <span className="text-gray-700">None</span>
             </label>
@@ -297,9 +306,8 @@ const SCIFFamilyData = ({
         {!isFatherNone && (
           <>
             <div
-              className={`grid grid-cols-1 md:grid-cols-2 ${
-                isFatherDeceased ? "lg:grid-cols-2" : "lg:grid-cols-3"
-              } gap-4`}
+              className={`grid grid-cols-1 md:grid-cols-2 ${isFatherDeceased ? "lg:grid-cols-2" : "lg:grid-cols-3"
+                } gap-4`}
             >
               <FormField
                 label="Father's First Name"
@@ -420,10 +428,10 @@ const SCIFFamilyData = ({
 
       {/* Mother Section */}
       <section className="p-6 border border-gray-200 rounded-xl bg-gray-50">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
           <p className="text-lg font-semibold text-gray-700">MOTHER</p>
-          <div className="flex gap-6">
-            <label className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-4 sm:justify-end">
+            <label className="flex items-center gap-2 text-sm sm:text-base">
               <input
                 type="checkbox"
                 checked={isMotherDeceased}
@@ -431,10 +439,11 @@ const SCIFFamilyData = ({
                   handleParentToggle("mother", "deceased", e.target.checked)
                 }
                 disabled={readOnly}
+                className="h-4 w-4 text-upmaroon accent-upmaroon"
               />
               <span className="text-gray-700">Deceased</span>
             </label>
-            <label className="flex items-center space-x-2">
+            <label className="flex items-center gap-2 text-sm sm:text-base">
               <input
                 type="checkbox"
                 checked={isMotherNone}
@@ -442,6 +451,7 @@ const SCIFFamilyData = ({
                   handleParentToggle("mother", "none", e.target.checked)
                 }
                 disabled={readOnly}
+                className="h-4 w-4 text-upmaroon accent-upmaroon"
               />
               <span className="text-gray-700">None</span>
             </label>
@@ -451,9 +461,8 @@ const SCIFFamilyData = ({
         {!isMotherNone && (
           <>
             <div
-              className={`grid grid-cols-1 md:grid-cols-2 ${
-                isMotherDeceased ? "lg:grid-cols-2" : "lg:grid-cols-3"
-              } gap-4`}
+              className={`grid grid-cols-1 md:grid-cols-2 ${isMotherDeceased ? "lg:grid-cols-2" : "lg:grid-cols-3"
+                } gap-4`}
             >
               <FormField
                 label="Mother's First Name"

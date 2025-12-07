@@ -16,6 +16,7 @@ const FormField = ({
   ...props
 }) => {
   const isFilled = value && value.toString().trim().length > 0;
+  const isTextArea = type === "textarea";
   const isError = Boolean(error);
 
   // Read-only display mode
@@ -29,9 +30,9 @@ const FormField = ({
       <div className="relative w-full">
         <label
           htmlFor={id}
-          className={`absolute pointer-events-none text-sm duration-300 transform left-2
+          className={`absolute pointer-events-none text-sm duration-300 transform left-2 pr-2 max-w-[calc(100%-0.75rem)] whitespace-normal break-words leading-tight
             ${
-              isFilled || isError
+              isFilled || isError || isTextArea
                 ? "-translate-y-4 scale-75 top-2"
                 : "scale-100 -translate-y-1/2 top-1/2"
             }
@@ -77,7 +78,7 @@ const FormField = ({
           placeholder=" "
           disabled={disabled}
           required={required}
-          className={baseClasses}
+          className={`${baseClasses} pt-6`}
           rows={4}
           {...props}
         />
@@ -143,9 +144,9 @@ const FormField = ({
 
       <label
         htmlFor={id}
-        className={`absolute pointer-events-none text-sm duration-300 transform
+        className={`absolute pointer-events-none text-sm duration-300 transform pr-2 max-w-[calc(100%-0.75rem)] whitespace-normal break-words leading-tight
           ${
-            isFilled || isError || type === "date"
+            isFilled || isError || type === "date" || isTextArea
               ? "-translate-y-4 scale-75 top-2"
               : "scale-100 -translate-y-1/2 top-1/2"
           }

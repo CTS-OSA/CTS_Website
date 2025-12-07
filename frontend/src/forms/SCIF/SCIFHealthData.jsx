@@ -1,5 +1,5 @@
 import React from "react";
-import FormField from "../../components/FormField";
+import BaseFormField from "../../components/FormField";
 import { clearError } from "../../utils/helperFunctions";
 import {
   filterGeneralText,
@@ -13,6 +13,13 @@ const SCIFHealthData = ({
   errors,
   setErrors,
 }) => {
+  const FormField = (props) => (
+    <BaseFormField
+      {...props}
+      disabled={props.disabled ?? readOnly}
+    />
+  );
+
   const normalizeText = (value) => {
     if (readOnly) return;
     return value === "" ? null : value;
@@ -190,16 +197,15 @@ const SCIFHealthData = ({
         {/* Hospitalization */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
-            label="Last Hospitalization (MM/DD/YYYY)"
+            label="Last Hospitalization"
             type="date"
-            placeholder="MM/DD/YYYY"
+            placeholder=""
             value={data.last_hospitalization || ""}
             onFocus={() => clearError("health_data.last_hospitalization")}
             onChange={(e) =>
               updateData({ ...data, last_hospitalization: e.target.value })
             }
             error={errors?.["health_data.last_hospitalization"]}
-            className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
           />
 
           <FormField

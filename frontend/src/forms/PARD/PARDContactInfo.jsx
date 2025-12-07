@@ -31,7 +31,7 @@ const PARDContactInfo = ({ formData, setFormData, errors = {}, setErrors }) => {
             </h3>
 
             {/* Form section */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <FormField
                         label="Contact Number"
@@ -54,7 +54,7 @@ const PARDContactInfo = ({ formData, setFormData, errors = {}, setErrors }) => {
                     />
                     {/* {errors.student_email && <div className="text-[#D32F2F] text-xs  italic">{errors.student_email}</div>} */}
                 </div>
-                <div className="col-span-2">
+                <div className="md:col-span-2">
                     <FormField
                         label="Hometown Address"
                         type="text"
@@ -65,7 +65,7 @@ const PARDContactInfo = ({ formData, setFormData, errors = {}, setErrors }) => {
                         />
                     {/* {errors.hometown_address && <div className="text-[#D32F2F] text-xs  italic">{errors.hometown_address}</div>} */}
                 </div>
-                <div className="col-span-2">
+                <div className="md:col-span-2">
                     <FormField
                         label="Current Address"
                         type="text"

@@ -1,8 +1,12 @@
 import React from "react";
 import { getToken } from "../../utils/cookieUtils";
 
-const RSSubmit = ({formData}) => {
+const RSSubmit = ({ formData = {} }) => {
   const isLoggedIn = Boolean(getToken());
+  const guestEmail =
+    formData?.referral?.referrer?.email ||
+    formData?.referrer_details?.email ||
+    "your email";
 
   return (
     <div className="form_container p-6 bg-white rounded shadow-md">
@@ -26,7 +30,8 @@ const RSSubmit = ({formData}) => {
           <ol className="list-decimal list-inside space-y-2 text-gray-700">
             <li>Preview your submission to ensure all content is correct.</li>
             <li>
-              Click <strong>Submit</strong>. An email will be sent to{" "}<strong>{formData.referral.referrer.email}</strong>.
+              Click <strong>Submit</strong>. An email will be sent to{" "}
+              <strong>{guestEmail}</strong>.
             </li>
             <li>
               Verify your submission via the email link. <strong>Link expires in 24 hours.</strong>

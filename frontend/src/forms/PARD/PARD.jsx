@@ -276,7 +276,7 @@ const PARD = () => {
 
     setError(null);
     setErrors({});
-    setStep((prev) => prev + 1);
+    setStep((prev) => Math.min(prev + 1, totalSteps));
   };
 
   const handleConfirmSubmit = () => {
@@ -292,7 +292,7 @@ const PARD = () => {
 
   const handlePreviousStep = () => {
     setError(null);
-    setStep((prev) => prev - 1);
+    setStep((prev) => Math.max(1, prev - 1));
   };
 
   const handleConfirmCancel = () => {
@@ -311,10 +311,10 @@ const PARD = () => {
       const result = await submitForm(studentNumber, formData);
       if (result.success) {
         setShowConfirmation(true);
+        navigate("/student");
+        setTimeout(() => {
           navigate("/student");
-          setTimeout(() => {
-            navigate("/student");
-          }, 5000);
+        }, 5000);
       } else {
         if (result.status === 400 && result.data.errors) {
           setError(
@@ -343,27 +343,29 @@ const PARD = () => {
     { label: "Psychosocial Assessment" },
     { label: "Authorization for Disclosure" },
   ];
+  const totalSteps = steps.length;
   return (
     <>
       <DefaultLayout variant="student">
-        <div className="absolute w-full left-0 -z-1"></div>
+        <div className="absolute w-full h-[26em] left-0 top-0 bg-upmaroon -z-10"></div>
         {/* Main form */}
         <div className="relative flex flex-col min-h-screen">
-          <div className="mx-auto w-3/4 flex flex-col items-center"></div>
-          <div className="flex flex-col justify-center bg-upmaroon w-full h-60 text-white text-center">
-            <h1 className="font-bold text-2xl sm:text-4xl -mt-10">
-              Psychosocial Assistance and<br></br> Referral Desk
-            </h1>
-            <h3 className="text-base sm:text-xl">
-              Online Appointment Schedule
-            </h3>
+          <div className="mt-10 mx-auto w-11/12 lg:w-3/4 max-w-5xl flex flex-col items-center">
+            <div className="w-full text-center text-white mb-6 px-2">
+              <h1 className="font-bold text-3xl lg:text-4xl">
+                Psychosocial Assistance and Referral Desk
+              </h1>
+              <h3 className="mt-3 text-base lg:text-xl">
+                Online Appointment Schedule
+              </h3>
+            </div>
           </div>
-          <div className="bg-white rounded-[15px] p-8 shadow-md box-border w-3/4 mx-auto mb-[70px] -mt-15">
-            <div className="flex lg:flex-row flex-col w-full items-stretch">
-              <div className="lg:w-1/3 lg:bg-upmaroon rounded-lg p-4 pt-10">
+          <div className="bg-white rounded-[15px] p-4 sm:p-8 shadow-md box-border w-11/12 lg:w-3/4 max-w-5xl mx-auto mb-16">
+            <div className="flex flex-col lg:flex-row w-full items-stretch gap-6">
+              <div className="w-full lg:w-1/2 xl:w-1/3 lg:bg-upmaroon rounded-lg p-4 lg:p-6">
                 <StepIndicator steps={steps} currentStep={step} />
               </div>
-              <div className="main-form p-4 w-full flex flex-col">
+              <div className="main-form w-full flex flex-col">
                 <div className="flex-1">
                   {!showConfirmation ? (
                     <>
@@ -413,7 +415,7 @@ const PARD = () => {
 
                   {/* Error Message */}
                   {error && (
-                    <div className="text-[#D32F2F] text-xs ml-4 italic">
+                    <div className="text-[#D32F2F] text-sm mt-4">
                       {error}
                     </div>
                   )}
@@ -421,63 +423,36 @@ const PARD = () => {
 
                 {/* BUTTONS FOR EACH SECTIONs */}
                 {!showConfirmation && (
-                  <div className="flex justify-end mt-auto">
-                    <div className="main-form-buttons">
-                      {/* Step 1: 'Next' button */}
-                      {step === 1 && !loading && (
-                        <>
-                          <Button variant="primary" onClick={handleNextStep}>
-                            Next
-                          </Button>
-                        </>
-                      )}
+                  <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center gap-3 mt-6">
+                    {step > 1 && (
+                      <Button
+                        variant="secondary"
+                        onClick={handlePreviousStep}
+                        disabled={loading}
+                      >
+                        Back
+                      </Button>
+                    )}
 
-                      {/* Step 2 to 5: Save and next button */}
-                      {step >= 2 && step <= 5 && !loading && (
-                        <>
-                          <div className="mt-22">
-                            <Button
-                              variant="secondary"
-                              onClick={handlePreviousStep}
-                            >
-                              Back
-                            </Button>
-                            <Button
-                              variant="primary"
-                              onClick={handleNextStep}
-                              style={{ marginLeft: "0.5rem" }}
-                            >
-                              Next
-                            </Button>
-                          </div>
-                        </>
-                      )}
-
-                      {/* Step 6: 'Back', 'Preview', and 'Submit' buttons */}
-                      {step === 6 && !loading && (
-                        <>
-                          <Button
-                            variant="secondary"
-                            onClick={handlePreviousStep}
-                          >
-                            Back
-                          </Button>
-
-                          {!readOnly && (
-                            <Button
-                              variant="primary"
-                              onClick={handleConfirmSubmit}
-                              style={{ marginLeft: "0.5rem" }}
-                            >
-                              Submit
-                            </Button>
-                          )}
-                        </>
-                      )}
-
-                      {/* Loading Indicator */}
-                      {loading && <div>Loading...</div>}
-                    </div>
+                    {step < totalSteps ? (
+                      <Button
+                        variant="primary"
+                        onClick={handleNextStep}
+                        disabled={loading}
+                      >
+                        Next
+                      </Button>
+                    ) : (
+                      !readOnly && (
+                        <Button
+                          variant="primary"
+                          onClick={handleConfirmSubmit}
+                          disabled={loading}
+                        >
+                          {loading ? "Submitting..." : "Submit"}
+                        </Button>
+                      )
+                    )}
                   </div>
                 )}
 

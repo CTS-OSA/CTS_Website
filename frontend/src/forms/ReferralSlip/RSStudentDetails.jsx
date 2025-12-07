@@ -41,7 +41,7 @@ const RSStudentDetails = ({
         STUDENT TO BE REFERRED DETAILS
       </h2>
 
-      <div className="grid lg:grid-cols-2 gap-4 pb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
         <FormField
           label="Last Name"
           type="text"
@@ -64,7 +64,7 @@ const RSStudentDetails = ({
         />
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4 pb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
         <div>
           <FormField
             label="Current Year Level"
@@ -100,7 +100,7 @@ const RSStudentDetails = ({
         />
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4 pb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
         <FormField
           label="Gender"
           type="text"
