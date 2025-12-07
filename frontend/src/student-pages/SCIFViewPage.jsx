@@ -1310,7 +1310,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
 
     setIsSaving(true);
     setErrors((prev) => ({ ...prev, graduation: null }));
-    console.log("Saving graduation data:", sanitized);
 
     try {
       const url = `http://localhost:8000/api/forms/graduation/${profileData.student_number}/`;
@@ -1754,7 +1753,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     } else {
       payload.previous_school_record = [];
     }
-    console.log("Payload:", payload);
 
     return payload;
   };
@@ -1822,8 +1820,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     }
 
     setErrors(newErrors);
-    console.log("Validation errors:", newErrors);
-    console.log("Form state:", formState);
     if (Object.keys(newErrors).length > 0) {
       setDownloadToast("Please fix the highlighted fields.");
       return;
@@ -1834,7 +1830,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
 
     // const submissionId = formData?.submission?.id;
     // console.log("Submission ID:", submissionId);
-    console.log(scifPayload);
 
     if (!submissionId) {
       setDownloadToast(
@@ -1932,7 +1927,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       setDownloadToast(data?.message || "Changes saved successfully.");
     } catch (error) {
       console.error("Error updating form:", error);
-      console.log("Id:", submissionId);
       setDownloadToast("Failed to update form.");
     } finally {
       setIsSaving(false);
@@ -4282,12 +4276,14 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                     onChange={(e) =>
                       handleGraduationFieldChange("semester", e.target.value)
                     }
+                    disabled
                     readOnly={!canEdit}
                   />
                 </label>
                 <label>DATE OF GRADUATION</label>
                 <input
                   type="text"
+                  disabled
                   value={graduationInfo.graduation_date}
                   onChange={(e) =>
                     handleGraduationFieldChange(
@@ -4300,6 +4296,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 <label>DEGREE PROGRAM</label>
                 <input
                   type="text"
+                  disabled
                   value={graduationInfo.graduation_degree_program}
                   onChange={(e) =>
                     handleGraduationFieldChange(
@@ -4312,6 +4309,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 <label>HONORS RECEIVED</label>
                 <input
                   type="text"
+                  disabled
                   value={graduationInfo.honors_received}
                   onChange={(e) =>
                     handleGraduationFieldChange(

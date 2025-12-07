@@ -27,7 +27,6 @@ export const AdminSCIFView = () => {
         if (!formRes.ok) throw new Error("Failed to fetch form data");
         const form = await formRes.json();
         setFormData(form);
-        console.log("Receuved form data:", form);
       } catch (err) {
         setError(err.message);
       } finally {
