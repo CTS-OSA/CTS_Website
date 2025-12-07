@@ -99,7 +99,8 @@
 .pdf label,
 .pdf textarea,
 .pdf input[type="text"],
-.pdf input[type="date"] {
+.pdf input[type="date"],
+.pdf select {
   display: block;
   width: 100%;
   margin-top: 0.5rem;
@@ -126,7 +127,8 @@ textarea {
 }
 
 .pdf input,
-.pdf textarea {
+.pdf textarea,
+.pdf select {
   border: none;
   border-bottom: 1px solid black;
   font-size: 12px;
@@ -147,33 +149,52 @@ textarea {
   margin-left: 1.8rem;
 }
 
-/* Checkbox list */
+/* Checkbox list as grid */
 .checkbox-list {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2 items per row */
+  gap: 12px 16px; /* vertical gap 12px, horizontal gap 16px */
+  padding-left: 0;
   list-style: none;
-  padding: 0;
 }
 
 .checkbox-list li {
-  flex-basis: 23%;
-  margin-right: 2%;
-}
-
-.checkbox-list li:nth-child(4n) {
-  margin-right: 0;
-}
-
-.checkbox-list input[type="checkbox"] {
-  margin-right: 0.5rem;
-  transform: scale(1.1);
-}
-
-.checkbox-list label {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px; /* space between checkbox, label, and note input */
 }
+
+/* Note input inside checkbox item */
+.checkbox-list li input[type="text"] {
+  width: 150px; /* adjust width to fit nicely inside grid column */
+  margin-left: 4px;
+}
+
+/* Optional: make labels wrap instead of stretching */
+.checkbox-list li label {
+  display: block;
+  gap: 4px;
+  white-space: normal;
+}
+
+
+/* .support-inline-row {
+  display: flex;
+  align-items: center;
+  gap: 30px; /* spacing between Scholarship and Combination 
+  margin-bottom: 10px;
+}
+
+.support-inline-item {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* space between checkbox, label, and text input 
+}
+
+.support-notes {
+  width: 180px;
+} */
+
 
 /* Signature area */
 .signature {

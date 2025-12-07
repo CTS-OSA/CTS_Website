@@ -12,6 +12,12 @@ import { AuthContext } from "../context/AuthContext";
 import { useApiRequest } from "../context/ApiRequestContext";
 import BackToTopButton from "../components/BackToTop";
 import Loader from "../components/Loader";
+import {
+  validatePreferences,
+  validateSupport,
+  validateSocioEconomicStatus,
+  validateScholasticStatus,
+} from "../utils/BISValidation";
 
 const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
   const pdfRef = useRef();
@@ -21,6 +27,15 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
   const [showDownloadConfirm, setShowDownloadConfirm] = useState(false);
   const [downloadToast, setDownloadToast] = useState(null);
   const [errors, setErrors] = useState({});
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
+  const [cachedShiftData, setCachedShiftData] = useState({
+    planned_shift_degree: "",
+    reason_for_shifting: "",
+  });
+  const [cachedSupportNotes, setCachedSupportNotes] = useState({});
+  const [cachedTransferReason, setCachedTransferReason] = useState("");
+  const [cachedNextPlan, setCachedNextPlan] = useState("");
+  const [originalFormState, setOriginalFormState] = useState({});
   const [formState, setFormState] = useState({
     name: `${profileData.last_name}, ${profileData.first_name} ${profileData.middle_name}`,
     nickname: profileData.nickname || "",
@@ -48,11 +63,28 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
 
   useEffect(() => {
     if (formData) {
-      setFormState({
+      // Reverse mapping: convert backend codes back to frontend keys
+      const backendToFrontendMap = {
+        self: "self_supporting",
+        both_parents: "both_parents",
+        father_only: "father_only",
+        mother_only: "mother_only",
+        scholarship: "scholarship",
+        combination: "combination",
+        others: "others",
+        gov_funded: "government_funded",
+      };
+
+      // Convert backend support codes to frontend keys
+      const frontendSupport = (student_support?.support || []).map(
+        (code) => backendToFrontendMap[code] || code
+      );
+
+      const newState = {
         name: `${profileData.last_name}, ${profileData.first_name} ${profileData.middle_name}`,
         nickname: profileData.nickname || "",
         year_course: `${profileData.current_year_level} - ${profileData.degree_program}`,
-        support: student_support?.support || [],
+        support: frontendSupport,
         scholarship_notes: student_support?.other_scholarship || "",
         combination_notes: student_support?.combination_notes || "",
         others_notes: student_support?.other_notes || "",
@@ -61,7 +93,7 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
           socio_economic_status?.scholarship_privileges || "",
         monthly_allowance: socio_economic_status?.monthly_allowance || "",
         spending_habit: socio_economic_status?.spending_habit || "",
-        transfer_plans: preferences?.transfer_plans || "",
+        transfer_plans: preferences?.transfer_plans ? "Yes" : "No",
         influence: preferences?.influence || "",
         reason_for_enrolling: preferences?.reason_for_enrolling || "",
         transfer_reason: preferences?.transfer_reason || "",
@@ -72,6 +104,12 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
         first_choice_course: scholastic_status?.first_choice_course || "",
         admitted_course: scholastic_status?.admitted_course || "",
         next_plan: scholastic_status?.next_plan || "",
+      };
+      setFormState(newState);
+      setOriginalFormState(newState);
+      setCachedShiftData({
+        planned_shift_degree: preferences?.planned_shift_degree || "",
+        reason_for_shifting: preferences?.reason_for_shifting || "",
       });
     }
   }, [formData, profileData]);
@@ -140,6 +178,9 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
       const computed = window.getComputedStyle(originalEl);
       const rect = originalEl.getBoundingClientRect();
 
+      /* ---------------------------
+     CHECKBOX HANDLING
+  ---------------------------- */
       if (type === "checkbox") {
         const isPrivacyConsent =
           cloneEl.name === "has_consented" ||
@@ -147,19 +188,21 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
 
         const indicator = document.createElement("span");
         indicator.className = "pdf-checkbox-indicator";
-        if (isPrivacyConsent) {
+        if (isPrivacyConsent)
           indicator.classList.add("pdf-checkbox-indicator--privacy");
-        }
         indicator.textContent = originalEl.checked ? "☑" : "☐";
+
+        // Font & spacing
         indicator.style.fontSize = computed.fontSize;
         indicator.style.lineHeight = "1";
-        indicator.style.marginRight = "0.35rem";
+        indicator.style.marginRight = "4px";
 
         const parentLabel = cloneEl.closest("label");
         if (parentLabel) {
           parentLabel.style.display = "flex";
-          parentLabel.style.alignItems = "flex-start";
-          parentLabel.style.gap = "0.5rem";
+          parentLabel.style.alignItems = "center";
+          parentLabel.style.gap = "4px";
+          parentLabel.style.marginBottom = "4px";
           parentLabel.insertBefore(indicator, cloneEl);
           parentLabel.removeChild(cloneEl);
         } else {
@@ -168,49 +211,68 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
         return;
       }
 
+      /* ---------------------------
+     GET VALUE
+  ---------------------------- */
       let value = originalEl.value || "";
       if (cloneEl.tagName === "SELECT") {
         const selected = originalEl.options[originalEl.selectedIndex];
         value = selected ? selected.text : value;
       }
-
       if (type === "date" && value) {
         value = new Date(value).toLocaleDateString("en-CA");
       }
 
+      /* ---------------------------
+     CREATE PDF-FRIENDLY DIV
+  ---------------------------- */
       const textDiv = document.createElement("div");
       textDiv.className = "pdf-field-value";
-      if (cloneEl.tagName === "TEXTAREA") {
-        textDiv.classList.add("multiline");
-      }
+
+      if (cloneEl.tagName === "TEXTAREA") textDiv.classList.add("multiline");
       textDiv.textContent = value || "\u00a0";
+
+      // Typography
       textDiv.style.fontSize = computed.fontSize;
       textDiv.style.fontFamily = computed.fontFamily;
       textDiv.style.fontWeight = computed.fontWeight;
-      textDiv.style.lineHeight = computed.lineHeight;
+      textDiv.style.lineHeight = "2"; // tighter lines
       textDiv.style.color = computed.color || "#000";
-      textDiv.style.margin = computed.margin;
-      textDiv.style.padding = computed.padding;
+
+      // Box & spacing
       textDiv.style.boxSizing = "border-box";
       textDiv.style.whiteSpace = "pre-wrap";
       textDiv.style.wordBreak = "break-word";
-      textDiv.style.borderBottom = `${getBorderWidth(
-        computed
-      )} solid ${getBorderColor(computed)}`;
+      textDiv.style.width = "100%";
+      textDiv.style.maxWidth = "100%";
+      textDiv.style.margin = "2px 0"; 
+      textDiv.style.padding =
+        cloneEl.tagName === "SELECT"
+          ? "2px 6px"
+          : cloneEl.tagName === "TEXTAREA"
+          ? "2px 4px"
+          : "2px 4px";
 
-      const width = rect.width || originalEl.offsetWidth;
-      if (width) {
-        textDiv.style.width = width + "px";
-        textDiv.style.maxWidth = width + "px";
-      } else if (computed.width && computed.width !== "auto") {
-        textDiv.style.width = computed.width;
-        textDiv.style.maxWidth = computed.width;
-      }
+      // Border
+      const borderColor =
+        computed.borderBottomColor &&
+        computed.borderBottomColor !== "rgba(0, 0, 0, 0)"
+          ? computed.borderBottomColor
+          : "#000";
+      const borderWidth =
+        computed.borderBottomWidth && computed.borderBottomWidth !== "0px"
+          ? computed.borderBottomWidth
+          : "1px";
+      textDiv.style.borderBottom = `${borderWidth} solid ${borderColor}`;
 
+      // Height matching (optional)
       const height = rect.height || originalEl.offsetHeight;
       if (height && height > 0) {
-        textDiv.style.minHeight = height + "px";
+        textDiv.style.minHeight = "auto"; // prevent large gaps
       }
+
+      // Display inline-block for selects
+      if (cloneEl.tagName === "SELECT") textDiv.style.display = "inline-block";
 
       cloneEl.replaceWith(textDiv);
     });
@@ -267,7 +329,30 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
 
   const handleFieldChange = (field, value) => {
     if (role === "admin") {
-      setFormState((prev) => ({ ...prev, [field]: value }));
+      // Special handling: first_choice_course / admitted_course affect next_plan
+      if (field === "first_choice_course" || field === "admitted_course") {
+        setFormState((prev) => {
+          const newFirst =
+            field === "first_choice_course" ? value : prev.first_choice_course;
+          const newAdmitted =
+            field === "admitted_course" ? value : prev.admitted_course;
+          // If they become the same, cache next_plan and clear it
+          if (newFirst === newAdmitted) {
+            setCachedNextPlan(prev.next_plan || cachedNextPlan || "");
+            // clear next_plan
+            setErrors((prevErr) => ({ ...prevErr, next_plan: null }));
+            return { ...prev, [field]: value, next_plan: "" };
+          }
+          // If they differ, restore cached next_plan if any
+          const restored = cachedNextPlan || prev.next_plan || "";
+          if (restored) {
+            setCachedNextPlan("");
+          }
+          return { ...prev, [field]: value, next_plan: restored };
+        });
+      } else {
+        setFormState((prev) => ({ ...prev, [field]: value }));
+      }
       // Clear error when user starts typing
       if (errors[field]) {
         setErrors((prev) => ({ ...prev, [field]: null }));
@@ -277,57 +362,226 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
 
   const handleSupportChange = (key, checked) => {
     if (role === "admin") {
-      setFormState((prev) => ({
-        ...prev,
-        support: checked
-          ? [...prev.support, key]
-          : prev.support.filter((item) => item !== key),
-      }));
+      if (!checked) {
+        // cache the current notes before clearing
+        setCachedSupportNotes((prevNotes) => ({
+          ...prevNotes,
+          [key]: formState[`${key}_notes`] || "",
+        }));
+        setFormState((prev) => ({
+          ...prev,
+          support: prev.support.filter((item) => item !== key),
+          [`${key}_notes`]: "",
+        }));
+      } else {
+        // restore cached notes if available
+        const restored = cachedSupportNotes[key] || "";
+        setFormState((prev) => {
+          // Check if key already exists to prevent duplicates
+          const updatedSupport = prev.support.includes(key)
+            ? prev.support
+            : [...prev.support, key];
+          return {
+            ...prev,
+            support: updatedSupport,
+            [`${key}_notes`]: restored || prev[`${key}_notes`] || "",
+          };
+        });
+        setCachedSupportNotes((prevNotes) => {
+          const copy = { ...prevNotes };
+          delete copy[key];
+          return copy;
+        });
+      }
+      // Clear support error when selection changes
+      if (errors.support) {
+        setErrors((prev) => ({ ...prev, support: null }));
+      }
     }
   };
 
-  const handleSubmit = async () => {
-    // Clear previous errors
-    const newErrors = {};
+  const getChangedFields = () => {
+    const changes = [];
+    for (const key in formState) {
+      if (formState[key] !== originalFormState[key]) {
+        const displayValue = Array.isArray(formState[key])
+          ? formState[key].join(", ")
+          : formState[key];
+        const originalValue = Array.isArray(originalFormState[key])
+          ? originalFormState[key].join(", ")
+          : originalFormState[key];
 
-    // Validate required fields
-    if (!formState.name || formState.name.trim() === "") {
-      newErrors.name = "Name field cannot be empty.";
+        changes.push({
+          field: key.replace(/_/g, " ").toUpperCase(),
+          original: originalValue || "(empty)",
+          updated: displayValue || "(empty)",
+        });
+      }
     }
+    return changes;
+  };
 
-    if (!formState.nickname || formState.nickname.trim() === "") {
-      newErrors.nickname = "Nickname field cannot be empty.";
+  const handleSubmitClick = () => {
+    console.log("handleSubmitClick called, formState.support:", formState.support);
+
+    // Run validation before showing modal
+    const apiData = mapFormStateToAPI();
+    console.log("apiData.student_support.support:", apiData.student_support.support);
+    
+    const validationErrors = {};
+    Object.assign(validationErrors, validatePreferences(apiData));
+    Object.assign(validationErrors, validateSupport(apiData));
+    Object.assign(validationErrors, validateSocioEconomicStatus(apiData));
+    Object.assign(validationErrors, validateScholasticStatus(apiData));
+
+    console.log("validationErrors:", validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      const fieldErrors = {};
+
+      for (const key in validationErrors) {
+        fieldErrors[key] = validationErrors[key];
+      }
+
+      setErrors(fieldErrors);
+      console.error("Validation Errors:", validationErrors);
+      setDownloadToast(`Validation failed. Please check the form for errors.`);
+      return;
     }
-
-    if (!formState.year_course || formState.year_course.trim() === "") {
-      newErrors.year_course = "Year & course field cannot be empty.";
-    }
-
-    // Set all errors at once
-    setErrors(newErrors);
-
-    // If there are errors, don't submit
-    if (Object.keys(newErrors).length > 0) {
+    const changes = getChangedFields();
+    if (changes.length === 0) {
+      setDownloadToast("No changes detected.");
       return;
     }
 
-    try {
-      const response = await request(
-        `/api/forms/edit/bis/${profileData.student_number}/`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formState),
-        }
-      );
+    setShowSubmitConfirm(true);
+  };
 
-      if (response.ok) {
-        const data = await response.json();
-        setDownloadToast(data.message);
+  const handleConfirmSubmit = async () => {
+    setShowSubmitConfirm(false);
+    await handleSubmit();
+  };
+
+  const mapFormStateToAPI = () => {
+    // Map frontend support keys to backend support codes
+    const supportCodeMap = {
+      self_supporting: "self",
+      both_parents: "both_parents",
+      father_only: "father_only",
+      mother_only: "mother_only",
+      scholarship: "scholarship",
+      combination: "combination",
+      others: "others",
+      government_funded: "gov_funded",
+    };
+
+    return {
+      student_support: {
+        support: formState.support.map((key) => supportCodeMap[key] || key),
+        other_scholarship: formState.scholarship_notes,
+        combination_notes: formState.combination_notes,
+        other_notes: formState.others_notes,
+      },
+
+      socio_economic_status: {
+        scholarships: formState.scholarships,
+        scholarship_privileges: formState.scholarship_privileges,
+        monthly_allowance: formState.monthly_allowance,
+        spending_habit: formState.spending_habit,
+        has_scholarship: !!formState.scholarships,
+      },
+
+      preferences: {
+        influence: formState.influence,
+        reason_for_enrolling: formState.reason_for_enrolling,
+        transfer_plans: formState.transfer_plans === "Yes",
+        transfer_reason: formState.transfer_reason,
+        shift_plans: formState.shift_plans === "Yes",
+        planned_shift_degree: formState.planned_shift_degree,
+        reason_for_shifting: formState.reason_for_shifting,
+      },
+
+      scholastic_status: {
+        intended_course: formState.intended_course,
+        first_choice_course: formState.first_choice_course,
+        admitted_course: formState.admitted_course,
+        next_plan: formState.next_plan,
+      },
+    };
+  };
+
+  const handleSubmit = async () => {
+    // Guard: ensure formData exists
+    if (!formData || !formData.submission) {
+      setDownloadToast("Form data not loaded. Please refresh the page.");
+      return;
+    }
+
+    // 1. Convert formState → API structured data
+    const apiData = mapFormStateToAPI();
+
+    // 2. Run validations from BISValidation
+    const validationErrors = {};
+    Object.assign(validationErrors, validatePreferences(apiData));
+    Object.assign(validationErrors, validateSupport(apiData));
+    Object.assign(validationErrors, validateSocioEconomicStatus(apiData));
+    Object.assign(validationErrors, validateScholasticStatus(apiData));
+
+    // 3. If errors exist, display them
+    if (Object.keys(validationErrors).length > 0) {
+      const fieldErrors = {};
+      let errorMessages = [];
+
+      for (const key in validationErrors) {
+        const field = key.split(".").pop();
+        fieldErrors[field] = validationErrors[key];
+        errorMessages.push(`${key}: ${validationErrors[key]}`);
       }
+
+      setErrors(fieldErrors);
+      console.error("Validation Errors:", validationErrors);
+      setDownloadToast(`Validation failed. Please check the form for errors.`);
+      return;
+    }
+
+    // 4. Send to backend using admin-edit endpoint
+    try {
+      const submissionId = formData.submission.id;
+
+      const response = await request(`/api/forms/admin-edit/${submissionId}/`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(apiData),
+      });
+
+      if (!response) {
+        setDownloadToast("Unable to reach the server. Please try again.");
+        return;
+      }
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        // Show backend validation errors if available
+        if (data.errors) {
+          const backendErrors = Object.entries(data.errors)
+            .map(([key, val]) => `${key}: ${JSON.stringify(val)}`)
+            .join("\n");
+          setDownloadToast(
+            `Validation errors found. Please check the form for errors.`
+          );
+          return;
+        }
+        setDownloadToast(
+          data?.message || data?.error || "Failed to update form."
+        );
+        return;
+      }
+
+      setErrors({});
+      setDownloadToast(data?.message || "Changes saved successfully.");
     } catch (error) {
+      console.error("Error updating form:", error);
       setDownloadToast("Failed to update form.");
     }
   };
@@ -380,7 +634,7 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
         {role === "admin" && (
           <Button
             variant="secondary"
-            onClick={handleSubmit}
+            onClick={handleSubmitClick}
             className="pdf-button"
           >
             Save Changes
@@ -429,6 +683,7 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
               value={formState.name}
               onChange={(e) => handleFieldChange("name", e.target.value)}
               readOnly={role !== "admin"}
+              disabled
             />
             {errors.name && (
               <div class="error-state-message">{errors.name}</div>
@@ -441,6 +696,7 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
               value={formState.nickname}
               onChange={(e) => handleFieldChange("nickname", e.target.value)}
               readOnly={role !== "admin"}
+              disabled
             />
             {errors.nickname && (
               <div class="error-state-message">{errors.nickname}</div>
@@ -453,6 +709,7 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
               value={formState.year_course}
               onChange={(e) => handleFieldChange("year_course", e.target.value)}
               readOnly={role !== "admin"}
+              disabled
             />
             {errors.year_course && (
               <div class="error-state-message">{errors.year_course}</div>
@@ -472,21 +729,12 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
                 "combination",
                 "others",
               ].includes(key);
-              const inputValue =
-                key === "scholarship"
-                  ? student_support?.other_scholarship
-                  : key === "combination"
-                  ? student_support?.combination_notes
-                  : key === "others"
-                  ? student_support?.other_notes
-                  : "";
               const isChecked =
-                (Array.isArray(formState.support) &&
-                  formState.support.includes(key)) ||
-                (hasInput && inputValue);
+                Array.isArray(formState.support) &&
+                formState.support.includes(key);
 
               return (
-                <li key={key}>
+                <li key={key} data-support-key={key}>
                   <label>
                     <input
                       type="checkbox"
@@ -499,23 +747,38 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
                     {hasInput
                       ? key.charAt(0).toUpperCase() + key.slice(1)
                       : label}
-                    {hasInput && inputValue && (
-                      <input
-                        type="text"
-                        value={formState[`${key}_notes`] || inputValue}
-                        onChange={(e) =>
-                          handleFieldChange(`${key}_notes`, e.target.value)
-                        }
-                        readOnly={role !== "admin"}
-                        style={{ marginLeft: "10px", width: "200px" }}
-                        placeholder={`Specify ${key}...`}
-                      />
+                    {hasInput && formState.support.includes(key) && (
+                      <>
+                        <input
+                          type="text"
+                          value={formState[`${key}_notes`] || ""}
+                          onChange={(e) =>
+                            handleFieldChange(`${key}_notes`, e.target.value)
+                          }
+                          readOnly={role !== "admin"}
+                          style={{ marginLeft: "10px", width: "200px" }}
+                          placeholder={`Specify ${key}...`}
+                        />
+                        {errors[`student_support.${key}_notes`] && (
+                          <div
+                            className="error-state-message"
+                            style={{ marginLeft: "10px", marginTop: "5px" }}
+                          >
+                            {errors[`student_support.${key}_notes`]}
+                          </div>
+                        )}
+                      </>
                     )}
                   </label>
                 </li>
               );
             })}
           </ul>
+          {(errors.support || errors["student_support.support"]) && (
+            <div className="error-state-message">
+              {errors.support || errors["student_support.support"]}
+            </div>
+          )}
 
           <label>
             5. What other scholarships do you have aside from UP Socialized
@@ -528,6 +791,9 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
               }
               readOnly={role !== "admin"}
             />
+            {errors.scholarships && (
+              <div className="error-state-message">{errors.scholarships}</div>
+            )}
           </label>
           <label>
             6. What are your privileges that you specified in no. (5):{" "}
@@ -539,28 +805,42 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
               }
               readOnly={role !== "admin"}
             />
+            {errors.scholarship_privileges && (
+              <div className="error-state-message">
+                {errors.scholarship_privileges}
+              </div>
+            )}
           </label>
           <label>
             7. How much is your monthly allowance to be provided by your family
             when you reach college?{" "}
             <input
-              type="text"
+              type="number"
+              step="0.01"
               value={formState.monthly_allowance}
               onChange={(e) =>
                 handleFieldChange("monthly_allowance", e.target.value)
               }
               readOnly={role !== "admin"}
             />
+            {errors.monthly_allowance && (
+              <div className="error-state-message">
+                {errors.monthly_allowance}
+              </div>
+            )}
           </label>
           <label>
             8. What do you spend much on?{" "}
-            <AutoResizeTextarea
+            <input
               value={formState.spending_habit}
               onChange={(e) =>
                 handleFieldChange("spending_habit", e.target.value)
               }
               readOnly={role !== "admin"}
             />
+            {errors.spending_habit && (
+              <div className="error-state-message">{errors.spending_habit}</div>
+            )}
           </label>
         </div>
         <div className="section-title">III. SCHOOL PREFERENCES</div>
@@ -573,48 +853,117 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
               onChange={(e) => handleFieldChange("influence", e.target.value)}
               readOnly={role !== "admin"}
             />
+            {errors.influence && (
+              <div className="error-state-message">{errors.influence}</div>
+            )}
           </label>
           <label>
             10. Indicate the reason/s for enrolling in UP Mindanao:{" "}
-            <AutoResizeTextarea
+            <input
               value={formState.reason_for_enrolling}
               onChange={(e) =>
                 handleFieldChange("reason_for_enrolling", e.target.value)
               }
               readOnly={role !== "admin"}
             />
+            {errors.reason_for_enrolling && (
+              <div className="error-state-message">
+                {errors.reason_for_enrolling}
+              </div>
+            )}
           </label>
           <label>
             11. Do you have plans of transferring to another UP Campus by 2nd
             year?{" "}
-            <input
-              type="text"
+            <select
               value={formState.transfer_plans}
-              onChange={(e) =>
-                handleFieldChange("transfer_plans", e.target.value)
-              }
-              readOnly={role !== "admin"}
-            />
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v === "No") {
+                  // cache transfer reason and clear
+                  setCachedTransferReason(formState.transfer_reason || "");
+                  setFormState((prev) => ({
+                    ...prev,
+                    transfer_plans: "No",
+                    transfer_reason: "",
+                  }));
+                } else if (v === "Yes") {
+                  // restore cached value
+                  setFormState((prev) => ({
+                    ...prev,
+                    transfer_plans: "Yes",
+                    transfer_reason:
+                      cachedTransferReason || prev.transfer_reason || "",
+                  }));
+                  setCachedTransferReason("");
+                } else {
+                  handleFieldChange("transfer_plans", v);
+                }
+              }}
+              disabled={role !== "admin"}
+            >
+              <option value="">-- Select --</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+            {errors.transfer_plans && (
+              <div className="error-state-message">{errors.transfer_plans}</div>
+            )}
           </label>
           <label>
             12. Why or why not?{" "}
-            <AutoResizeTextarea
+            <input
               value={formState.transfer_reason}
               onChange={(e) =>
                 handleFieldChange("transfer_reason", e.target.value)
               }
               readOnly={role !== "admin"}
             />
+            {errors.transfer_reason && (
+              <div className="error-state-message">
+                {errors.transfer_reason}
+              </div>
+            )}
           </label>
           <label>
             13. Do you have plans of shifting to another degree program by 2nd
             year?{" "}
-            <input
-              type="text"
+            <select
               value={formState.shift_plans}
-              onChange={(e) => handleFieldChange("shift_plans", e.target.value)}
-              readOnly={role !== "admin"}
-            />
+              onChange={(e) => {
+                // Cache current values before clearing
+                if (e.target.value === "No") {
+                  setCachedShiftData({
+                    planned_shift_degree: formState.planned_shift_degree,
+                    reason_for_shifting: formState.reason_for_shifting,
+                  });
+                  setFormState((prev) => ({
+                    ...prev,
+                    shift_plans: "No",
+                    planned_shift_degree: "",
+                    reason_for_shifting: "",
+                  }));
+                } else if (e.target.value === "Yes") {
+                  // Restore cached values
+                  setFormState((prev) => ({
+                    ...prev,
+                    shift_plans: "Yes",
+                    planned_shift_degree: cachedShiftData.planned_shift_degree,
+                    reason_for_shifting: cachedShiftData.reason_for_shifting,
+                  }));
+                } else {
+                  handleFieldChange("shift_plans", e.target.value);
+                }
+              }}
+              disabled={role !== "admin"}
+            >
+              <option value="">-- Select --</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+            {errors.shift_plans && (
+              <div className="error-state-message">{errors.shift_plans}</div>
+            )}
           </label>
           <label>
             14. If yes, what degree program?{" "}
@@ -624,18 +973,28 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
               onChange={(e) =>
                 handleFieldChange("planned_shift_degree", e.target.value)
               }
-              readOnly={role !== "admin"}
+              readOnly={role !== "admin" || formState.shift_plans === "No"}
             />
+            {errors.planned_shift_degree && (
+              <div className="error-state-message">
+                {errors.planned_shift_degree}
+              </div>
+            )}
           </label>
           <label>
             15. Why?{" "}
-            <AutoResizeTextarea
+            <input
               value={formState.reason_for_shifting}
               onChange={(e) =>
                 handleFieldChange("reason_for_shifting", e.target.value)
               }
-              readOnly={role !== "admin"}
+              readOnly={role !== "admin" || formState.shift_plans === "No"}
             />
+            {errors.reason_for_shifting && (
+              <div className="error-state-message">
+                {errors.reason_for_shifting}
+              </div>
+            )}
           </label>
         </div>
 
@@ -652,6 +1011,11 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
               }
               readOnly={role !== "admin"}
             />
+            {errors.intended_course && (
+              <div className="error-state-message">
+                {errors.intended_course}
+              </div>
+            )}
           </label>
           <label>
             17. What course did you indicate as 1st choice in the UPCAT
@@ -664,6 +1028,11 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
               }
               readOnly={role !== "admin"}
             />
+            {errors.first_choice_course && (
+              <div className="error-state-message">
+                {errors.first_choice_course}
+              </div>
+            )}
           </label>
           <label>
             18. What course were you admitted?{" "}
@@ -675,14 +1044,29 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
               }
               readOnly={role !== "admin"}
             />
+            {errors.admitted_course && (
+              <div className="error-state-message">
+                {errors.admitted_course}
+              </div>
+            )}
           </label>
           <label>
             19. If (17) is different (18), what would be your next plan?{" "}
-            <AutoResizeTextarea
-              value={formState.next_plan || "Not Applicable"}
+            <input
+              value={
+                formState.first_choice_course === formState.admitted_course
+                  ? ""
+                  : formState.next_plan || ""
+              }
               onChange={(e) => handleFieldChange("next_plan", e.target.value)}
-              readOnly={role !== "admin"}
-            />{" "}
+              readOnly={
+                role !== "admin" ||
+                formState.first_choice_course === formState.admitted_course
+              }
+            />
+            {errors.next_plan && (
+              <div className="error-state-message">{errors.next_plan}</div>
+            )}
           </label>
         </div>
         <div className="signature">
@@ -779,6 +1163,132 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
           confirmLabel="Download"
           cancelLabel="Cancel"
         />
+      )}
+
+      {showSubmitConfirm && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              borderRadius: "8px",
+              padding: "30px",
+              maxWidth: "1000px",
+              maxHeight: "80vh",
+              overflowY: "auto",
+              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            <h2
+              style={{
+                marginBottom: "16px",
+                fontSize: "1.3rem",
+                fontWeight: "700",
+                textAlign: "center",
+                color: "#7b1113",
+                textTransform: "uppercase",
+                letterSpacing: "1px",
+              }}
+            >
+              Confirm Changes
+            </h2>
+            <hr></hr>
+
+            <p style={{ marginBottom: "12px", marginTop: "12px" }}>
+              The following fields have been modified:
+            </p>
+
+            <div
+              style={{
+                backgroundColor: "#f7f3f2",
+                padding: "15px",
+                borderRadius: "6px",
+                border: "1px solid #e2d5d3",
+                maxHeight: "300px",
+                overflowY: "auto",
+                marginBottom: "20px",
+              }}
+            >
+              {getChangedFields().map((change, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    marginBottom: "12px",
+                    paddingBottom: "12px",
+                    borderBottom: "1px solid #ddd",
+                  }}
+                >
+                  <strong>{change.field}</strong>
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      color: "#666",
+                      marginTop: "4px",
+                    }}
+                  >
+                    From:{" "}
+                    <span style={{ fontFamily: "monospace" }}>
+                      {change.original}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: "12px", color: "#666" }}>
+                    To:{" "}
+                    <span style={{ fontFamily: "monospace", color: "#0066cc" }}>
+                      {change.updated}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                justifyContent: "flex-end",
+              }}
+            >
+              <button
+                onClick={() => setShowSubmitConfirm(false)}
+                style={{
+                  padding: "10px 20px",
+                  backgroundColor: "#f0f0f0",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmSubmit}
+                className="bg-upmaroon"
+                style={{
+                  padding: "10px 20px",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                }}
+              >
+                Confirm & Submit
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {downloadToast && (
