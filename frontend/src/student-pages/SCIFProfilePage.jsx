@@ -39,9 +39,10 @@ const SCIFProfilePage = () => {
           personality_traits: data.personality_traits,
           family_relationship: data.family_relationship,
           counseling_info: data.counseling_info,
-          guidance_notes: data.guidance_notes,
           privacy_consent: data.privacy_consent,
           submission: data.submission,
+          college_awards: data.college_awards,
+          memberships: data.memberships,
         };
 
         setFormData(transformedData);

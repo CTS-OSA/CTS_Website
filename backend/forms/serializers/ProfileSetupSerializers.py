@@ -27,7 +27,7 @@ class StudentSerializer(serializers.ModelSerializer):
             'student_number', 'college', 'current_year_level', 'degree_program', 'user', 
             'last_name', 'first_name', 'middle_name', 'nickname', 'sex', 'religion', 
             'birth_rank', 'birthdate', 'birthplace', 'contact_number', 'landline_number', 
-            'permanent_address', 'address_while_in_up', 'email', 'date_initial_entry', 'date_initial_entry_sem', 'is_complete', 'photo'
+            'permanent_address', 'address_while_in_up', 'email', 'date_initial_entry', 'date_initial_entry_sem', 'is_complete', 'photo', 'status'
         ]
     
 class StudentSummarySerializer(serializers.ModelSerializer):

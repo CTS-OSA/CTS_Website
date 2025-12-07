@@ -12,6 +12,7 @@ from .views.AdminProfileView import get_counselor_profile, update_counselor_prof
 from .views.GuestSubmissionView import create_referral_submission, verify_referral_submission
 from .views.ReferralViewSet import ReferralSubmissionView, AcknowledgementReceiptView
 from .views.FormStatusView import FormStatusView
+from .views.GraduationView import GraduationView
 
 app_name= 'forms'
 
@@ -38,6 +39,7 @@ urlpatterns = [
     path('get/enums/', EnumChoicesView.as_view(), name='enum-choices'),
     path('admin/student-forms/<str:student_id>/', AdminStudentFormsView.as_view()),
     path('admin/student-forms/<str:student_id>/<str:form_type>/', AdminStudentFormView.as_view(), name='admin-student-form-view'),
+    path('graduation/<str:student_number>/', GraduationView.as_view(), name='graduation'),
     
     # ADMIN SIDE
     path('edit/bis/<str:student_id>/', BISEditView.as_view(), name='bis-edit'),

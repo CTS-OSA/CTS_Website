@@ -3,7 +3,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from users.models import CustomUser
 from .address import Address  
-from .enums import CollegeEnum, YearLevelEnum, DegreeProgramEnum, SemesterEnum 
+from .enums import CollegeEnum, YearLevelEnum, DegreeProgramEnum, SemesterEnum, StudentStatus
 from forms.utils.helperFunctions import get_phone_validator
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
@@ -53,6 +53,7 @@ class Student(models.Model):
 
     is_complete = models.BooleanField(default=False)
     completed_at = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=50, choices=StudentStatus.choices,  default=StudentStatus.ENROLLED)
     
     def clean(self):
         if not re.match(r"^20\d{2}-20\d{2}$", self.date_initial_entry):

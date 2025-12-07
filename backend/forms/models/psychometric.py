@@ -6,11 +6,11 @@ from forms.utils.helperFunctions import check_required_fields  # Assuming this f
 
 class PsychometricData(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, to_field='student_number', related_name='psychometric_data')
-    testing_date = models.DateField(verbose_name="Date of Testing", null=True, blank=True)
-    test_name = models.CharField(max_length=100, verbose_name="Name of Test", null=True, blank=True)
-    raw_score = models.CharField(max_length=20, verbose_name="Raw Score", null=True, blank=True)
-    percentile = models.CharField(max_length=20, verbose_name="Percentile/IQ", null=True, blank=True)
-    classification = models.CharField(max_length=50, verbose_name="Classification", null=True, blank=True)
+    testing_date = models.DateField(verbose_name="Date of Testing")
+    test_name = models.CharField(max_length=100, verbose_name="Name of Test")
+    raw_score = models.CharField(max_length=20, verbose_name="Raw Score")
+    percentile = models.CharField(max_length=20, verbose_name="Percentile/IQ")
+    classification = models.CharField(max_length=50, verbose_name="Classification")
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
 
     class Meta:
@@ -39,3 +39,5 @@ class PsychometricData(models.Model):
 
     def __str__(self):
         return f"Psychometric Data - {self.student.first_name} {self.student.last_name} - {self.test_name}"
+
+

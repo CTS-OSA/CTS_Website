@@ -17,6 +17,13 @@ class SemesterEnum(models.TextChoices):
     FIRST = "1st semester", "First Semester"
     SECOND = "2nd semester", "Second Semester"
     MIDYEAR = "Mid semester", "Midyear"
+    
+class StudentStatus(models.TextChoices):
+    ENROLLED = "enrolled", "Enrolled"
+    DROPPED = "dropped", "Dropped"
+    GRADUATED = "graduated", "Graduated"
+    LOA = "loa", "LOA"
+    EXPELLED = "expelled", "Expelled"
 
 class DegreeProgramEnum(models.TextChoices):
     BS_ARCHITECTURE = 'BS Arch', 'BS Architecture'

@@ -4,7 +4,7 @@ from forms.models import (
     Parent, Sibling, Guardian, FamilyData, HealthData, 
     SchoolAddress, School, PreviousSchoolRecord, Scholarship,
     PersonalityTraits, FamilyRelationship, CounselingInformation, PrivacyConsent, Student, Submission,
-    GuidanceSpecialistNotes, Address
+    GuidanceSpecialistNotes, Address, CollegeAward, PsychometricData, Membership
 )
 
 class CustomListSerializer(serializers.ListSerializer):
@@ -438,3 +438,87 @@ class GuidanceSpecialistNotesSerializer(serializers.ModelSerializer):
     class Meta:
         model = GuidanceSpecialistNotes
         fields = '__all__'
+        extra_kwargs = {
+            'specialist': {'required': False},
+        }
+
+    def create(self, validated_data):
+        """Set specialist from the logged-in user's counselor profile"""
+        if 'specialist' not in validated_data or not validated_data['specialist']:
+            request = self.context.get('request')
+            if request and request.user:
+                try:
+                    counselor = request.user.counselor
+                    validated_data['specialist'] = counselor
+                except:
+                    pass
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        """Set specialist from the logged-in user's counselor profile if not provided"""
+        if 'specialist' not in validated_data or not validated_data['specialist']:
+            request = self.context.get('request')
+            if request and request.user:
+                try:
+                    counselor = request.user.counselor
+                    validated_data['specialist'] = counselor
+                except:
+                    pass
+        return super().update(instance, validated_data)
+        
+        
+class CollegeAwardSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+    student = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all())
+    submission = serializers.PrimaryKeyRelatedField(queryset=Submission.objects.all())
+
+    class Meta:
+        model = CollegeAward
+        fields = "__all__"
+        list_serializer_class = CustomListSerializer
+
+    def to_internal_value(self, data):
+        if 'id' in data and isinstance(data['id'], str):
+            try:
+                data['id'] = int(data['id'])
+            except:
+                pass
+        return super().to_internal_value(data)
+
+
+class MembershipSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+    student = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all())
+    submission = serializers.PrimaryKeyRelatedField(queryset=Submission.objects.all())
+
+    class Meta:
+        model = Membership
+        fields = "__all__"
+        list_serializer_class = CustomListSerializer
+
+    def to_internal_value(self, data):
+        if 'id' in data and isinstance(data['id'], str):
+            try:
+                data['id'] = int(data['id'])
+            except:
+                pass
+        return super().to_internal_value(data)
+
+
+class PsychometricDataSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+    student = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all())
+    submission = serializers.PrimaryKeyRelatedField(queryset=Submission.objects.all())
+
+    class Meta:
+        model = PsychometricData
+        fields = "__all__"
+        list_serializer_class = CustomListSerializer
+
+    def to_internal_value(self, data):
+        if 'id' in data and isinstance(data['id'], str):
+            try:
+                data['id'] = int(data['id'])
+            except:
+                pass
+        return super().to_internal_value(data)

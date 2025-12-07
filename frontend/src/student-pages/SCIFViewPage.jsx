@@ -174,11 +174,11 @@ const createEmptyRow = () => ({
 const hasTableRowContent = (row) =>
   Boolean(
     row.year ||
-    row.semester ||
-    row.school_year_start ||
-    row.school_year_end ||
-    row.name ||
-    row.position
+      row.semester ||
+      row.school_year_start ||
+      row.school_year_end ||
+      row.name ||
+      row.position
   );
 const SEMESTER_OPTIONS = [
   { value: "1st Semester", label: "1st Semester" },
@@ -315,8 +315,8 @@ const sanitizeSiblingRows = (rows, { keepEmptyRows = false } = {}) => {
     students: Array.isArray(row?.students)
       ? row.students
       : row?.students
-        ? [row.students]
-        : [],
+      ? [row.students]
+      : [],
     first_name: safeTrim(row?.first_name),
     last_name: safeTrim(row?.last_name),
     sex: safeTrim(row?.sex),
@@ -342,8 +342,8 @@ const buildSiblingRows = (siblings) => {
     students: Array.isArray(sibling?.students)
       ? sibling.students
       : sibling?.students
-        ? [sibling.students]
-        : [],
+      ? [sibling.students]
+      : [],
     first_name: sibling?.first_name || "",
     last_name: sibling?.last_name || "",
     sex: sibling?.sex || "",
@@ -434,7 +434,9 @@ const sanitizeSchoolRecordRows = (rows, { keepEmptyRows = false } = {}) => {
   }));
 
   if (keepEmptyRows) {
-    const filled = sanitized.length ? sanitized : [createEmptySchoolRecordRow()];
+    const filled = sanitized.length
+      ? sanitized
+      : [createEmptySchoolRecordRow()];
     return orderSchoolRecords(filled);
   }
   return orderSchoolRecords(sanitized.filter(hasSchoolRecordContent));
@@ -643,8 +645,7 @@ const toBoolean = (value) => {
 const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
   const pdfRef = useRef();
   const navigate = useNavigate();
-  const { role, profileData: authProfileData, user } =
-    useContext(AuthContext);
+  const { role, profileData: authProfileData, setProfileData, user } = useContext(AuthContext);
   const isStudentUser = role === "student";
   const hasAdminPrivileges = role === "admin" || isAdmin;
   const canEdit = hasAdminPrivileges;
@@ -672,7 +673,10 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     const derivedGpa = safeTrim(getSeniorHighGpaValue(schoolRecordRows));
     if (!derivedGpa) return;
     setFormState((prev) => {
-      if (safeTrim(prev.senior_high_gpa) || prev.senior_high_gpa === derivedGpa) {
+      if (
+        safeTrim(prev.senior_high_gpa) ||
+        prev.senior_high_gpa === derivedGpa
+      ) {
         return prev;
       }
       return { ...prev, senior_high_gpa: derivedGpa };
@@ -681,25 +685,48 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
   const [graduationInfo, setGraduationInfo] = useState(() =>
     defaultGraduationInfo()
   );
+  const [localStatus, setLocalStatus] = useState(profileData?.status || null);
   const [activeModalType, setActiveModalType] = useState(null);
-  const psychStorageKey = profileData?.student_number
-    ? `scif_psychometric_${profileData.student_number}`
-    : null;
-  const organizationStorageKey = profileData?.student_number
-    ? `scif_organizations_${profileData.student_number}`
-    : null;
-  const awardStorageKey = profileData?.student_number
-    ? `scif_awards_${profileData.student_number}`
-    : null;
-  const siblingStorageKey = profileData?.student_number
-    ? `scif_siblings_${profileData.student_number}`
-    : null;
-  const schoolRecordStorageKey = profileData?.student_number
-    ? `scif_school_records_${profileData.student_number}`
-    : null;
-  const graduationStorageKey = profileData?.student_number
-    ? `scif_graduation_${profileData.student_number}`
-    : null;
+
+  useEffect(() => {
+    setLocalStatus(profileData?.status || null);
+  }, [profileData?.status]);
+
+  useEffect(() => {
+    // Fetch existing graduation info for this student on mount
+    if (!profileData?.student_number) return;
+    const fetchGraduation = async () => {
+      try {
+        const url = `http://localhost:8000/api/forms/graduation/${profileData.student_number}/`;
+        const res = await request(url);
+        if (res.ok) {
+          const body = await res.json();
+          setGraduationInfo({
+            academic_year: body.academic_year || "",
+            semester: body.semester || "",
+            graduation_date: body.graduation_date || "",
+            graduation_degree_program: body.graduation_degree_program || "",
+            honors_received: body.honors_received || "",
+            submission: body.submission || null,
+          });
+          setErrors((prev) => ({ ...prev, graduation: null }));
+        } else if (res.status === 404) {
+          setGraduationInfo(defaultGraduationInfo());
+        } else {
+          const errBody = await res.json().catch(() => null);
+          setErrors((prev) => ({
+            ...prev,
+            graduation: errBody?.detail || "Failed to load graduation.",
+          }));
+        }
+      } catch {
+        setErrors((prev) => ({ ...prev, graduation: "Failed to load graduation." }));
+      }
+    };
+    fetchGraduation();
+    // only run when student number changes
+  }, [profileData?.student_number, request]);
+
   const errorAliasMap = {
     "father.first_name": "father_name",
     "father.last_name": "father_name",
@@ -725,182 +752,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
   errorAliasMap["guardian.relationship_to_guardian"] =
     "guardian_relationship_to_guardian";
   errorAliasMap["guardian.language_dialect"] = "guardian_language_dialect";
-  const loadPsychometricCache = useCallback(() => {
-    if (!psychStorageKey || typeof window === "undefined") return null;
-    try {
-      const cached = localStorage.getItem(psychStorageKey);
-      return cached ? JSON.parse(cached) : null;
-    } catch {
-      return null;
-    }
-  }, [psychStorageKey]);
 
-  const savePsychometricCache = useCallback(
-    (rows) => {
-      if (!psychStorageKey || typeof window === "undefined") return;
-      try {
-        if (rows && rows.length) {
-          localStorage.setItem(psychStorageKey, JSON.stringify(rows));
-        } else {
-          localStorage.removeItem(psychStorageKey);
-        }
-      } catch {
-        // ignore storage errors
-      }
-    },
-    [psychStorageKey]
-  );
-  const loadOrganizationCache = useCallback(() => {
-    if (!organizationStorageKey || typeof window === "undefined") return null;
-    try {
-      const cached = localStorage.getItem(organizationStorageKey);
-      return cached ? JSON.parse(cached) : null;
-    } catch {
-      return null;
-    }
-  }, [organizationStorageKey]);
-
-  const saveOrganizationCache = useCallback(
-    (rows) => {
-      if (!organizationStorageKey || typeof window === "undefined") return;
-      try {
-        const normalized = sanitizeTableRows(rows).filter(hasTableRowContent);
-        if (normalized.length) {
-          localStorage.setItem(
-            organizationStorageKey,
-            JSON.stringify(normalized)
-          );
-        } else {
-          localStorage.removeItem(organizationStorageKey);
-        }
-      } catch {
-        // ignore storage errors
-      }
-    },
-    [organizationStorageKey]
-  );
-
-  const loadAwardCache = useCallback(() => {
-    if (!awardStorageKey || typeof window === "undefined") return null;
-    try {
-      const cached = localStorage.getItem(awardStorageKey);
-      return cached ? JSON.parse(cached) : null;
-    } catch {
-      return null;
-    }
-  }, [awardStorageKey]);
-
-  const saveAwardCache = useCallback(
-    (rows) => {
-      if (!awardStorageKey || typeof window === "undefined") return;
-      try {
-        const normalized = sanitizeTableRows(rows).filter(hasTableRowContent);
-        if (normalized.length) {
-          localStorage.setItem(awardStorageKey, JSON.stringify(normalized));
-        } else {
-          localStorage.removeItem(awardStorageKey);
-        }
-      } catch {
-        // ignore storage errors
-      }
-    },
-    [awardStorageKey]
-  );
-  const loadSiblingCache = useCallback(() => {
-    if (!siblingStorageKey || typeof window === "undefined") return null;
-    try {
-      const cached = localStorage.getItem(siblingStorageKey);
-      return cached ? JSON.parse(cached) : null;
-    } catch {
-      return null;
-    }
-  }, [siblingStorageKey]);
-
-  const saveSiblingCache = useCallback(
-    (rows) => {
-      if (!siblingStorageKey || typeof window === "undefined") return;
-      try {
-        const normalized = sanitizeSiblingRows(rows);
-        if (normalized.length) {
-          localStorage.setItem(siblingStorageKey, JSON.stringify(normalized));
-        } else {
-          localStorage.removeItem(siblingStorageKey);
-        }
-      } catch {
-        // ignore storage errors
-      }
-    },
-    [siblingStorageKey]
-  );
-
-  const loadSchoolRecordCache = useCallback(() => {
-    if (!schoolRecordStorageKey || typeof window === "undefined") return null;
-    try {
-      const cached = localStorage.getItem(schoolRecordStorageKey);
-      return cached ? JSON.parse(cached) : null;
-    } catch {
-      return null;
-    }
-  }, [schoolRecordStorageKey]);
-
-  const saveSchoolRecordCache = useCallback(
-    (rows) => {
-      if (!schoolRecordStorageKey || typeof window === "undefined") return;
-      try {
-        const normalized = sanitizeSchoolRecordRows(rows);
-        if (normalized.length) {
-          localStorage.setItem(
-            schoolRecordStorageKey,
-            JSON.stringify(normalized)
-          );
-        } else {
-          localStorage.removeItem(schoolRecordStorageKey);
-        }
-      } catch {
-        // ignore
-      }
-    },
-    [schoolRecordStorageKey]
-  );
-  const loadGraduationCache = useCallback(() => {
-    if (!graduationStorageKey || typeof window === "undefined") return null;
-    try {
-      const cached = localStorage.getItem(graduationStorageKey);
-      return cached ? JSON.parse(cached) : null;
-    } catch {
-      return null;
-    }
-  }, [graduationStorageKey]);
-
-  const saveGraduationCache = useCallback(
-    (info) => {
-      if (!graduationStorageKey || typeof window === "undefined") return;
-      try {
-        const normalized = {
-          semester: safeTrim(info?.semester),
-          graduation_date: safeTrim(info?.graduation_date),
-          graduation_degree_program: safeTrim(info?.graduation_degree_program),
-          honors_received: safeTrim(info?.honors_received),
-        };
-        if (
-          normalized.semester ||
-          normalized.graduation_date ||
-          normalized.graduation_degree_program ||
-          normalized.honors_received
-        ) {
-          localStorage.setItem(
-            graduationStorageKey,
-            JSON.stringify(normalized)
-          );
-        } else {
-          localStorage.removeItem(graduationStorageKey);
-        }
-      } catch {
-        // ignore
-      }
-    },
-    [graduationStorageKey]
-  );
   const openModal = (type) => {
     if (!canEdit) return;
     setActiveModalType(type);
@@ -1080,29 +932,28 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     )
       ? scholarship.scholarships_and_assistance
       : scholarship?.scholarships_and_assistance
-        ? [scholarship.scholarships_and_assistance]
-        : [];
-
-    const psychometricEntries = Array.isArray(psychometric_data)
-      ? psychometric_data.map((entry) => ({
-        id: entry?.id ?? null,
-        testing_date: entry?.testing_date || "",
-        test_name: entry?.test_name || "",
-        raw_score: entry?.raw_score || "",
-        percentile: entry?.percentile || "",
-        classification: entry?.classification || "",
-      }))
+      ? [scholarship.scholarships_and_assistance]
       : [];
+
+    // Handle both single object and array for psychometric_data
+    const psychometricArray =
+      psychometric_data && !Array.isArray(psychometric_data)
+        ? [psychometric_data]
+        : Array.isArray(psychometric_data)
+        ? psychometric_data
+        : [];
+    const psychometricEntries = psychometricArray.map((entry) => ({
+      id: entry?.id ?? null,
+      testing_date: entry?.testing_date || "",
+      test_name: entry?.test_name || "",
+      raw_score: entry?.raw_score || "",
+      percentile: entry?.percentile || "",
+      classification: entry?.classification || "",
+    }));
     let initialPsychometric =
       psychometricEntries && psychometricEntries.length > 0
         ? psychometricEntries
         : [];
-    if (initialPsychometric.length === 0) {
-      const cached = loadPsychometricCache();
-      if (Array.isArray(cached) && cached.length > 0) {
-        initialPsychometric = cached;
-      }
-    }
 
     const preparedState = {
       // Personal Information
@@ -1143,8 +994,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
         "",
 
       // Father Information
-      father_name: `${family_data.father?.first_name || ""} ${family_data.father?.last_name || ""
-        }`.trim(),
+      father_name: `${family_data.father?.first_name || ""} ${
+        family_data.father?.last_name || ""
+      }`.trim(),
       father_age: family_data.father?.age || "",
       father_job_occupation: family_data.father?.job_occupation || "",
       father_company_agency: family_data.father?.company_agency || "",
@@ -1156,8 +1008,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       father_is_none: !!family_data.father?.is_none,
 
       // Mother Information
-      mother_name: `${family_data.mother?.first_name || ""} ${family_data.mother?.last_name || ""
-        }`.trim(),
+      mother_name: `${family_data.mother?.first_name || ""} ${
+        family_data.mother?.last_name || ""
+      }`.trim(),
       mother_age: family_data.mother?.age || "",
       mother_job_occupation: family_data.mother?.job_occupation || "",
       mother_company_agency: family_data.mother?.company_agency || "",
@@ -1169,8 +1022,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       mother_is_none: !!family_data.mother?.is_none,
 
       // Guardian Information
-      guardian_name: `${family_data.guardian?.first_name || ""} ${family_data.guardian?.last_name || ""
-        }`.trim(),
+      guardian_name: `${family_data.guardian?.first_name || ""} ${
+        family_data.guardian?.last_name || ""
+      }`.trim(),
       guardian_contact_number: family_data.guardian?.contact_number || "",
       guardian_address: family_data.guardian?.address || "",
       guardian_relationship_to_guardian:
@@ -1227,56 +1081,79 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     setFormState(preparedState);
 
     const incomingSiblingRows = buildSiblingRows(siblingList);
-    const hasSiblingData = incomingSiblingRows.some(hasSiblingContent);
-    let siblingRowsToUse = incomingSiblingRows;
-    if (!hasSiblingData) {
-      const cachedSiblings = loadSiblingCache();
-      if (Array.isArray(cachedSiblings) && cachedSiblings.length > 0) {
-        siblingRowsToUse = sanitizeSiblingRows(cachedSiblings, {
-          keepEmptyRows: true,
-        });
-      }
-    }
     setSiblingRows(
-      siblingRowsToUse.length ? siblingRowsToUse : [createEmptySiblingRow()]
+      incomingSiblingRows.length
+        ? incomingSiblingRows
+        : [createEmptySiblingRow()]
     );
 
     const incomingSchoolRows = buildSchoolRecordRows(previous_school_record);
-    const hasSchoolRecords = incomingSchoolRows.some(hasSchoolRecordContent);
-    let schoolRowsToUse = incomingSchoolRows;
-    if (!hasSchoolRecords) {
-      const cachedSchoolRecords = loadSchoolRecordCache();
-      if (Array.isArray(cachedSchoolRecords) && cachedSchoolRecords.length) {
-        schoolRowsToUse = sanitizeSchoolRecordRows(cachedSchoolRecords, {
-          keepEmptyRows: true,
-        });
-      }
-    }
-    const schoolRowsForState = schoolRowsToUse.length
-      ? schoolRowsToUse
+    const schoolRowsForState = incomingSchoolRows.length
+      ? incomingSchoolRows
       : [createEmptySchoolRecordRow()];
     setSchoolRecordRows(schoolRowsForState);
 
-    const incomingOrgRows = buildTableRows(formData?.organizations);
-    const incomingAwardRows = buildTableRows(formData?.awards);
-    const cachedOrgs = loadOrganizationCache();
-    const cachedAwards = loadAwardCache();
-    const orgRowsToUse =
-      (!incomingOrgRows.some(hasTableRowContent) && cachedOrgs?.length
-        ? buildTableRows(cachedOrgs)
-        : incomingOrgRows) || buildTableRows();
-    const awardRowsToUse =
-      (!incomingAwardRows.some(hasTableRowContent) && cachedAwards?.length
-        ? buildTableRows(cachedAwards)
-        : incomingAwardRows) || buildTableRows();
+    // Transform memberships and college_awards to match table row format
+    const transformMembershipsToRows = (memberships) => {
+      // Handle both single object and array
+      const membershipArray =
+        memberships && !Array.isArray(memberships)
+          ? [memberships]
+          : Array.isArray(memberships)
+          ? memberships
+          : [];
+      return membershipArray.map((item) => {
+        const [startYear, endYear] = item.academic_year
+          ? item.academic_year.split("-")
+          : ["", ""];
+        return {
+          id: item.id,
+          name: item.organization || "",
+          semester: item.semester || "",
+          school_year_start: startYear || "",
+          school_year_end: endYear || "",
+          position: item.position || "",
+          year: "", // Not used in display
+        };
+      });
+    };
 
-    setOrganizationRows(orgRowsToUse);
-    setAwardRows(awardRowsToUse);
+    const transformAwardsToRows = (awards) => {
+      // Handle both single object and array
+      const awardArray =
+        awards && !Array.isArray(awards)
+          ? [awards]
+          : Array.isArray(awards)
+          ? awards
+          : [];
+      return awardArray.map((item) => {
+        const [startYear, endYear] = item.academic_year
+          ? item.academic_year.split("-")
+          : ["", ""];
+        return {
+          id: item.id,
+          name: item.award || "",
+          semester: item.semester || "",
+          school_year_start: startYear || "",
+          school_year_end: endYear || "",
+          position: item.position || "",
+          year: "", // Not used in display
+        };
+      });
+    };
 
-    const cachedGraduation = loadGraduationCache();
-    setGraduationInfo(cachedGraduation ?? defaultGraduationInfo());
+    const incomingOrgRows = buildTableRows(
+      transformMembershipsToRows(formData?.memberships)
+    );
+    const incomingAwardRows = buildTableRows(
+      transformAwardsToRows(formData?.college_awards)
+    );
+
+    setOrganizationRows(incomingOrgRows || buildTableRows());
+    setAwardRows(incomingAwardRows || buildTableRows());
+
+    setGraduationInfo(defaultGraduationInfo());
     seniorHighRecordRef.current = seniorHighRecord || null;
-    savePsychometricCache(initialPsychometric);
     const counselorDisplayName = formatCounselorDisplayName(authProfileData);
     const derivedAudit = deriveGuidanceAuditInfo(
       guidance_notes,
@@ -1284,18 +1161,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       counselorDisplayName
     );
     setGuidanceNotesAudit(derivedAudit);
-  }, [
-    formData,
-    profileData,
-    authProfileData,
-    loadOrganizationCache,
-    loadAwardCache,
-    loadGraduationCache,
-    loadPsychometricCache,
-    savePsychometricCache,
-    loadSiblingCache,
-    loadSchoolRecordCache,
-  ]);
+  }, [formData, profileData, authProfileData]);
 
   const handleDownloadClick = () => {
     setShowDownloadConfirm(true);
@@ -1386,7 +1252,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     const sanitized = sanitizeSiblingRows(rows, { keepEmptyRows: true });
     const normalized = sanitized.length ? sanitized : [createEmptySiblingRow()];
     setSiblingRows(normalized);
-    saveSiblingCache(normalized);
     closeModal();
   };
 
@@ -1399,7 +1264,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       ? normalizedRecords
       : [createEmptySchoolRecordRow()];
     setSchoolRecordRows(normalized);
-    saveSchoolRecordCache(normalized);
     setFormState((prev) => ({
       ...prev,
       senior_high_gpa: safeTrim(gpaValue),
@@ -1412,7 +1276,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     const sanitized = sanitizeTableRows(rows, { keepEmptyRows: true });
     const normalized = sanitized.length ? sanitized : [createEmptyRow()];
     setOrganizationRows(normalized);
-    saveOrganizationCache(normalized);
     closeModal();
   };
 
@@ -1421,20 +1284,96 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     const sanitized = sanitizeTableRows(rows, { keepEmptyRows: true });
     const normalized = sanitized.length ? sanitized : [createEmptyRow()];
     setAwardRows(normalized);
-    saveAwardCache(normalized);
     closeModal();
+  };
+
+  const handleSaveGraduation = async (data) => {
+    if (!canEdit) return;
+
+    const semesterMapping = {
+      "1st Semester": "1st semester",
+      "Second Semester": "2nd semester",
+      Midyear: "Mid semester",
+    };
+
+    const sanitized = {
+      academic_year:
+        data.school_year_start && data.school_year_end
+          ? `${data.school_year_start}-${data.school_year_end}`
+          : "",
+      semester: semesterMapping[data.semester] || "",
+      graduation_date: data.graduation_date || "",
+      graduation_degree_program: data.graduation_degree_program || "",
+      honors_received: data.honors_received || "",
+      submission: submissionId || null,
+    };
+
+    setIsSaving(true);
+    setErrors((prev) => ({ ...prev, graduation: null }));
+    console.log("Saving graduation data:", sanitized);
+
+    try {
+      const url = `http://localhost:8000/api/forms/graduation/${profileData.student_number}/`;
+
+      const res = await request(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(sanitized),
+      });
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => null);
+        setErrors((prev) => ({
+          ...prev,
+          graduation: errBody?.detail || "Failed to save graduation.",
+        }));
+        return;
+      }
+
+      const body = await res.json();
+
+      setGraduationInfo({
+        semester: body.semester,
+        school_year_start: body.academic_year.split("-")[0] || "",
+        school_year_end: body.academic_year.split("-")[1] || "",
+        graduation_date: body.graduation_date,
+        graduation_degree_program: body.graduation_degree_program,
+        honors_received: body.honors_received,
+      });
+
+      closeModal();
+      // update local status so the UI updates immediately
+      try {
+        setLocalStatus("graduated");
+        // if this graduation belongs to the authenticated user, update AuthContext profileData
+        if (
+          authProfileData &&
+          profileData?.student_number &&
+          authProfileData.student_number === profileData.student_number
+        ) {
+          setProfileData({ ...authProfileData, status: "graduated" });
+        }
+      } catch (e) {
+        // swallow any errors here; not critical for UI update
+        console.warn("Could not update profileData in context", e);
+      }
+    } catch (err) {
+      console.error(err);
+      setErrors((prev) => ({
+        ...prev,
+        graduation: "An error occurred while saving.",
+      }));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleGraduationFieldChange = (field, value) => {
     if (!canEdit) return;
-    setGraduationInfo((prev) => {
-      const next = {
-        ...prev,
-        [field]: value,
-      };
-      saveGraduationCache(next);
-      return next;
-    });
+    setGraduationInfo((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   const handlePsychometricChange = (index, field, value) => {
@@ -1447,7 +1386,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
         ...nextRows[index],
         [field]: value,
       };
-      savePsychometricCache(nextRows);
       return {
         ...prev,
         psychometric_data: nextRows,
@@ -1472,7 +1410,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           classification: "",
         },
       ];
-      savePsychometricCache(updated);
       return {
         ...prev,
         psychometric_data: updated,
@@ -1487,7 +1424,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
         ? [...prev.psychometric_data]
         : [];
       nextRows.splice(index, 1);
-      savePsychometricCache(nextRows);
       return {
         ...prev,
         psychometric_data: nextRows,
@@ -1684,12 +1620,62 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       },
     };
 
-    payload.organizations =
-      sanitizeTableRows(organizationRows).filter(hasTableRowContent);
-    payload.awards = sanitizeTableRows(awardRows).filter(hasTableRowContent);
+    // Map organization rows to memberships format
+    const normalizeSemester = (semester) => {
+      if (!semester) return "";
+      const lower = semester.toLowerCase();
+      if (lower.includes("1st")) return "1st semester";
+      if (lower.includes("2nd")) return "2nd semester";
+      if (lower.includes("mid")) return "Mid semester";
+      return semester;
+    };
+
+    payload.memberships = sanitizeTableRows(organizationRows)
+      .filter(hasTableRowContent)
+      .map((row) => ({
+        organization: safeTrim(row.name),
+        semester: normalizeSemester(row.semester),
+        academic_year: safeTrim(
+          row.school_year_start && row.school_year_end
+            ? `${row.school_year_start}-${row.school_year_end}`
+            : ""
+        ),
+        position: safeTrim(row.position),
+        student: profileData.student_number,
+        submission: submissionId,
+        ...(row.id && { id: row.id }),
+      }));
+
+    // Map award rows to college_awards format
+    payload.college_awards = sanitizeTableRows(awardRows)
+      .filter(hasTableRowContent)
+      .map((row) => ({
+        award: safeTrim(row.name),
+        semester: normalizeSemester(row.semester),
+        academic_year: safeTrim(
+          row.school_year_start && row.school_year_end
+            ? `${row.school_year_start}-${row.school_year_end}`
+            : ""
+        ),
+        position: safeTrim(row.position),
+        student: profileData.student_number,
+        submission: submissionId,
+        ...(row.id && { id: row.id }),
+      }));
+
+    // Psychometric data
     payload.psychometric_data = sanitizePsychometricRows(
       formState.psychometric_data
-    );
+    ).map((row) => ({
+      testing_date: safeTrim(row.testing_date),
+      test_name: safeTrim(row.test_name),
+      raw_score: safeTrim(row.raw_score),
+      percentile: safeTrim(row.percentile),
+      classification: safeTrim(row.classification),
+      student: profileData.student_number,
+      submission: submissionId,
+      ...(row.id && { id: row.id }),
+    }));
 
     const sanitizedSiblingRows = sanitizeSiblingRows(siblingRows);
     payload.siblings = sanitizedSiblingRows.map((row) => {
@@ -1848,6 +1834,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
 
     // const submissionId = formData?.submission?.id;
     // console.log("Submission ID:", submissionId);
+    console.log(scifPayload);
 
     if (!submissionId) {
       setDownloadToast(
@@ -1867,8 +1854,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
         const profileData = await profileResponse?.json().catch(() => ({}));
         setDownloadToast(
           profileData?.message ||
-          profileData?.error ||
-          "Failed to update personal information."
+            profileData?.error ||
+            "Failed to update personal information."
         );
 
         return;
@@ -1896,8 +1883,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
         }
         setDownloadToast(
           data?.message ||
-          data?.error ||
-          "Failed to update form. Please review the fields."
+            data?.error ||
+            "Failed to update form. Please review the fields."
         );
         return;
       }
@@ -1907,19 +1894,13 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       const sanitizedSiblingRowsForState = sanitizeSiblingRows(siblingRows, {
         keepEmptyRows: true,
       });
-      const sanitizedSiblingRowsForCache = sanitizeSiblingRows(siblingRows);
       const sanitizedSchoolRowsForState = sanitizeSchoolRecordRows(
         schoolRecordRows,
         { keepEmptyRows: true }
       );
-      const sanitizedSchoolRowsForCache =
-        sanitizeSchoolRecordRows(schoolRecordRows);
       const sanitizedPsychRowsForState = sanitizePsychometricRows(
         formState.psychometric_data,
         { keepEmptyRows: true }
-      );
-      const sanitizedPsychRowsForCache = sanitizePsychometricRows(
-        formState.psychometric_data
       );
 
       setOrganizationRows(buildTableRows(sanitizedOrgRowsForState));
@@ -1938,11 +1919,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
         ...prev,
         psychometric_data: sanitizedPsychRowsForState,
       }));
-      saveOrganizationCache(sanitizedOrgRowsForState);
-      saveAwardCache(sanitizedAwardRowsForState);
-      saveSiblingCache(sanitizedSiblingRowsForCache);
-      saveSchoolRecordCache(sanitizedSchoolRowsForCache);
-      savePsychometricCache(sanitizedPsychRowsForCache);
       const latestModifierName =
         formatCounselorDisplayName(authProfileData) ||
         formatCounselorDisplayName(user) ||
@@ -2083,7 +2059,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
 
     const getBorderColor = (computed) =>
       computed.borderBottomColor &&
-        computed.borderBottomColor !== "rgba(0, 0, 0, 0)"
+      computed.borderBottomColor !== "rgba(0, 0, 0, 0)"
         ? computed.borderBottomColor
         : "#000";
 
@@ -2111,13 +2087,13 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           rect.height > 0
             ? rect.height
             : rect.width > 0
-              ? rect.width
-              : parseFloat(computed.fontSize || "14") * 1.2 || 16;
+            ? rect.width
+            : parseFloat(computed.fontSize || "14") * 1.2 || 16;
 
         const parentLabel =
           cloneEl.parentElement &&
-            cloneEl.parentElement.tagName &&
-            cloneEl.parentElement.tagName.toUpperCase() === "LABEL"
+          cloneEl.parentElement.tagName &&
+          cloneEl.parentElement.tagName.toUpperCase() === "LABEL"
             ? cloneEl.parentElement
             : null;
         const targetComputed = window.getComputedStyle(
@@ -2221,8 +2197,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 ? "Selected"
                 : ""
               : originalEl.checked
-                ? "Yes"
-                : "No");
+              ? "Yes"
+              : "No");
           if (fallbackText) {
             const span = document.createElement("span");
             span.textContent = fallbackText;
@@ -2430,11 +2406,21 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
         <table className="w-full border-collapse mt-4 text-xs">
           <thead>
             <tr>
-              <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">Level</th>
-              <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">Name of School</th>
-              <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">Address</th>
-              <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">Inclusive Years</th>
-              <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">Honor/s</th>
+              <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">
+                Level
+              </th>
+              <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">
+                Name of School
+              </th>
+              <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">
+                Address
+              </th>
+              <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">
+                Inclusive Years
+              </th>
+              <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">
+                Honor/s
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -2445,16 +2431,28 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 "";
               const inclusiveYears =
                 record.start_year || record.end_year
-                  ? `${record.start_year || ""}${record.start_year || record.end_year ? " - " : ""}${record.end_year || ""}`
+                  ? `${record.start_year || ""}${
+                      record.start_year || record.end_year ? " - " : ""
+                    }${record.end_year || ""}`
                   : "";
 
-              const isSrHigh = normalizeEducationLevel(record.education_level) === "Senior High";
+              const isSrHigh =
+                normalizeEducationLevel(record.education_level) ===
+                "Senior High";
               return (
                 <tr key={record.id || idx}>
-                  <td className="border border-[#9ca3af] px-2.5 py-1 align-top">{record.education_level || "-"}</td>
-                  <td className="border border-[#9ca3af] px-2.5 py-1 align-top">{record.school_name || "-"}</td>
-                  <td className="border border-[#9ca3af] px-2.5 py-1 align-top">{address || "-"}</td>
-                  <td className="border border-[#9ca3af] px-2.5 py-1 align-top">{inclusiveYears || "-"}</td>
+                  <td className="border border-[#9ca3af] px-2.5 py-1 align-top">
+                    {record.education_level || "-"}
+                  </td>
+                  <td className="border border-[#9ca3af] px-2.5 py-1 align-top">
+                    {record.school_name || "-"}
+                  </td>
+                  <td className="border border-[#9ca3af] px-2.5 py-1 align-top">
+                    {address || "-"}
+                  </td>
+                  <td className="border border-[#9ca3af] px-2.5 py-1 align-top">
+                    {inclusiveYears || "-"}
+                  </td>
                   <td className="border border-[#9ca3af] px-2.5 py-1 align-top">
                     <div className="flex flex-col gap-1">
                       <span>{record.honors_received || "-"}</span>
@@ -2579,7 +2577,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     const handleRemoveRow = (index) => {
       setLocalRows((prev) => {
         const next = prev.filter((_, idx) => idx !== index);
-        return next.length ? next : [createEmptySiblingRow()];
+        return next;
       });
     };
 
@@ -2620,16 +2618,14 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   <p className="font-semibold text-[#374151]">
                     Sibling {index + 1}
                   </p>
-                  {localRows.length > 1 && (
-                    <button
-                      type="button"
-                      variant="secondary"
-                      className="text-upmaroon hover:text-red-700 cursor-pointer hover:scale-110 relative flex items-center gap-1 text-sm font-medium transition-all duration-200 ease-in-out"
-                      onClick={() => handleRemoveRow(index)}
-                    >
-                      <Trash2 size={16} /> Remove
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    variant="secondary"
+                    className="text-upmaroon hover:text-red-700 cursor-pointer hover:scale-110 relative flex items-center gap-1 text-sm font-medium transition-all duration-200 ease-in-out"
+                    onClick={() => handleRemoveRow(index)}
+                  >
+                    <Trash2 size={16} /> Remove
+                  </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
@@ -2720,7 +2716,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             </div>
           </div>
         </form>
-      </Modal >
+      </Modal>
     );
   };
 
@@ -2806,6 +2802,27 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
 
     const handleSubmit = (event) => {
       event.preventDefault();
+
+      // Validate that end_year >= start_year
+      const errors = [];
+      localRecords.forEach((record, idx) => {
+        if (record.start_year && record.end_year) {
+          const startYear = parseInt(record.start_year, 10);
+          const endYear = parseInt(record.end_year, 10);
+          if (!isNaN(startYear) && !isNaN(endYear) && endYear < startYear) {
+            const levelLabel = record.education_level || `Record ${idx + 1}`;
+            errors.push(
+              `${levelLabel}: End year must be greater than or equal to start year`
+            );
+          }
+        }
+      });
+
+      if (errors.length > 0) {
+        alert("Please fix the following errors:\n\n" + errors.join("\n"));
+        return;
+      }
+
       const syncedRecords = applySeniorHighGpaValue(
         localRecords,
         seniorHighGpa
@@ -2841,8 +2858,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 .map((record, idx) => ({ record, idx }))
                 .filter(
                   ({ record }) =>
-                    normalizeEducationLevel(record.education_level).toLowerCase() ===
-                    level.key.toLowerCase()
+                    normalizeEducationLevel(
+                      record.education_level
+                    ).toLowerCase() === level.key.toLowerCase()
                 );
               const levelLabel = level.label;
               return (
@@ -2869,7 +2887,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                         label="Senior High Gen. Ave."
                         type="text"
                         value={seniorHighGpa}
-                        onChange={(e) => handleSeniorHighGpaChange(e.target.value)}
+                        onChange={(e) =>
+                          handleSeniorHighGpaChange(e.target.value)
+                        }
                       />
                     </div>
                   )}
@@ -2878,18 +2898,18 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                       No {level.key.toLowerCase()} records yet.
                     </p>
                   ) : (
-                    levelEntries.map(({ record, idx: globalIndex }, entryIdx) => (
-                      <div
-                        key={`${level.key}-${globalIndex}`}
-                        className="border border-[#F3F4F6] rounded-md p-4 mb-4 last:mb-0"
-                      >
-                        <div className="flex items-center justify-between mb-3">
-                          <p className="font-semibold text-[#374151]">
-                            {level.key} Record {entryIdx + 1}
-                          </p>
-                          <div className="flex gap-2">
-                            {(levelEntries.length > 1 ||
-                              !level.required) && (
+                    levelEntries.map(
+                      ({ record, idx: globalIndex }, entryIdx) => (
+                        <div
+                          key={`${level.key}-${globalIndex}`}
+                          className="border border-[#F3F4F6] rounded-md p-4 mb-4 last:mb-0"
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <p className="font-semibold text-[#374151]">
+                              {level.key} Record {entryIdx + 1}
+                            </p>
+                            <div className="flex gap-2">
+                              {(levelEntries.length > 1 || !level.required) && (
                                 <Button
                                   type="button"
                                   variant="secondary"
@@ -2901,170 +2921,171 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                                   Remove
                                 </Button>
                               )}
+                            </div>
                           </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <FormField
-                            label="School Name"
-                            type="text"
-                            value={record.school_name}
-                            onChange={(e) =>
-                              updateRecordField(
-                                globalIndex,
-                                "school_name",
-                                e.target.value,
-                                filterGeneralText
-                              )
-                            }
-                            required
-                          />
-                          <FormField
-                            label="Address Line 1"
-                            type="text"
-                            value={record.address_line_1}
-                            onChange={(e) =>
-                              updateRecordField(
-                                globalIndex,
-                                "address_line_1",
-                                e.target.value,
-                                filterGeneralText
-                              )
-                            }
-                            required
-                          />
-                          <FormField
-                            label="Barangay"
-                            type="text"
-                            value={record.barangay}
-                            onChange={(e) =>
-                              updateRecordField(
-                                globalIndex,
-                                "barangay",
-                                e.target.value,
-                                filterGeneralText
-                              )
-                            }
-                            required
-                          />
-                          <FormField
-                            label="City / Municipality"
-                            type="text"
-                            value={record.city_municipality}
-                            onChange={(e) =>
-                              updateRecordField(
-                                globalIndex,
-                                "city_municipality",
-                                e.target.value,
-                                filterGeneralText
-                              )
-                            }
-                            required
-                          />
-                          <FormField
-                            label="Province"
-                            type="text"
-                            value={record.province}
-                            onChange={(e) =>
-                              updateRecordField(
-                                globalIndex,
-                                "province",
-                                e.target.value,
-                                filterGeneralText
-                              )
-                            }
-                            required
-                          />
-                          {shouldUseRegionDropdown ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <FormField
-                              label="Region"
-                              type="select"
-                              value={record.region}
-                              onChange={(e) =>
-                                updateRecordField(
-                                  globalIndex,
-                                  "region",
-                                  e.target.value
-                                )
-                              }
-                              options={regionOptions}
-                              required
-                            />
-                          ) : (
-                            <FormField
-                              label="Region"
+                              label="School Name"
                               type="text"
-                              value={record.region}
+                              value={record.school_name}
                               onChange={(e) =>
                                 updateRecordField(
                                   globalIndex,
-                                  "region",
+                                  "school_name",
                                   e.target.value,
                                   filterGeneralText
                                 )
                               }
                               required
                             />
-                          )}
-                          <FormField
-                            label="ZIP Code"
-                            type="text"
-                            value={record.zip_code}
-                            onChange={(e) =>
-                              updateRecordField(
-                                globalIndex,
-                                "zip_code",
-                                e.target.value,
-                                filterNumbersOnly
-                              )
-                            }
-                            required
-                          />
+                            <FormField
+                              label="Address Line 1"
+                              type="text"
+                              value={record.address_line_1}
+                              onChange={(e) =>
+                                updateRecordField(
+                                  globalIndex,
+                                  "address_line_1",
+                                  e.target.value,
+                                  filterGeneralText
+                                )
+                              }
+                              required
+                            />
+                            <FormField
+                              label="Barangay"
+                              type="text"
+                              value={record.barangay}
+                              onChange={(e) =>
+                                updateRecordField(
+                                  globalIndex,
+                                  "barangay",
+                                  e.target.value,
+                                  filterGeneralText
+                                )
+                              }
+                              required
+                            />
+                            <FormField
+                              label="City / Municipality"
+                              type="text"
+                              value={record.city_municipality}
+                              onChange={(e) =>
+                                updateRecordField(
+                                  globalIndex,
+                                  "city_municipality",
+                                  e.target.value,
+                                  filterGeneralText
+                                )
+                              }
+                              required
+                            />
+                            <FormField
+                              label="Province"
+                              type="text"
+                              value={record.province}
+                              onChange={(e) =>
+                                updateRecordField(
+                                  globalIndex,
+                                  "province",
+                                  e.target.value,
+                                  filterGeneralText
+                                )
+                              }
+                              required
+                            />
+                            {shouldUseRegionDropdown ? (
+                              <FormField
+                                label="Region"
+                                type="select"
+                                value={record.region}
+                                onChange={(e) =>
+                                  updateRecordField(
+                                    globalIndex,
+                                    "region",
+                                    e.target.value
+                                  )
+                                }
+                                options={regionOptions}
+                                required
+                              />
+                            ) : (
+                              <FormField
+                                label="Region"
+                                type="text"
+                                value={record.region}
+                                onChange={(e) =>
+                                  updateRecordField(
+                                    globalIndex,
+                                    "region",
+                                    e.target.value,
+                                    filterGeneralText
+                                  )
+                                }
+                                required
+                              />
+                            )}
+                            <FormField
+                              label="ZIP Code"
+                              type="text"
+                              value={record.zip_code}
+                              onChange={(e) =>
+                                updateRecordField(
+                                  globalIndex,
+                                  "zip_code",
+                                  e.target.value,
+                                  filterNumbersOnly
+                                )
+                              }
+                              required
+                            />
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                            <FormField
+                              label="Start Year"
+                              type="text"
+                              value={record.start_year}
+                              onChange={(e) =>
+                                updateRecordField(
+                                  globalIndex,
+                                  "start_year",
+                                  e.target.value,
+                                  filterNumbersOnly
+                                )
+                              }
+                              required
+                            />
+                            <FormField
+                              label="End Year"
+                              type="text"
+                              value={record.end_year}
+                              onChange={(e) =>
+                                updateRecordField(
+                                  globalIndex,
+                                  "end_year",
+                                  e.target.value,
+                                  filterNumbersOnly
+                                )
+                              }
+                              required
+                            />
+                            <FormField
+                              label="Honors Received"
+                              type="text"
+                              value={record.honors_received}
+                              onChange={(e) =>
+                                updateRecordField(
+                                  globalIndex,
+                                  "honors_received",
+                                  e.target.value,
+                                  filterGeneralText
+                                )
+                              }
+                            />
+                          </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                          <FormField
-                            label="Start Year"
-                            type="text"
-                            value={record.start_year}
-                            onChange={(e) =>
-                              updateRecordField(
-                                globalIndex,
-                                "start_year",
-                                e.target.value,
-                                filterNumbersOnly
-                              )
-                            }
-                            required
-                          />
-                          <FormField
-                            label="End Year"
-                            type="text"
-                            value={record.end_year}
-                            onChange={(e) =>
-                              updateRecordField(
-                                globalIndex,
-                                "end_year",
-                                e.target.value,
-                                filterNumbersOnly
-                              )
-                            }
-                            required
-                          />
-                          <FormField
-                            label="Honors Received"
-                            type="text"
-                            value={record.honors_received}
-                            onChange={(e) =>
-                              updateRecordField(
-                                globalIndex,
-                                "honors_received",
-                                e.target.value,
-                                filterGeneralText
-                              )
-                            }
-                          />
-                        </div>
-                      </div>
-                    ))
+                      )
+                    )
                   )}
                 </section>
               );
@@ -3096,6 +3117,29 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       sanitizeTableRows(rows, { keepEmptyRows: true })
     );
 
+    // Helper function to generate year options (current year and 20 years back)
+    const generateYearOptions = () => {
+      const currentYear = new Date().getFullYear();
+      const years = [];
+      for (let i = currentYear; i >= currentYear - 20; i--) {
+        years.push({ value: i.toString(), label: i.toString() });
+      }
+      return [{ value: "", label: "Select Year" }, ...years];
+    };
+
+    // Helper function to get end year options based on start year
+    const getEndYearOptions = (startYearStr) => {
+      if (!startYearStr) return generateYearOptions();
+      const startYear = parseInt(startYearStr, 10);
+      const currentYear = new Date().getFullYear();
+      const years = [];
+      const maxYear = Math.min(currentYear, startYear);
+      for (let i = currentYear; i >= maxYear; i--) {
+        years.push({ value: i.toString(), label: i.toString() });
+      }
+      return [{ value: "", label: "Select Year" }, ...years];
+    };
+
     useEffect(() => {
       if (open) {
         setLocalRows(sanitizeTableRows(rows, { keepEmptyRows: true }));
@@ -3118,12 +3162,33 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     const handleRemoveRow = (index) => {
       setLocalRows((prev) => {
         const next = prev.filter((_, idx) => idx !== index);
-        return next.length ? next : [createEmptyRow()];
+        return next;
       });
     };
 
     const handleSubmit = (event) => {
       event.preventDefault();
+
+      // Validate that school_year_end >= school_year_start
+      const errors = [];
+      localRows.forEach((row, idx) => {
+        if (row.school_year_start && row.school_year_end) {
+          const startYear = parseInt(row.school_year_start, 10);
+          const endYear = parseInt(row.school_year_end, 10);
+          if (!isNaN(startYear) && !isNaN(endYear) && endYear < startYear) {
+            const name = row.name || `Entry ${idx + 1}`;
+            errors.push(
+              `${name}: End year must be greater than or equal to start year`
+            );
+          }
+        }
+      });
+
+      if (errors.length > 0) {
+        alert("Please fix the following errors:\n\n" + errors.join("\n"));
+        return;
+      }
+
       onSave(localRows);
     };
 
@@ -3157,16 +3222,14 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   <p className="font-semibold text-[#374151]">
                     Organization {index + 1}
                   </p>
-                  {localRows.length > 1 && (
-                    <button
-                      type="button"
-                      variant="secondary"
-                      className="text-upmaroon hover:text-[]] cursor-pointer hover:scale-110 relative flex items-center gap-1 text-sm font-medium transition-all duration-200 ease-in-out"
-                      onClick={() => handleRemoveRow(index)}
-                    >
-                      <Trash2 size={16} /> Remove
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    variant="secondary"
+                    className="text-upmaroon hover:text-red-700 cursor-pointer hover:scale-110 relative flex items-center gap-1 text-sm font-medium transition-all duration-200 ease-in-out"
+                    onClick={() => handleRemoveRow(index)}
+                  >
+                    <Trash2 size={16} /> Remove
+                  </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <FormField
@@ -3184,30 +3247,22 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   />
                   <FormField
                     label="School Year Start"
-                    type="text"
+                    type="select"
                     value={row.school_year_start}
                     onChange={(e) =>
-                      handleChange(
-                        index,
-                        "school_year_start",
-                        e.target.value,
-                        filterNumbersOnly
-                      )
+                      handleChange(index, "school_year_start", e.target.value)
                     }
+                    options={generateYearOptions()}
                     required
                   />
                   <FormField
                     label="School Year End"
-                    type="text"
+                    type="select"
                     value={row.school_year_end}
                     onChange={(e) =>
-                      handleChange(
-                        index,
-                        "school_year_end",
-                        e.target.value,
-                        filterNumbersOnly
-                      )
+                      handleChange(index, "school_year_end", e.target.value)
                     }
+                    options={getEndYearOptions(row.school_year_start)}
                     required
                   />
                 </div>
@@ -3256,6 +3311,172 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 Save Changes
               </Button>
             </div>
+          </div>
+        </form>
+      </Modal>
+    );
+  };
+
+  const GraduationEditorModal = ({
+    open,
+    info,
+    onClose,
+    onSave,
+    degreeOptions = [],
+  }) => {
+    const [local, setLocal] = useState(() => ({
+      semester: info?.semester || "",
+      school_year_start: info?.school_year_start || "",
+      school_year_end: info?.school_year_end || "",
+      graduation_date: info?.graduation_date || "",
+      graduation_degree_program: info?.graduation_degree_program || "",
+      honors_received: info?.honors_received || "",
+    }));
+
+    const generateYearOptions = () => {
+      const currentYear = new Date().getFullYear();
+      const years = [];
+      for (let i = currentYear; i >= currentYear - 20; i--) {
+        years.push({ value: i.toString(), label: i.toString() });
+      }
+      return [{ value: "", label: "Select Year" }, ...years];
+    };
+
+    const getEndYearOptions = (startYearStr) => {
+      if (!startYearStr) return generateYearOptions();
+      const startYear = parseInt(startYearStr, 10);
+      const currentYear = new Date().getFullYear();
+      const years = [];
+      const maxYear = Math.min(currentYear, startYear + 1);
+      for (let i = currentYear; i >= maxYear; i--) {
+        years.push({ value: i.toString(), label: i.toString() });
+      }
+      return [{ value: "", label: "Select Year" }, ...years];
+    };
+
+    useEffect(() => {
+      if (open) {
+        setLocal({
+          semester: info?.semester || "",
+          school_year_start: info?.school_year_start || "",
+          school_year_end: info?.school_year_end || "",
+          graduation_date: info?.graduation_date || "",
+          graduation_degree_program: info?.graduation_degree_program || "",
+          honors_received: info?.honors_received || "",
+        });
+      }
+    }, [open, info]);
+
+    const handleChange = (field, value) =>
+      setLocal((p) => ({ ...p, [field]: value }));
+
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      // basic validation: if start and end years provided, ensure end >= start
+      if (local.school_year_start && local.school_year_end) {
+        const s = parseInt(local.school_year_start, 10);
+        const eYear = parseInt(local.school_year_end, 10);
+        if (!isNaN(s) && !isNaN(eYear) && eYear < s) {
+          alert("End year must be greater than or equal to start year.");
+          return;
+        }
+      }
+      onSave(local);
+    };
+
+    if (!open) return null;
+
+    return (
+      <Modal>
+        <form
+          data-pdf-hide
+          className="bg-white rounded-lg shadow-2xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto"
+          onSubmit={handleSubmit}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-[#1F2937]">Graduation</h3>
+            <button
+              type="button"
+              className="text-sm text-[#6B7280] hover:text-[#374151] hover:scale-115 cursor-pointer"
+              onClick={onClose}
+            >
+              <X />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <FormField
+              label="Semester"
+              type="select"
+              value={local.semester}
+              onChange={(e) => handleChange("semester", e.target.value)}
+              options={[{ value: "", label: "Select" }, ...SEMESTER_OPTIONS]}
+              required
+            />
+            <FormField
+              label="School Year Start"
+              type="select"
+              value={local.school_year_start}
+              onChange={(e) =>
+                handleChange("school_year_start", e.target.value)
+              }
+              options={generateYearOptions()}
+              required
+            />
+
+            <FormField
+              label="School Year End"
+              type="select"
+              value={local.school_year_end}
+              onChange={(e) => handleChange("school_year_end", e.target.value)}
+              options={getEndYearOptions(local.school_year_start)}
+              required
+            />
+          </div>
+          <div className="grid grid-cols-1 gap-4 mt-8">
+            <label className="field-col">
+              <span>DATE OF GRADUATION</span>
+              <input
+                type="date"
+                value={local.graduation_date || ""}
+                onChange={(e) =>
+                  handleChange("graduation_date", e.target.value)
+                }
+              />
+            </label>
+            <div />
+            <div className="grid grid-cols-1 gap-4 ">
+              <FormField
+                label="Degree Program"
+                type="select"
+                value={local.graduation_degree_program}
+                onChange={(e) =>
+                  handleChange("graduation_degree_program", e.target.value)
+                }
+                options={
+                  degreeOptions.length > 0
+                    ? degreeOptions
+                    : [{ value: "", label: "Select Degree Program" }]
+                }
+                required
+              />
+            </div>
+
+            <FormField
+              label="Honors Received"
+              type="text"
+              value={local.honors_received}
+              onChange={(e) => handleChange("honors_received", e.target.value)}
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 mt-6">
+            <Button type="button" variant="secondary" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary">
+              Save Graduation
+            </Button>
           </div>
         </form>
       </Modal>
@@ -3331,6 +3552,16 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             disabled={isSaving}
           >
             {isSaving ? "Saving..." : "Save Changes"}
+          </Button>
+        )}
+        {canEdit && (
+          <Button
+            variant="secondary"
+            className="pdf-button"
+            disabled={isSaving}
+            onClick={() => openModal("graduation")}
+          >
+            {localStatus === "graduated" ? "Edit Graduation Info" : "Mark Student as Graduated"}
           </Button>
         )}
         <Button
@@ -3982,8 +4213,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 {photoUrl ? (
                   <img
                     src={photoUrl}
-                    alt={`${profileData?.first_name || ""} ${profileData?.last_name || ""
-                      } ID`}
+                    alt={`${profileData?.first_name || ""} ${
+                      profileData?.last_name || ""
+                    } ID`}
                     style={{
                       width: "100%",
                       height: "100%",
@@ -4305,10 +4537,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 type="text"
                 value={formState.senior_high_gpa}
                 onChange={(e) =>
-                  handleFieldChange(
-                    "senior_high_gpa",
-                    e.target.value
-                  )
+                  handleFieldChange("senior_high_gpa", e.target.value)
                 }
                 readOnly={!canEdit}
               />
@@ -4320,7 +4549,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               LIST OF SCHOLARSHIPS & FINANCIAL ASSISTANCE WHILE IN COLLEGE :
             </div>
             {Array.isArray(formState.scholarships_and_assistance) &&
-              formState.scholarships_and_assistance.length > 0 ? (
+            formState.scholarships_and_assistance.length > 0 ? (
               formState.scholarships_and_assistance.map((item, idx) => (
                 <div key={idx} className="SCIF-inline">
                   <input
@@ -4421,7 +4650,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             </table>
           </div>
           <div className="SCIF-section" style={{ pageBreakInside: "avoid" }}>
-            <div className="mb-5 -mt-4 font-bold">OTHER PERSONAL INFORMATION</div>
+            <div className="mb-5 -mt-4 font-bold">
+              OTHER PERSONAL INFORMATION
+            </div>
             <div className="-mt-6">
               <label>
                 <span className="label">
@@ -4707,9 +4938,13 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           </div>
           <div>
             {canViewPsychSections && (
-              <div className="SCIF-section" style={{ pageBreakInside: "avoid" }}>
-
-                <div className="font-bold text-[12px] mt-10">PSYCHOMETRIC DATA</div>
+              <div
+                className="SCIF-section"
+                style={{ pageBreakInside: "avoid" }}
+              >
+                <div className="font-bold text-[12px] mt-10">
+                  PSYCHOMETRIC DATA
+                </div>
                 {canEdit && (
                   <div className="flex justify-end -mt-14" data-pdf-hide>
                     <button
@@ -4726,7 +4961,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                     No psychometric data recorded.
                   </p>
                 ) : (
-
                   <table className="psychometric-table">
                     <thead>
                       <tr>
@@ -4853,24 +5087,32 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </div>
             )}
             <div style={{ pageBreakInside: "avoid" }}>
-              <div className="SCIF-section">
-                <div className="section-title">
-                  GUIDANCE SERVICES SPECIALIST’ NOTES: (Leave it blank)
+              {canViewPsychSections && (
+                <div className="SCIF-section">
+                  <div className="section-title">
+                    GUIDANCE SERVICES SPECIALIST' NOTES: (Leave it blank)
+                  </div>
+                  <textarea
+                    className="guidance-notes"
+                    rows={5}
+                    readOnly={!canEdit}
+                    placeholder="No notes added."
+                    value={formState.guidance_notes || ""}
+                    onChange={(e) =>
+                      handleFieldChange("guidance_notes", e.target.value)
+                    }
+                  />
+                  <div
+                    className="text-xs italic text-[#525252] flex flex-wrap gap-x-4 gap-y-1 mb-4 -mt-2"
+                    data-pdf-hide
+                  >
+                    <span>
+                      Date modified: {guidanceNotesLastModified} by:{" "}
+                      {guidanceNotesUpdatedBy}
+                    </span>
+                  </div>
                 </div>
-                <textarea
-                  className="guidance-notes"
-                  rows={5}
-                  readOnly={!canEdit}
-                  placeholder="No notes added."
-                  value={formState.guidance_notes || ""}
-                  onChange={(e) =>
-                    handleFieldChange("guidance_notes", e.target.value)
-                  }
-                />
-                <div className="text-xs italic text-[#525252] flex flex-wrap gap-x-4 gap-y-1 mb-4 -mt-2" data-pdf-hide>
-                  <span>Date modified: {guidanceNotesLastModified} by: {guidanceNotesUpdatedBy}</span>
-                </div>
-              </div>
+              )}
               <div className="font-bold mb-5">Privacy Statement: </div>
               <div className="font-bold  mt-5 text-justify">
                 The University of the Philippines takes your privacy seriously
@@ -4889,7 +5131,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   name="has_consented"
                   value="true"
                   checked={privacy_consent.has_consented === true}
-                  onChange={() => { }}
+                  onChange={() => {}}
                   disabled
                 />
 
@@ -4965,6 +5207,24 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           onSave={handleSaveAwards}
           title="Edit Awards"
           nameLabel="Award"
+        />
+      )}
+      {activeModalType === "graduation" && (
+        <GraduationEditorModal
+          open
+          info={graduationInfo}
+          onClose={closeModal}
+          onSave={handleSaveGraduation}
+          degreeOptions={
+            profileData?.degree_program
+              ? [
+                  {
+                    value: profileData.degree_program,
+                    label: profileData.degree_program,
+                  },
+                ]
+              : []
+          }
         />
       )}
       <BackToTopButton />

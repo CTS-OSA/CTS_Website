@@ -35,6 +35,7 @@ def calculate_trend_percentage(data):
 def bar_data_view(request):
     grouped = (
         Student.objects
+        .filter(status='enrolled')
         .values('degree_program', 'sex')
         .annotate(total=Count('student_number'))
     )
@@ -56,7 +57,7 @@ def bar_data_view(request):
         for k, v in result.items()
     ]
 
-    total_students = Student.objects.count()
+    total_students = Student.objects.filter(status='enrolled').count()
 
     return Response({
         "barData": bar_data,
@@ -71,7 +72,7 @@ def summary_data_view(request):
     summary = [
         {
             "title": "Total Number of Students",
-            "value": Student.objects.count(),
+            "value": Student.objects.filter(status='enrolled').count(),
             "subtitle": f"Registered users as of {today.strftime('%b %d')}",
             "color": "#94141B",
         },

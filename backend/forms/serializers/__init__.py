@@ -33,7 +33,10 @@ from .SerializerSCIF import (
     CounselingInformationSerializer,
     FamilyRelationshipSerializer,
     GuidanceSpecialistNotesSerializer,
-    SCIFStudentSerializer
+    SCIFStudentSerializer,
+    CollegeAwardSerializer,
+    MembershipSerializer,
+    PsychometricDataSerializer
 )
 
 from .AdminSerializers import (
@@ -57,4 +60,9 @@ from .SerializerReferral import (
     StudentReferrerSerializer, 
     GuestReferralSerializer,
     AcknowledgementReceiptSerializer
+)
+
+# Graduation serializer
+from .SerializerGraduation import (
+    GraduateStudentSerializer,
 )
