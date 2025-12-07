@@ -1828,9 +1828,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     const profilePayload = buildStudentProfilePayload();
     const scifPayload = buildScifPayload();
 
-    // const submissionId = formData?.submission?.id;
-    // console.log("Submission ID:", submissionId);
-
     if (!submissionId) {
       setDownloadToast(
         "Submission data is not available. Please reload the page."
