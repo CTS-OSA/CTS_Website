@@ -2,18 +2,16 @@ import React, { useState, useEffect } from "react";
 import { Trash2, Edit2, Upload, Plus, Minus } from "react-feather";
 import DefaultLayout from "../components/DefaultLayout";
 import { toast } from "react-toastify";
-import axios from "axios";
 import Button from "../components/UIButton";
-
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8000",
-});
+import { useApiRequest } from "../context/ApiRequestContext";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 const SiteContentDashboard = () => {
   const [activeTab, setActiveTab] = useState("professionals");
   const [professionals, setProfessionals] = useState([]);
   const [posters, setPosters] = useState([]);
   const [loading, setLoading] = useState(false);
+  const { request } = useApiRequest();
 
   // Professional form state
   const [professionalForm, setProfessionalForm] = useState({
@@ -30,18 +28,25 @@ const SiteContentDashboard = () => {
   const [posterFile, setPosterFile] = useState(null);
   const [posterPreview, setPosterPreview] = useState(null);
   const [editingPosterId, setEditingPosterId] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [draggedPoster, setDraggedPoster] = useState(null);
+  const [draggedProfessional, setDraggedProfessional] = useState(null);
 
   useEffect(() => {
     fetchProfessionals();
     fetchPosters();
   }, []);
 
-  // Fetch Professionals (Simplified error handling)
+  // Fetch Professionals 
   const fetchProfessionals = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/api/professionals/");
-      setProfessionals(response.data);
+      const response = await request("http://localhost:8000/api/webmaster/professional/");
+      if (response.ok) {
+        const data = await response.json();
+        setProfessionals(data);
+      }
     } catch (error) {
       console.error("Failed to fetch professionals (silent error):", error);
     } finally {
@@ -49,12 +54,15 @@ const SiteContentDashboard = () => {
     }
   };
 
-  // Fetch Posters (Simplified error handling)
+  // Fetch Posters
   const fetchPosters = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/api/posters/");
-      setPosters(response.data);
+      const response = await request("http://localhost:8000/api/webmaster/poster/");
+      if (response.ok) {
+        const data = await response.json();
+        setPosters(data);
+      }
     } catch (error) {
       console.error("Failed to fetch posters (silent error):", error);
     } finally {
@@ -138,30 +146,33 @@ const SiteContentDashboard = () => {
     }
 
     const formData = new FormData();
-    formData.append("full_name", professionalForm.full_name);
+
+    formData.append("name", professionalForm.full_name);
     formData.append("post_nominal", professionalForm.post_nominal);
-    // Filter out empty strings before sending
-    formData.append("positions", JSON.stringify(professionalForm.positions.filter(p => p.trim() !== "")));
-    formData.append("licenses", JSON.stringify(professionalForm.licenses.filter(l => l.trim() !== "")));
+    formData.append("position", professionalForm.positions.filter(p => p.trim() !== "").join(", "));
+    formData.append("license", professionalForm.licenses.filter(l => l.trim() !== "").join(", "));
 
     if (professionalForm.photo) {
-      formData.append("photo", professionalForm.photo);
+      formData.append("image", professionalForm.photo);
     }
 
     try {
-      if (editingProfessionalId) {
-        await api.put(`/api/professionals/${editingProfessionalId}/`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-        toast.success("Professional updated successfully");
+      const url = editingProfessionalId 
+        ? `http://localhost:8000/api/webmaster/professional/${editingProfessionalId}/`
+        : "http://localhost:8000/api/webmaster/professional/create/";
+      
+      const response = await request(url, {
+        method: editingProfessionalId ? "PATCH" : "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        toast.success(editingProfessionalId ? "Professional updated successfully" : "Professional added successfully");
+        resetProfessionalForm();
+        fetchProfessionals();
       } else {
-        await api.post("/api/professionals/", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-        toast.success("Professional added successfully");
+        toast.error("Failed to save professional");
       }
-      resetProfessionalForm();
-      fetchProfessionals();
     } catch (error) {
       toast.error("Failed to save professional");
       console.error(error);
@@ -170,37 +181,59 @@ const SiteContentDashboard = () => {
 
   // Edit Professional
   const handleEditProfessional = (professional) => {
-    // Populate form with existing data, ensuring arrays have at least one empty string if empty
-    const positions = Array.isArray(professional.positions) && professional.positions.length > 0
-      ? professional.positions
-      : [""];
-    const licenses = Array.isArray(professional.licenses) && professional.licenses.length > 0
-      ? professional.licenses
-      : [""];
+    const positions = professional.position ? professional.position.split(", ") : [""];
+    const licenses = professional.license ? professional.license.split(", ") : [""];
 
     setProfessionalForm({
-      full_name: professional.full_name,
-      post_nominal: professional.post_nominal,
-      positions: positions,
-      licenses: licenses,
+      full_name: professional.name || "",
+      post_nominal: professional.post_nominal || "",
+      positions: positions.length > 0 ? positions : [""],
+      licenses: licenses.length > 0 ? licenses : [""],
       photo: null,
     });
-    setPhotoPreview(professional.photo);
+
+    setPhotoPreview(professional.image_url);
     setEditingProfessionalId(professional.id);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // Delete Professional
-  const handleDeleteProfessional = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this professional?")) return;
+  const handleDeleteProfessional = (id) => {
+    setDeleteTarget({ type: 'professional', id });
+    setShowDeleteConfirm(true);
+  };
+  
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    await confirmDelete(deleteTarget.id);
+    setDeleteTarget(null);
+  };
 
+  const handleCancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setDeleteTarget(null);
+  };
+
+  const confirmDelete = async () => {
     try {
-      await api.delete(`/api/professionals/${id}/`);
-      toast.success("Professional deleted successfully");
-      fetchProfessionals();
+      const type = deleteTarget.type;
+      const response = await request(`http://localhost:8000/api/webmaster/${type}/${deleteTarget.id}/`, {
+         method: "DELETE",
+       });
+
+       if (deleteTarget.type === 'professional') {
+          toast.success("Professional deleted successfully");
+          fetchProfessionals();
+        } else if (deleteTarget.type === 'poster') {
+            toast.success("Poster deleted successfully");
+            fetchPosters();
+        }
     } catch (error) {
-      toast.error("Failed to delete professional");
+      toast.error("Failed to delete");
       console.error(error);
+    } finally {
+      setShowDeleteConfirm(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -230,21 +263,27 @@ const SiteContentDashboard = () => {
     if (posterFile) {
       formData.append("image", posterFile);
     }
+    if (editingPosterId) {
+      formData.append("id", editingPosterId);
+    }
 
     try {
-      if (editingPosterId) {
-        await api.put(`/api/posters/${editingPosterId}/`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-        toast.success("Poster updated successfully");
+      const url = editingPosterId 
+        ? `http://localhost:8000/api/webmaster/poster/${editingPosterId}/`
+        : "http://localhost:8000/api/webmaster/poster/create/";
+      
+      const response = await request(url, {
+        method: editingPosterId ? "PATCH" : "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        toast.success(editingPosterId ? "Poster updated successfully" : "Poster uploaded successfully");
+        resetPosterForm();
+        fetchPosters();
       } else {
-        await api.post("/api/posters/", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-        toast.success("Poster uploaded successfully");
+        toast.error("Failed to save poster");
       }
-      resetPosterForm();
-      fetchPosters();
     } catch (error) {
       toast.error("Failed to save poster");
       console.error(error);
@@ -260,17 +299,9 @@ const SiteContentDashboard = () => {
   };
 
   // Delete Poster
-  const handleDeletePoster = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this poster?")) return;
-
-    try {
-      await api.delete(`/api/posters/${id}/`);
-      toast.success("Poster deleted successfully");
-      fetchPosters();
-    } catch (error) {
-      toast.error("Failed to delete poster");
-      console.error(error);
-    }
+  const handleDeletePoster = (id) => {
+    setDeleteTarget({ type: 'poster', id });
+    setShowDeleteConfirm(true);
   };
 
   // Reset Poster Form
@@ -278,6 +309,104 @@ const SiteContentDashboard = () => {
     setPosterFile(null);
     setPosterPreview(null);
     setEditingPosterId(null);
+  };
+
+  // Drag and Drop handlers
+  const handleDragStart = (e, poster) => {
+    setDraggedPoster(poster);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = async (e, targetPoster) => {
+    e.preventDefault();
+    if (!draggedPoster || draggedPoster.id === targetPoster.id) return;
+
+    const draggedIndex = posters.findIndex(p => p.id === draggedPoster.id);
+    const targetIndex = posters.findIndex(p => p.id === targetPoster.id);
+
+    const newPosters = [...posters];
+    newPosters.splice(draggedIndex, 1);
+    newPosters.splice(targetIndex, 0, draggedPoster);
+
+    setPosters(newPosters);
+    setDraggedPoster(null);
+
+    await savePosterOrder(newPosters);
+  };
+
+  const savePosterOrder = async (orderedPosters) => {
+    try {
+      const orderData = orderedPosters.map((poster, index) => ({
+        id: poster.id,
+        order: index
+      }));
+
+      const response = await request('http://localhost:8000/api/webmaster/poster/reorder/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ posters: orderData })
+      });
+
+      if (response.ok) {
+        toast.success('Poster order saved');
+      } else {
+        toast.error('Failed to save order');
+      }
+    } catch (error) {
+      toast.error('Failed to save order');
+      console.error(error);
+    }
+  };
+
+  const handleProfessionalDragStart = (e, professional) => {
+    setDraggedProfessional(professional);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleProfessionalDrop = async (e, targetProfessional) => {
+    e.preventDefault();
+    if (!draggedProfessional || draggedProfessional.id === targetProfessional.id) return;
+
+    const draggedIndex = professionals.findIndex(p => p.id === draggedProfessional.id);
+    const targetIndex = professionals.findIndex(p => p.id === targetProfessional.id);
+
+    const newProfessionals = [...professionals];
+    newProfessionals.splice(draggedIndex, 1);
+    newProfessionals.splice(targetIndex, 0, draggedProfessional);
+
+    setProfessionals(newProfessionals);
+    setDraggedProfessional(null);
+
+    await saveProfessionalOrder(newProfessionals);
+  };
+
+  const saveProfessionalOrder = async (orderedProfessionals) => {
+    try {
+      const orderData = orderedProfessionals.map((prof, index) => ({
+        id: prof.id,
+        order: index
+      }));
+
+      const response = await request('http://localhost:8000/api/webmaster/professional/reorder/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ staff: orderData })
+      });
+
+      if (response.ok) {
+        toast.success('Professional order saved');
+      } else {
+        toast.error('Failed to save order');
+      }
+    } catch (error) {
+      toast.error('Failed to save order');
+      console.error(error);
+    }
   };
 
   const renderProfessionalsTab = () => (
@@ -411,7 +540,7 @@ const SiteContentDashboard = () => {
                 ))}
               </div>
 
-              {/* Licenses */}
+              {/* Licenses */}  
               <div className="space-y-2">
                 <label className="block text-sm font-semibold mb-1">
                   License Name & Number:
@@ -485,7 +614,11 @@ const SiteContentDashboard = () => {
           {professionals.map((prof) => (
             <div
               key={prof.id}
-              className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden shadow-sm relative pt-12" // Increased padding for photo space
+              draggable
+              onDragStart={(e) => handleProfessionalDragStart(e, prof)}
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleProfessionalDrop(e, prof)}
+              className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden shadow-sm relative pt-12 cursor-move hover:shadow-lg transition" 
             >
               {/* Action Buttons */}
               <div className="absolute top-2 right-2 flex gap-2 z-10">
@@ -501,37 +634,39 @@ const SiteContentDashboard = () => {
                   className="p-1 bg-white rounded-full hover:bg-gray-100 shadow-md"
                   aria-label="Delete Professional"
                 >
-                  <Trash2 size={16} className="text-red-600" />
+                  <Trash2 size={16} className="text-upmaroon" />
                 </button>
               </div>
               
               {/* Photo */}
-              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+              <div className="absolute pt-4 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                 <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white bg-gray-200 shadow-lg">
-                  {prof.photo ? (
+                  {prof.image_url ? (
                     <img
-                      src={prof.photo}
-                      alt={prof.full_name}
+                      src={prof.image_url}
+                      alt={prof.name}
                       className="w-full h-full object-cover"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gray-300 text-2xl font-bold text-gray-600">
-                      {prof.full_name.charAt(0)}
+                      {prof.name}
                     </div>
                   )}
                 </div>
               </div>
               
               {/* Details */}
-              <div className="pt-14 pb-4 px-3 text-center">
+              <div className="pt-16 pb-4 px-3 text-center">
                 <h4 className="font-bold text-sm leading-tight text-upmaroon">
-                  {prof.full_name}, {prof.post_nominal}
+                  {prof.name}, {prof.post_nominal}
                 </h4>
                 <div className="text-xs text-gray-600 space-y-1 mt-2">
-                  {prof.positions?.map((pos, idx) => (
+                  Position/s: 
+                  {prof.position?.split(", ").map((pos, idx) => (
                     <p key={idx} className="leading-snug font-medium">{pos}</p>
                   ))}
-                  {prof.licenses?.map((lic, idx) => (
+                  License/s: 
+                  {prof.license?.split(", ").map((lic, idx) => (
                     <p key={idx} className="text-xs italic leading-snug">{lic}</p>
                   ))}
                 </div>
@@ -622,7 +757,11 @@ const SiteContentDashboard = () => {
           {posters.map((poster) => (
             <div
               key={poster.id}
-              className="relative bg-gray-100 rounded-lg overflow-hidden shadow-md group"
+              draggable
+              onDragStart={(e) => handleDragStart(e, poster)}
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, poster)}
+              className="relative bg-gray-100 rounded-lg overflow-hidden shadow-md group cursor-move hover:shadow-lg transition"
             >
               <img
                 src={poster.image}
@@ -699,6 +838,15 @@ const SiteContentDashboard = () => {
           
         </div>
       </div>
+      
+      {showDeleteConfirm && deleteTarget && (
+        <ConfirmDialog
+          title={`Delete ${deleteTarget.type === 'poster' ? 'Poster' : 'Professional'}`}
+          message={`Are you sure you want to delete this ${deleteTarget.type}?`}
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+        />
+      )}
     </DefaultLayout>
   );
 };
