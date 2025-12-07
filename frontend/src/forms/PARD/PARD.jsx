@@ -307,7 +307,6 @@ const PARD = () => {
 
     try {
       const result = await submitForm(studentNumber, formData);
-      console.log("submission", result);
       if (result.success) {
         setShowConfirmation(true);
           navigate("/student");

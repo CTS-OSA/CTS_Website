@@ -320,9 +320,7 @@ const handleView = (form, isAdmin = false, studentId = null) => {
         changes[key] = updated[key];
       }
     });
-    console.log("Changed", changes);
 
-    // FIX ME: CURENTLY I HAVE UPDATED THE PATCH DATA WHERE DATA NEEDED TO BE CHANGED IS ONLY PASSED ON BACKEN
     return changes;
   };
 

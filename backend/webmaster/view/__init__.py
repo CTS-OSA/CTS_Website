@@ -1,1 +1,1 @@
-from .webmasterView import *
+from .posterView import *
