@@ -445,7 +445,7 @@ const SiteContentDashboard = () => {
                 )}
                 <input
                   type="file"
-                  accept="image/jpeg,image/png"
+                  accept="image/jpeg,image/png,image/jpg"
                   onChange={handlePhotoChange}
                   className="hidden"
                 />
