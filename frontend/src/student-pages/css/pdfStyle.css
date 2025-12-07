@@ -106,6 +106,7 @@
   margin-bottom: 1rem;
   font-size: 12px;
   align-content: end;
+  outline: none !important;
 }
 
 input[readonly],
