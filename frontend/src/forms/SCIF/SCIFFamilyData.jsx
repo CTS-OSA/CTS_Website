@@ -207,11 +207,15 @@ const SCIFFamilyData = ({
   };
 
   const removeSibling = (index) => {
-    updateData(
-      "siblings",
-      siblings.filter((_, i) => i !== index)
-    );
-  };
+  const updated = siblings.filter(s => !s._delete).map((sibling, i) =>
+    i === index
+      ? { ...sibling, _delete: true }
+      : sibling
+  );
+
+  updateData("siblings", updated);
+};
+
 
   const handleSiblingChange = (index, field, value) => {
     if (readOnly) return;

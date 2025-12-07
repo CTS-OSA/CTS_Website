@@ -449,6 +449,17 @@ const handleView = (form, isAdmin = false, studentId = null) => {
           <div>
             <ReadonlyField label="Student Number" value={student_number} />
             <EditableField
+              label="Status"
+              type="select"
+              value={formData.status || ""}
+              onChange={(e) =>
+                updateProfileData({ status: e.target.value })
+              }
+              options={enums?.student_status || []}
+              readOnly={!(isEditing && isAdmin)}
+              error={validationErrors["status"]}
+            />
+            <EditableField
               label="Current Year Level"
               type="select"
               value={formData.current_year_level || ""}

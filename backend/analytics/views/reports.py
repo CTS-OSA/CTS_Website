@@ -12,31 +12,31 @@ from forms.models import YearLevelEnum
 def admin_reports(request):
     today = now().date()
 
-    ages_qs = Student.objects.annotate(age=today.year - F('birthdate__year'))
+    ages_qs = Student.objects.filter(status='enrolled').annotate(age=today.year - F('birthdate__year'))
 
     avg_age = ages_qs.aggregate(avg=Avg('age'))['avg'] or 0
     avg_age = int(avg_age)
 
-    region_counts = Student.objects.values('permanent_address__region').annotate(count=Count('student_number')).order_by('-count')
+    region_counts = Student.objects.filter(status='enrolled').values('permanent_address__region').annotate(count=Count('student_number')).order_by('-count')
     top_region = region_counts[0]['permanent_address__region'] if region_counts else "N/A"
 
-    total_students = Student.objects.count()
+    total_students = Student.objects.filter(status='enrolled').count()
 
     scholarship_subquery = SocioEconomicStatus.objects.filter(
         student_number=OuterRef('student_number'),
         submission__status='submitted',
         has_scholarship=True
     )
-    students_with_scholarship = Student.objects.annotate(
+    students_with_scholarship = Student.objects.filter(status='enrolled').annotate(
         has_scholarship=Exists(scholarship_subquery)
     )
     scholarship_count = students_with_scholarship.filter(has_scholarship=True).count()
     scholarship_rate = round((scholarship_count / total_students) * 100, 1) if total_students else 0
 
-    program_counts = Student.objects.values('degree_program').annotate(count=Count('student_number')).order_by('-count')[:3]
+    program_counts = Student.objects.filter(status='enrolled').values('degree_program').annotate(count=Count('student_number')).order_by('-count')[:3]
     top_3_programs = ", ".join([p['degree_program'] for p in program_counts])
 
-    gender_counts = Student.objects.values('sex').annotate(count=Count('student_number'))
+    gender_counts = Student.objects.filter(status='enrolled').values('sex').annotate(count=Count('student_number'))
     gender_data = [{'label': g['sex'], 'value': g['count']} for g in gender_counts]
 
     region_data = [{'name': r['permanent_address__region'], 'Students': r['count']} for r in region_counts]
@@ -64,12 +64,12 @@ def admin_reports(request):
         '5th Year': 'Fifth Year',
     }
 
-    programs = Student.objects.values_list('degree_program', flat=True).distinct()
+    programs = Student.objects.filter(status='enrolled').values_list('degree_program', flat=True).distinct()
     year_level_data = []
 
     for program in programs:
         counts = {year_level_labels.get(yl, yl): 0 for yl in year_level_values}
-        students_in_program = Student.objects.filter(degree_program=program)
+        students_in_program = Student.objects.filter(degree_program=program, status='enrolled')
         for s in students_in_program:
             yl_label = year_level_labels.get(s.current_year_level)
             if yl_label:

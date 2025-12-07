@@ -6,17 +6,10 @@ import re
 from .submission import Submission
 from forms.utils.helperFunctions import check_required_fields
 
-class Award(models.Model):
-    name = models.CharField(max_length=255)
-
-    def __str__(self):
-        return self.name
-
-
 class CollegeAward(models.Model):
     student = models.ForeignKey('Student', to_field='student_number', on_delete=models.CASCADE)
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
-    award = models.ForeignKey('Award', on_delete=models.CASCADE)
+    award = models.CharField(max_length=255)
     semester = models.CharField(
         max_length=15,
         choices=SemesterEnum.choices

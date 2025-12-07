@@ -195,7 +195,7 @@ def update_student_profile(request, student_id=None):
     updatable_fields = [
         'college', 'current_year_level', 'degree_program',
         'last_name', 'first_name', 'middle_name', 'nickname', 'sex', 'religion',
-        'birth_rank', 'birthdate', 'birthplace', 'contact_number', 'landline_number'
+        'birth_rank', 'birthdate', 'birthplace', 'contact_number', 'landline_number', 'status'
     ]
 
     changed_fields = {}

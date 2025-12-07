@@ -309,7 +309,13 @@ class FormBundleView(APIView, BaseFormMixin):
         response_data = {'submission': SubmissionSerializer(submission).data}
 
         for key, (model, serializer_class) in sections.items():
-            many = model._meta.model_name in ['sibling', 'previousschoolrecord']
+            many = key in [
+                'siblings',
+                'previous_school_record',
+                'college_awards',
+                'memberships',
+                'psychometric_data',
+            ]
             if model._meta.model_name == 'pard':
                 filter_field = 'submission_id'
                 filter_value = submission
@@ -511,7 +517,10 @@ class AdminFormEditView(APIView, BaseFormMixin):
 
         for key, (model, serializer_class) in sections.items():
             section_data = request.data.get(key)
-            if not section_data:
+            # Accept empty lists/empty objects as valid payloads (they should
+            # be processed and may signal deletions). Only skip when the key
+            # is absent (None).
+            if section_data is None:
                 continue
 
             many = isinstance(section_data, list)

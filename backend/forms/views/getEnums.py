@@ -4,7 +4,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework import status
 from forms.models import (
     CollegeEnum, YearLevelEnum, SemesterEnum,
-    DegreeProgramEnum, PhilippineRegionEnum, SupportChoices, DEGREE_TO_COLLEGE
+    DegreeProgramEnum, PhilippineRegionEnum, SupportChoices, DEGREE_TO_COLLEGE, StudentStatus
 )
 from collections import defaultdict
 
@@ -44,6 +44,7 @@ class EnumChoicesView(APIView):
                 "support": enum_to_dict(SupportChoices),
                 "degree_to_college": get_degree_to_college_mapping(),  
                 "college_to_degree": get_college_to_degree_mapping(), 
+                "student_status": enum_to_dict(StudentStatus),
             }
             return Response(enum_data, status=status.HTTP_200_OK)
         except Exception as e:

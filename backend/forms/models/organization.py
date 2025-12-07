@@ -6,20 +6,14 @@ import re
 from .submission import Submission
 from forms.utils.helperFunctions import check_required_fields
 from django.core.exceptions import ValidationError
-
-class Organization(models.Model):
-    name = models.CharField(max_length=255)
-
-    def __str__(self):
-        return self.name
     
 class Membership(models.Model):
     student = models.ForeignKey('Student', to_field='student_number', on_delete=models.CASCADE)
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
-    organization = models.ForeignKey('Organization', on_delete=models.CASCADE)
-    semester = models.CharField(max_length=15, choices=SemesterEnum.choices, null=True, blank=True)
-    academic_year = models.CharField(max_length=9, help_text="Format: YYYY-YYYY", null=True, blank=True)
-    position = models.CharField(max_length=255, null=True, blank=True)
+    organization = models.CharField(max_length=255)
+    semester = models.CharField(max_length=15, choices=SemesterEnum.choices)
+    academic_year = models.CharField(max_length=9, help_text="Format: YYYY-YYYY")
+    position = models.CharField(max_length=255)
 
     class Meta:
         db_table = 'membership'

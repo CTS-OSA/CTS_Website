@@ -198,7 +198,15 @@ class AdminStudentFormView(APIView):
             return Response({'error': 'Invalid form type sections.'}, status=status.HTTP_400_BAD_REQUEST)
 
         for key, (model, serializer) in sections.items():
-            many = model._meta.model_name in ['sibling', 'previousschoolrecord'] 
+            # Treat these section keys as multi-item lists so the API returns
+            # all related objects (not just the first one).
+            many = key in [
+                'siblings',
+                'previous_school_record',
+                'college_awards',
+                'memberships',
+                'psychometric_data',
+            ]
 
             if any(field.name == 'submission' for field in model._meta.fields):
                 queryset = model.objects.filter(submission=submission)

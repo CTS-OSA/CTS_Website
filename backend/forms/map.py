@@ -2,7 +2,7 @@ from forms.models import (
     Preferences, StudentSupport, SocioEconomicStatus, PresentScholasticStatus, PrivacyConsent,
     Parent, Sibling, Guardian, 
     FamilyData, HealthData, 
-    SchoolAddress, School, PreviousSchoolRecord, 
+    SchoolAddress, School, PreviousSchoolRecord,  CollegeAward, Membership, PsychometricData,
     Scholarship, PersonalityTraits, FamilyRelationship, CounselingInformation, Support, GuidanceSpecialistNotes,
     PARD, Referral
 )
@@ -10,7 +10,7 @@ from forms.serializers import (
     PreferencesSerializer, StudentSupportSerializer, SocioEconomicStatusSerializer, PresentScholasticStatusSerializer, PrivacyConsentSerializer,
     ParentSerializer, SiblingSerializer, GuardianSerializer,
     FamilyDataSerializer, HealthDataSerializer, 
-    SchoolAddressSerializer, SchoolSerializer, PreviousSchoolRecordSerializer, 
+    SchoolAddressSerializer, SchoolSerializer, PreviousSchoolRecordSerializer, CollegeAwardSerializer, PsychometricDataSerializer, MembershipSerializer,
     ScholarshipSerializer, PersonalityTraitsSerializer, FamilyRelationshipSerializer, CounselingInformationSerializer, GuidanceSpecialistNotesSerializer,
     SerializerPARD, ReferralSerializer
 )
@@ -37,7 +37,10 @@ FORM_SECTIONS_MAP = {
         'family_relationship': (FamilyRelationship, FamilyRelationshipSerializer),
         'counseling_info': (CounselingInformation, CounselingInformationSerializer),
         'guidance_notes': (GuidanceSpecialistNotes, GuidanceSpecialistNotesSerializer),
-        'privacy_consent': (PrivacyConsent, PrivacyConsentSerializer)
+        'privacy_consent': (PrivacyConsent, PrivacyConsentSerializer),
+        'college_awards': (CollegeAward, CollegeAwardSerializer),
+        'memberships': (Membership, MembershipSerializer),
+        'psychometric_data': (PsychometricData, PsychometricDataSerializer),
     },
     'psychosocial-assistance-and-referral-desk' : {
         'pard_data': (PARD, PARDSerializer),
@@ -48,7 +51,7 @@ FORM_SECTIONS_MAP = {
 }
 
 OPTIONAL_SECTIONS = {
-    'student-cumulative-information-file': ['siblings', 'scholarship', 'counseling_info', 'guidance_notes'],
+    'student-cumulative-information-file': ['siblings', 'scholarship', 'counseling_info', 'guidance_notes', 'college_awards', 'memberships', 'psychometric_data'],
     'basic-information-sheet': [],
     'psychosocial-assistance-and-referral-desk': [],
     'counseling-referral-slip': []
