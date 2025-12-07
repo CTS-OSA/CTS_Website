@@ -3,8 +3,8 @@ import React, { useState, useEffect } from "react";
 
 export default function ProfessionalsSection() {
   const [professionals, setProfessionals] = useState([]);
-  const [loading, setLoading] = useState(false);
   const { request } = useApiRequest();
+  
   
   useEffect(() => {
     fetchProfessionals();
@@ -12,7 +12,6 @@ export default function ProfessionalsSection() {
 
   // Fetch Professionals 
   const fetchProfessionals = async () => {
-    setLoading(true);
     try {
       const response = await request("http://localhost:8000/api/webmaster/professional/");
       if (response.ok) {
@@ -21,9 +20,7 @@ export default function ProfessionalsSection() {
       }
     } catch (error) {
       console.error("Failed to fetch professionals (silent error):", error);
-    } finally {
-      setLoading(false);
-    }
+    } 
   };
   
 
