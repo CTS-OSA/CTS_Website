@@ -168,15 +168,16 @@
   margin-top: 0.5rem;
 }
 
-.scif-table th,
+.scif-table th {
+  border: 1px solid #333;
+  padding: 4px;
+  text-align: left;
+  background-color: #f0f0f0;
+}
 .scif-table td {
   border: 1px solid #333;
-  padding: 8px;
+  padding: 2px;
   text-align: left;
-}
-
-.scif-table th {
-  background-color: #f0f0f0;
 }
 
 .psychometric-table {
@@ -188,7 +189,7 @@
 .psychometric-table th,
 .psychometric-table td {
   border: 1px solid #ccc;
-  padding: 8px;
+  padding: 4px;
   text-align: center;
 }
 
@@ -448,11 +449,16 @@ textarea {
   line-height: 1.2;
 }
 
-.pdf input:disabled,
+.pdf input:disabled {
+  color: #000;
+  opacity: 1;
+  -webkit-text-fill-color: #000;
+  cursor: not-allowed;
+}
+
 .pdf textarea:disabled,
 .pdf select:disabled {
   color: #000;
-  opacity: 1;
   -webkit-text-fill-color: #000;
   cursor: not-allowed;
 }

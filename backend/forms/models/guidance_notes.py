@@ -8,7 +8,7 @@ class GuidanceSpecialistNotes(models.Model):
     student = models.ForeignKey('Student', on_delete=models.CASCADE, to_field='student_number', related_name='guidance_notes')
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
     notes = models.TextField(verbose_name="Guidance Services Specialist Notes", null=True, blank=True)
-    specialist = models.ForeignKey('users.CustomUser', on_delete=models.SET_NULL, null=True, limit_choices_to={'is_staff': True})
+    specialist = models.ForeignKey('forms.Counselor', on_delete=models.SET_NULL, null=True, related_name='notes')
     is_confidential = models.BooleanField(default=True, help_text="If checked, only guidance specialists can view this note")
     date_added = models.DateTimeField(auto_now=True)
 

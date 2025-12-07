@@ -5,9 +5,7 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
-// import "./css/pdfStyle.css";
 import "./css/SCIFpdf.css";
-// import "../forms/SetupProfile/css/multistep.css";
 import FormHeader from "./FormHeader";
 import CustomRadio from "../components/CustomRadio";
 import CustomCheckbox from "../components/CustomCheckbox";
@@ -29,6 +27,7 @@ import {
   filterAlphabetsOnly,
   filterNumbersOnly,
   filterGeneralText,
+  filterDecimalNumbers,
 } from "../utils/inputFilters";
 import { Pencil, Plus, X, Trash2 } from "lucide-react";
 
@@ -45,7 +44,7 @@ const INTEGER_ONLY_FIELDS = new Set([
   "mother_age",
 ]);
 
-const DECIMAL_ALLOWED_FIELDS = new Set(["height", "weight", "senior_high_gpa"]);
+const DECIMAL_ALLOWED_FIELDS = new Set(["height", "weight"]);
 
 const PERSONAL_DATA_FIELDS = new Set([
   "last_name",
@@ -93,6 +92,75 @@ const sanitizeNumericInput = (field, value) => {
 
 const safeTrim = (value) =>
   typeof value === "string" ? value.trim() : value ?? "";
+
+const getFirstNonEmptyString = (values = []) => {
+  for (const value of values || []) {
+    if (typeof value === "string") {
+      const trimmed = safeTrim(value);
+      if (trimmed) {
+        return trimmed;
+      }
+    }
+  }
+  return "";
+};
+
+const formatCounselorDisplayName = (profile) => {
+  if (!profile || typeof profile !== "object") return "";
+  const firstName = safeTrim(profile.first_name);
+  const lastName = safeTrim(profile.last_name);
+  const baseName = [firstName, lastName].filter(Boolean).join(" ").trim();
+  if (baseName) return baseName;
+  const nickname = safeTrim(profile.nickname);
+  if (nickname) return nickname;
+  const email = safeTrim(profile.email || profile.user?.email);
+  return email;
+};
+
+const formatGuidanceTimestamp = (value) => {
+  if (!value) return "";
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const deriveGuidanceAuditInfo = (
+  guidanceNotesMeta,
+  submission,
+  fallbackName = ""
+) => {
+  const timestamp =
+    guidanceNotesMeta?.date_added ||
+    submission?.saved_on ||
+    submission?.updated_at ||
+    submission?.submitted_on ||
+    null;
+  const profileCandidates = [
+    guidanceNotesMeta?.specialist_profile,
+    guidanceNotesMeta?.specialist_details,
+    guidanceNotesMeta?.specialist,
+    guidanceNotesMeta?.counselor,
+  ];
+  const profileName =
+    profileCandidates
+      .map((candidate) => formatCounselorDisplayName(candidate))
+      .find((name) => !!name) || "";
+  const stringName = getFirstNonEmptyString([
+    guidanceNotesMeta?.counselor_name,
+    guidanceNotesMeta?.specialist_name,
+    guidanceNotesMeta?.updated_by,
+  ]);
+  return {
+    timestamp,
+    updatedBy: profileName || stringName || fallbackName || "",
+  };
+};
 
 const MIN_TABLE_ROWS = 1;
 const createEmptyRow = () => ({
@@ -220,6 +288,8 @@ const sanitizePsychometricRows = (rows, { keepEmptyRows = false } = {}) => {
 
 const createEmptySiblingRow = () => ({
   id: null,
+  submission: null,
+  students: [],
   first_name: "",
   last_name: "",
   sex: "",
@@ -241,6 +311,12 @@ const hasSiblingContent = (row) =>
 const sanitizeSiblingRows = (rows, { keepEmptyRows = false } = {}) => {
   const sanitized = (Array.isArray(rows) ? rows : []).map((row) => ({
     id: row?.id ?? null,
+    submission: row?.submission ?? null,
+    students: Array.isArray(row?.students)
+      ? row.students
+      : row?.students
+        ? [row.students]
+        : [],
     first_name: safeTrim(row?.first_name),
     last_name: safeTrim(row?.last_name),
     sex: safeTrim(row?.sex),
@@ -262,6 +338,12 @@ const buildSiblingRows = (siblings) => {
   }
   return siblings.map((sibling) => ({
     id: sibling?.id ?? null,
+    submission: sibling?.submission ?? null,
+    students: Array.isArray(sibling?.students)
+      ? sibling.students
+      : sibling?.students
+        ? [sibling.students]
+        : [],
     first_name: sibling?.first_name || "",
     last_name: sibling?.last_name || "",
     sex: sibling?.sex || "",
@@ -274,6 +356,7 @@ const buildSiblingRows = (siblings) => {
 
 const createEmptySchoolRecordRow = () => ({
   id: null,
+  submission: null,
   school_id: null,
   school_address_id: null,
   education_level: "",
@@ -287,7 +370,35 @@ const createEmptySchoolRecordRow = () => ({
   start_year: "",
   end_year: "",
   honors_received: "",
+  senior_high_gpa: "",
 });
+
+const REQUIRED_SCHOOL_LEVELS = ["Primary", "Junior High", "Senior High"];
+
+const ensureRequiredSchoolLevels = (records = []) => {
+  if (!Array.isArray(records)) {
+    return SCHOOL_LEVEL_ORDER.map((level) => ({
+      ...createEmptySchoolRecordRow(),
+      education_level: level,
+    }));
+  }
+  const ensured = [...records];
+  SCHOOL_LEVEL_ORDER.forEach((level) => {
+    if (
+      !ensured.some(
+        (record) =>
+          normalizeEducationLevel(record?.education_level).toLowerCase() ===
+          level.toLowerCase()
+      )
+    ) {
+      ensured.push({
+        ...createEmptySchoolRecordRow(),
+        education_level: level,
+      });
+    }
+  });
+  return orderSchoolRecords(ensured);
+};
 
 const hasSchoolRecordContent = (row) =>
   row.education_level ||
@@ -305,9 +416,10 @@ const hasSchoolRecordContent = (row) =>
 const sanitizeSchoolRecordRows = (rows, { keepEmptyRows = false } = {}) => {
   const sanitized = (Array.isArray(rows) ? rows : []).map((row) => ({
     id: row?.id ?? null,
+    submission: row?.submission ?? null,
     school_id: row?.school_id ?? null,
     school_address_id: row?.school_address_id ?? null,
-    education_level: safeTrim(row?.education_level),
+    education_level: normalizeEducationLevel(row?.education_level),
     school_name: safeTrim(row?.school_name),
     address_line_1: safeTrim(row?.address_line_1),
     barangay: safeTrim(row?.barangay),
@@ -318,23 +430,26 @@ const sanitizeSchoolRecordRows = (rows, { keepEmptyRows = false } = {}) => {
     start_year: safeTrim(row?.start_year),
     end_year: safeTrim(row?.end_year),
     honors_received: safeTrim(row?.honors_received),
+    senior_high_gpa: safeTrim(row?.senior_high_gpa),
   }));
 
   if (keepEmptyRows) {
-    return sanitized.length ? sanitized : [createEmptySchoolRecordRow()];
+    const filled = sanitized.length ? sanitized : [createEmptySchoolRecordRow()];
+    return orderSchoolRecords(filled);
   }
-  return sanitized.filter(hasSchoolRecordContent);
+  return orderSchoolRecords(sanitized.filter(hasSchoolRecordContent));
 };
 
 const buildSchoolRecordRows = (records) => {
   if (!Array.isArray(records) || records.length === 0) {
     return [createEmptySchoolRecordRow()];
   }
-  return records.map((record) => ({
+  const mapped = records.map((record) => ({
     id: record?.id ?? null,
+    submission: record?.submission ?? null,
     school_id: record?.school?.id ?? null,
     school_address_id: record?.school?.school_address?.id ?? null,
-    education_level: record?.education_level || "",
+    education_level: normalizeEducationLevel(record?.education_level),
     school_name: record?.school?.name || "",
     address_line_1: record?.school?.school_address?.address_line_1 || "",
     barangay: record?.school?.school_address?.barangay || "",
@@ -351,7 +466,11 @@ const buildSchoolRecordRows = (records) => {
         ? ""
         : String(record.end_year),
     honors_received: record?.honors_received || "",
+    senior_high_gpa: record?.senior_high_gpa
+      ? String(record.senior_high_gpa)
+      : "",
   }));
+  return orderSchoolRecords(mapped);
 };
 
 const composeSchoolAddressString = (record) => {
@@ -381,6 +500,66 @@ const formatSchoolAddressInline = (record) => {
     .filter(Boolean);
   return parts.join(", ");
 };
+
+const normalizeEducationLevel = (value) => {
+  const trimmed = safeTrim(value);
+  if (!trimmed) return "";
+  const lower = trimmed.toLowerCase();
+  if (lower.includes("primary") || lower.includes("elementary")) {
+    return "Primary";
+  }
+  if (lower.includes("junior")) {
+    return "Junior High";
+  }
+  if (lower.includes("senior")) {
+    return "Senior High";
+  }
+  if (lower.includes("college") || lower.includes("tertiary")) {
+    return "College";
+  }
+  return trimmed;
+};
+
+const getSeniorHighGpaValue = (records = []) => {
+  for (const record of records || []) {
+    if (normalizeEducationLevel(record?.education_level) === "Senior High") {
+      const gpa = safeTrim(record?.senior_high_gpa);
+      if (gpa) return gpa;
+    }
+  }
+  return "";
+};
+
+const applySeniorHighGpaValue = (records = [], gpa = "") =>
+  (Array.isArray(records) ? records : []).map((record) => {
+    if (normalizeEducationLevel(record?.education_level) === "Senior High") {
+      return {
+        ...record,
+        senior_high_gpa: safeTrim(gpa),
+      };
+    }
+    return record;
+  });
+
+const SCHOOL_LEVEL_ORDER = ["Primary", "Junior High", "Senior High", "College"];
+const getLevelOrderIndex = (level) => {
+  const normalized = normalizeEducationLevel(level);
+  const idx = SCHOOL_LEVEL_ORDER.findIndex(
+    (entry) => entry.toLowerCase() === normalized.toLowerCase()
+  );
+  return idx === -1 ? SCHOOL_LEVEL_ORDER.length : idx;
+};
+const orderSchoolRecords = (records = []) =>
+  (Array.isArray(records) ? records : [])
+    .map((record, idx) => ({ record, idx }))
+    .sort((a, b) => {
+      const diff =
+        getLevelOrderIndex(a.record?.education_level) -
+        getLevelOrderIndex(b.record?.education_level);
+      if (diff !== 0) return diff;
+      return a.idx - b.idx;
+    })
+    .map(({ record }) => record);
 
 const formatSiblingFullName = (sibling) => {
   const first = safeTrim(sibling?.first_name);
@@ -464,7 +643,8 @@ const toBoolean = (value) => {
 const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
   const pdfRef = useRef();
   const navigate = useNavigate();
-  const { role } = useContext(AuthContext);
+  const { role, profileData: authProfileData, user } =
+    useContext(AuthContext);
   const isStudentUser = role === "student";
   const hasAdminPrivileges = role === "admin" || isAdmin;
   const canEdit = hasAdminPrivileges;
@@ -488,6 +668,16 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
   const [schoolRecordRows, setSchoolRecordRows] = useState(() =>
     buildSchoolRecordRows()
   );
+  useEffect(() => {
+    const derivedGpa = safeTrim(getSeniorHighGpaValue(schoolRecordRows));
+    if (!derivedGpa) return;
+    setFormState((prev) => {
+      if (safeTrim(prev.senior_high_gpa) || prev.senior_high_gpa === derivedGpa) {
+        return prev;
+      }
+      return { ...prev, senior_high_gpa: derivedGpa };
+    });
+  }, [schoolRecordRows]);
   const [graduationInfo, setGraduationInfo] = useState(() =>
     defaultGraduationInfo()
   );
@@ -796,6 +986,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
         "Senior High": false,
       },
     },
+    senior_high_gpa: "",
     health_data: {
       student_number: "",
       health_condition: "",
@@ -852,8 +1043,13 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       submission: "",
     },
   });
+  const [guidanceNotesAudit, setGuidanceNotesAudit] = useState({
+    timestamp: null,
+    updatedBy: "",
+  });
   const photoUrl = getProfilePhotoUrl(profileData);
   const photoInitials = getProfileInitials(profileData);
+  const submissionId = formData?.submission?.id;
 
   useEffect(() => {
     if (!formData || !profileData) return;
@@ -870,6 +1066,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       psychometric_data,
       siblings: siblingList,
     } = formData;
+    const seniorHighGpaValue = getSeniorHighGpaValue(previous_school_record);
 
     const father = family_data?.father;
     const mother = family_data?.mother;
@@ -995,9 +1192,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       last_hospitalization: health_data.last_hospitalization || "",
       reason_of_hospitalization: health_data.reason_of_hospitalization || "",
 
-      // Academic Records
-      senior_high_gpa: previous_school_record[0]?.senior_high_gpa || "",
-
       // Personality & Aspirations
       enrollment_reason: personality_traits.enrollment_reason || "",
       degree_program_aspiration:
@@ -1027,6 +1221,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       psychometric_data: initialPsychometric,
       scholarships_and_assistance: scholarshipsArray,
       guidance_notes: guidance_notes?.notes || "",
+      senior_high_gpa: safeTrim(seniorHighGpaValue) || "",
     };
 
     setFormState(preparedState);
@@ -1057,9 +1252,10 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
         });
       }
     }
-    setSchoolRecordRows(
-      schoolRowsToUse.length ? schoolRowsToUse : [createEmptySchoolRecordRow()]
-    );
+    const schoolRowsForState = schoolRowsToUse.length
+      ? schoolRowsToUse
+      : [createEmptySchoolRecordRow()];
+    setSchoolRecordRows(schoolRowsForState);
 
     const incomingOrgRows = buildTableRows(formData?.organizations);
     const incomingAwardRows = buildTableRows(formData?.awards);
@@ -1081,9 +1277,17 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     setGraduationInfo(cachedGraduation ?? defaultGraduationInfo());
     seniorHighRecordRef.current = seniorHighRecord || null;
     savePsychometricCache(initialPsychometric);
+    const counselorDisplayName = formatCounselorDisplayName(authProfileData);
+    const derivedAudit = deriveGuidanceAuditInfo(
+      guidance_notes,
+      submission,
+      counselorDisplayName
+    );
+    setGuidanceNotesAudit(derivedAudit);
   }, [
     formData,
     profileData,
+    authProfileData,
     loadOrganizationCache,
     loadAwardCache,
     loadGraduationCache,
@@ -1121,7 +1325,10 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     if (!canEditPersonalData && PERSONAL_DATA_FIELDS.has(field)) {
       return;
     }
-    const sanitizedValue = sanitizeNumericInput(field, value);
+    const sanitizedValue =
+      field === "senior_high_gpa"
+        ? filterDecimalNumbers(value)
+        : sanitizeNumericInput(field, value);
     setFormState((prev) => {
       const next = { ...prev, [field]: sanitizedValue };
       if (field === "previous_counseling" && !value) {
@@ -1134,6 +1341,12 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       }
       return next;
     });
+    if (field === "senior_high_gpa") {
+      const trimmedValue = safeTrim(sanitizedValue);
+      setSchoolRecordRows((prev) =>
+        applySeniorHighGpaValue(prev, trimmedValue)
+      );
+    }
   };
 
   const handleConditionChange = (key) => {
@@ -1180,11 +1393,17 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
   const handleSaveSchoolRecords = (rows) => {
     if (!canEdit) return;
     const sanitized = sanitizeSchoolRecordRows(rows, { keepEmptyRows: true });
-    const normalized = sanitized.length
-      ? sanitized
+    const gpaValue = getSeniorHighGpaValue(sanitized);
+    const normalizedRecords = applySeniorHighGpaValue(sanitized, gpaValue);
+    const normalized = normalizedRecords.length
+      ? normalizedRecords
       : [createEmptySchoolRecordRow()];
     setSchoolRecordRows(normalized);
     saveSchoolRecordCache(normalized);
+    setFormState((prev) => ({
+      ...prev,
+      senior_high_gpa: safeTrim(gpaValue),
+    }));
     closeModal();
   };
 
@@ -1460,7 +1679,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
         counseling_counselor: safeTrim(formState.counseling_counselor),
         counseling_reason: safeTrim(formState.counseling_reason),
       },
-      guidance_notes: safeTrim(formState.guidance_notes),
+      guidance_notes: {
+        notes: safeTrim(formState.guidance_notes),
+      },
     };
 
     payload.organizations =
@@ -1471,38 +1692,46 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     );
 
     const sanitizedSiblingRows = sanitizeSiblingRows(siblingRows);
-    payload.siblings = sanitizedSiblingRows.map((row) => ({
-      id: row.id,
-      student_number: profileData.student_number,
-      first_name: safeTrim(row.first_name),
-      last_name: safeTrim(row.last_name),
-      sex: safeTrim(row.sex),
-      age: safeTrim(row.age),
-      job_occupation: safeTrim(row.job_occupation),
-      company_school: safeTrim(row.company_school),
-      educational_attainment: safeTrim(row.educational_attainment),
-    }));
+    payload.siblings = sanitizedSiblingRows.map((row) => {
+      const siblingPayload = {
+        student_number: profileData.student_number,
+        first_name: safeTrim(row.first_name),
+        last_name: safeTrim(row.last_name),
+        sex: safeTrim(row.sex),
+        age: safeTrim(row.age),
+        job_occupation: safeTrim(row.job_occupation),
+        company_school: safeTrim(row.company_school),
+        educational_attainment: safeTrim(row.educational_attainment),
+        students:
+          Array.isArray(row?.students) && row.students.length
+            ? row.students
+            : [profileData.student_number],
+      };
+      if (row?.id) {
+        siblingPayload.id = row.id;
+      }
+      if (row?.submission || submissionId) {
+        siblingPayload.submission = row?.submission ?? submissionId;
+      }
+      return siblingPayload;
+    });
 
+    const trimmedSeniorHighGpa = safeTrim(formState.senior_high_gpa);
     const formatSchoolRecordRow = (row) => {
-      const level = safeTrim(row?.education_level);
-      const isSeniorHigh =
-        level.toLowerCase() === "senior high" ||
-        level.toLowerCase() === "senior high school";
-      return {
-        id: row?.id,
+      const level = normalizeEducationLevel(row?.education_level);
+      const isSeniorHigh = level === "Senior High";
+      const schoolRecordPayload = {
         student_number: profileData.student_number,
         education_level: level,
         start_year: safeTrim(row?.start_year),
         end_year: safeTrim(row?.end_year),
         honors_received: safeTrim(row?.honors_received),
         senior_high_gpa: isSeniorHigh
-          ? safeTrim(formState.senior_high_gpa)
+          ? trimmedSeniorHighGpa || safeTrim(row?.senior_high_gpa)
           : "",
         school: {
-          id: row?.school_id,
           name: safeTrim(row?.school_name),
           school_address: {
-            id: row?.school_address_id,
             address_line_1: safeTrim(row?.address_line_1),
             barangay: safeTrim(row?.barangay),
             city_municipality: safeTrim(row?.city_municipality),
@@ -1512,11 +1741,25 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           },
         },
       };
+      if (row?.id) {
+        schoolRecordPayload.id = row.id;
+      }
+      if (row?.submission || submissionId) {
+        schoolRecordPayload.submission = row?.submission ?? submissionId;
+      }
+      if (row?.school_id) {
+        schoolRecordPayload.school.id = row.school_id;
+      }
+      if (row?.school_address_id) {
+        schoolRecordPayload.school.school_address.id = row.school_address_id;
+      }
+      return schoolRecordPayload;
     };
 
     const sanitizedSchoolRecords = sanitizeSchoolRecordRows(schoolRecordRows);
-    if (sanitizedSchoolRecords.length > 0) {
-      payload.previous_school_record = sanitizedSchoolRecords.map(
+    const orderedSchoolRecords = orderSchoolRecords(sanitizedSchoolRecords);
+    if (orderedSchoolRecords.length > 0) {
+      payload.previous_school_record = orderedSchoolRecords.map(
         formatSchoolRecordRow
       );
     } else if (seniorHighRecordRef.current) {
@@ -1529,9 +1772,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
 
     return payload;
   };
-
-  const submissionId = formData?.submission?.id;
-  console.log("Submission ID:", submissionId);
 
   const updateStudentProfile = async (payload, submissionId) => {
     const formData = new FormData();
@@ -1703,6 +1943,14 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       saveSiblingCache(sanitizedSiblingRowsForCache);
       saveSchoolRecordCache(sanitizedSchoolRowsForCache);
       savePsychometricCache(sanitizedPsychRowsForCache);
+      const latestModifierName =
+        formatCounselorDisplayName(authProfileData) ||
+        formatCounselorDisplayName(user) ||
+        "Administrator";
+      setGuidanceNotesAudit({
+        timestamp: new Date().toISOString(),
+        updatedBy: latestModifierName,
+      });
 
       setErrors({});
       setDownloadToast(data?.message || "Changes saved successfully.");
@@ -1787,14 +2035,36 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     }
 
     const clone = element.cloneNode(true);
-    const elementWidth =
-      element.getBoundingClientRect().width || element.offsetWidth;
-    clone.style.maxWidth = elementWidth + "px";
-    clone.style.width = elementWidth + "px";
+    const targetWidthInches = 8.5;
+    const pageMarginInches = 0.33;
+    clone.style.width = `${targetWidthInches}in`;
+    clone.style.maxWidth = `${targetWidthInches}in`;
     clone.style.boxSizing = "border-box";
     clone.style.backgroundColor = "#ffffff";
-    clone.style.padding = "0.55in 0.3in 0.55in 0.3in";
+    clone.style.padding = `${pageMarginInches}in`;
     clone.style.margin = "0 auto";
+
+    const pdfSpecificStyles = document.createElement("style");
+    pdfSpecificStyles.textContent = `
+      .siblings-table,
+      .school-records-table,
+      .scif-table,
+      .psychometric-table {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      .siblings-table thead,
+      .school-records-table thead,
+      .scif-table thead,
+      .psychometric-table thead {
+        display: table-header-group;
+      }
+      .no-page-break {
+        page-break-after: avoid;
+        break-after: avoid;
+      }
+    `;
+    clone.insertBefore(pdfSpecificStyles, clone.firstChild || null);
 
     const workingWrapper = document.createElement("div");
     workingWrapper.style.position = "fixed";
@@ -2095,6 +2365,11 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     submission,
     privacy_consent,
   } = formData;
+  const guidanceNotesLastModified = guidanceNotesAudit.timestamp
+    ? formatGuidanceTimestamp(guidanceNotesAudit.timestamp)
+    : "Not yet saved";
+  const guidanceNotesUpdatedBy =
+    guidanceNotesAudit.updatedBy?.trim() || "Not recorded";
 
   const ConditionOptions = [
     { key: "Excellent", label: "Excellent" },
@@ -2139,74 +2414,57 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
         : [createEmptySchoolRecordRow()];
 
     return (
-      <div>
+      <div style={{ pageBreakInside: "avoid" }}>
         {canEdit && (
-          <div className="flex justify-end -mt-14" data-pdf-hide>
+          <div className="flex justify-end -mt-14 -mb-2" data-pdf-hide>
             <button
               type="button"
-              className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-upmaroon hover:bg-red-800 p-2 rounded"
+              className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-upmaroon hover:bg-red-[#991B1B] p-2 rounded"
               onClick={() => handleOpenModal("schoolRecords")}
             >
               <Pencil size={16} /> Edit Previous School Record
             </button>
           </div>
         )}
+
         <table className="w-full border-collapse mt-4 text-xs">
           <thead>
             <tr>
-              <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">
-                Level
-              </th>
-              <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">
-                Name of School
-              </th>
-              <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">
-                Address
-              </th>
-              <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">
-                Inclusive Years
-              </th>
-              <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">
-                Honor/s
-              </th>
+              <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">Level</th>
+              <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">Name of School</th>
+              <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">Address</th>
+              <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">Inclusive Years</th>
+              <th className="border border-[#9ca3af] px-2.5 py-2 text-left bg-[#f3f4f6]">Honor/s</th>
             </tr>
           </thead>
           <tbody>
             {tableRows.map((record, idx) => {
-              const hasContent = hasSchoolRecordContent(record);
               const address =
                 formatSchoolAddressInline(record) ||
                 composeSchoolAddressString(record) ||
                 "";
               const inclusiveYears =
                 record.start_year || record.end_year
-                  ? `${record.start_year || ""}${record.start_year || record.end_year ? " - " : ""
-                  }${record.end_year || ""}`
+                  ? `${record.start_year || ""}${record.start_year || record.end_year ? " - " : ""}${record.end_year || ""}`
                   : "";
 
+              const isSrHigh = normalizeEducationLevel(record.education_level) === "Senior High";
               return (
                 <tr key={record.id || idx}>
-                  <td className="border border-[#9ca3af] px-2.5 py-2 align-top">
-                    {record.education_level || "-"}
-                  </td>
-                  <td className="border border-[#9ca3af] px-2.5 py-2 align-top">
-                    {record.school_name || "-"}
-                  </td>
-                  <td className="border border-[#9ca3af] px-2.5 py-2 align-top">
-                    {address || "-"}
-                  </td>
-                  <td className="border border-[#9ca3af] px-2.5 py-2 align-top">
-                    {inclusiveYears || "-"}
-                  </td>
-                  <td className="border border-[#9ca3af] px-2.5 py-2 align-top">
-                    {record.honors_received || "-"}
+                  <td className="border border-[#9ca3af] px-2.5 py-1 align-top">{record.education_level || "-"}</td>
+                  <td className="border border-[#9ca3af] px-2.5 py-1 align-top">{record.school_name || "-"}</td>
+                  <td className="border border-[#9ca3af] px-2.5 py-1 align-top">{address || "-"}</td>
+                  <td className="border border-[#9ca3af] px-2.5 py-1 align-top">{inclusiveYears || "-"}</td>
+                  <td className="border border-[#9ca3af] px-2.5 py-1 align-top">
+                    <div className="flex flex-col gap-1">
+                      <span>{record.honors_received || "-"}</span>
+                    </div>
                   </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
-
       </div>
     );
   };
@@ -2220,7 +2478,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           <div className="flex -mb-10 -mt-14" data-pdf-hide>
             <button
               type="button"
-              className="text-white text-xs font-semibold mt-3 flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-upmaroon hover:bg-red-800 p-2 rounded"
+              className="text-white text-xs font-semibold mt-3 flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-upmaroon hover:bg-red-[#991B1B] p-2 rounded"
               onClick={() => handleOpenModal("siblings")}
             >
               <Pencil size={16} /> Edit Sibling/s Record
@@ -2253,28 +2511,28 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           <tbody>
             {tableRows.map((sibling, index) => (
               <tr key={sibling.id || index}>
-                <td className="border border-black px-4 py-3 align-top">
+                <td className="border border-black px-4 py-1 align-top">
                   {formatSiblingFullName(sibling) || "-"}
                 </td>
                 <td
-                  className="border border-black px-4 py-3 align-top"
+                  className="border border-black px-4 py-1 align-top"
                   style={{ minWidth: "85px" }}
                 >
                   {sibling.sex || "-"}
                 </td>
                 <td
-                  className="border border-black px-4 py-3 align-top"
+                  className="border border-black px-4 py-1 align-top"
                   style={{ minWidth: "70px" }}
                 >
                   {sibling.age || "-"}
                 </td>
-                <td className="border border-black px-4 py-3 align-top">
+                <td className="border border-black px-4 py-1 align-top">
                   {sibling.job_occupation || "-"}
                 </td>
-                <td className="border border-black px-4 py-3 align-top">
+                <td className="border border-black px-4 py-1 align-top">
                   {sibling.company_school || "-"}
                 </td>
-                <td className="border border-black px-4 py-3 align-top">
+                <td className="border border-black px-4 py-1 align-top">
                   {sibling.educational_attainment || "-"}
                 </td>
               </tr>
@@ -2340,12 +2598,12 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           onSubmit={handleSubmit}
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">
+            <h3 className="text-lg font-semibold text-[#1F2937]">
               Edit Siblings
             </h3>
             <button
               type="button"
-              className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer hover:scale-110"
+              className="text-sm text-[#6B7280] hover:text-[#374151] cursor-pointer hover:scale-110"
               onClick={onClose}
             >
               <X />
@@ -2356,10 +2614,10 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             {localRows.map((sibling, index) => (
               <div
                 key={`sibling-editor-${index}`}
-                className="p-4 border border-gray-200 rounded-lg"
+                className="p-4 border border-[#E5E7EB] rounded-lg"
               >
                 <div className="flex items-center justify-between mb-4">
-                  <p className="font-semibold text-gray-700">
+                  <p className="font-semibold text-[#374151]">
                     Sibling {index + 1}
                   </p>
                   {localRows.length > 1 && (
@@ -2474,19 +2732,36 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     shouldUseRegionDropdown,
     regionOptions,
   }) => {
-    const [localRecords, setLocalRecords] = useState(() =>
-      sanitizeSchoolRecordRows(records, { keepEmptyRows: true })
+    const deriveRecords = useCallback(() => {
+      const sanitized = sanitizeSchoolRecordRows(records, {
+        keepEmptyRows: true,
+      });
+      const ensured = ensureRequiredSchoolLevels(sanitized);
+      const currentGpa = getSeniorHighGpaValue(ensured);
+      return applySeniorHighGpaValue(ensured, currentGpa);
+    }, [records]);
+
+    const [localRecords, setLocalRecords] = useState(() => deriveRecords());
+    const [seniorHighGpa, setSeniorHighGpa] = useState(() =>
+      safeTrim(getSeniorHighGpaValue(localRecords))
     );
 
     useEffect(() => {
       if (open) {
-        setLocalRecords(
-          sanitizeSchoolRecordRows(records, { keepEmptyRows: true })
-        );
+        const nextRecords = deriveRecords();
+        setLocalRecords(nextRecords);
+        setSeniorHighGpa(safeTrim(getSeniorHighGpaValue(nextRecords)));
       }
-    }, [records, open]);
+    }, [records, open, deriveRecords]);
 
-    const handleFieldChange = (index, field, value, filterFn = null) => {
+    const levelDefinitions = [
+      { key: "Primary", label: "Primary School", required: true },
+      { key: "Junior High", label: "Junior High School", required: true },
+      { key: "Senior High", label: "Senior High School", required: true },
+      { key: "College", label: "College", required: false },
+    ];
+
+    const updateRecordField = (index, field, value, filterFn = null) => {
       const filteredValue = filterFn ? filterFn(value) : value;
       setLocalRecords((prev) =>
         prev.map((record, idx) =>
@@ -2495,20 +2770,47 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       );
     };
 
-    const handleAddRecord = () => {
-      setLocalRecords((prev) => [...prev, createEmptySchoolRecordRow()]);
+    const addRecordForLevel = (levelKey) => {
+      setLocalRecords((prev) => [
+        ...prev,
+        {
+          ...createEmptySchoolRecordRow(),
+          education_level: levelKey,
+        },
+      ]);
     };
 
-    const handleRemoveRecord = (index) => {
+    const removeRecordAt = (levelKey, globalIndex) => {
       setLocalRecords((prev) => {
-        const next = prev.filter((_, idx) => idx !== index);
-        return next.length ? next : [createEmptySchoolRecordRow()];
+        const levelCount = prev.filter(
+          (record) =>
+            (record.education_level || "").toLowerCase() ===
+            levelKey.toLowerCase()
+        ).length;
+        const isRequired = REQUIRED_SCHOOL_LEVELS.some(
+          (requiredLevel) =>
+            requiredLevel.toLowerCase() === levelKey.toLowerCase()
+        );
+        if (isRequired && levelCount <= 1) {
+          return prev;
+        }
+        return prev.filter((_, idx) => idx !== globalIndex);
       });
+    };
+
+    const handleSeniorHighGpaChange = (value) => {
+      const filtered = filterDecimalNumbers(value);
+      setSeniorHighGpa(filtered);
+      setLocalRecords((prev) => applySeniorHighGpaValue(prev, filtered));
     };
 
     const handleSubmit = (event) => {
       event.preventDefault();
-      onSave(localRecords);
+      const syncedRecords = applySeniorHighGpaValue(
+        localRecords,
+        seniorHighGpa
+      );
+      onSave(syncedRecords);
     };
 
     if (!open) return null;
@@ -2521,233 +2823,261 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           onSubmit={handleSubmit}
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">
+            <h3 className="text-lg font-semibold text-[#1F2937]">
               Edit Previous School Records
             </h3>
             <button
               type="button"
-              className="text-sm text-gray-500 hover:text-gray-700 hover:scale-115 cursor-pointer"
+              className="text-sm text-[#6B7280] hover:text-[#374151] hover:scale-110"
               onClick={onClose}
             >
-              <X />
+              Close
             </button>
           </div>
 
-          <div className="space-y-8">
-            {localRecords.map((record, index) => (
-              <div
-                key={`school-record-${index}`}
-                className="border border-gray-200 rounded-lg p-4"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <p className="font-semibold text-gray-700">
-                    Record {index + 1}
-                  </p>
-                  {localRecords.length > 1 && (
-                    <button
+          <div className="space-y-10">
+            {levelDefinitions.map((level) => {
+              const levelEntries = localRecords
+                .map((record, idx) => ({ record, idx }))
+                .filter(
+                  ({ record }) =>
+                    normalizeEducationLevel(record.education_level).toLowerCase() ===
+                    level.key.toLowerCase()
+                );
+              const levelLabel = level.label;
+              return (
+                <section
+                  key={level.key}
+                  className="border border-[#E5E7EB] rounded-lg p-4"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-md font-semibold text-[#1F2937]">
+                      {levelLabel}
+                    </h4>
+                    <Button
                       type="button"
                       variant="secondary"
-                      className="text-upmaroon hover:text-red-700 cursor-pointer hover:scale-110 relative flex items-center gap-1 text-sm font-medium transition-all duration-200 ease-in-out"
-                      onClick={() => handleRemoveRow(index)}
+                      onClick={() => addRecordForLevel(level.key)}
+                      className="text-xs"
                     >
-                      <Trash2 size={16} /> Remove
-                    </button>
+                      + Add {level.key} Record
+                    </Button>
+                  </div>
+                  {level.key === "Senior High" && (
+                    <div className="mt-2 mb-4">
+                      <FormField
+                        label="Senior High Gen. Ave."
+                        type="text"
+                        value={seniorHighGpa}
+                        onChange={(e) => handleSeniorHighGpaChange(e.target.value)}
+                      />
+                    </div>
                   )}
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    label="Education Level"
-                    type="text"
-                    value={record.education_level}
-                    onChange={(e) =>
-                      handleFieldChange(
-                        index,
-                        "education_level",
-                        e.target.value,
-                        filterGeneralText
-                      )
-                    }
-                    required
-                  />
-                  <FormField
-                    label="School Name"
-                    type="text"
-                    value={record.school_name}
-                    onChange={(e) =>
-                      handleFieldChange(
-                        index,
-                        "school_name",
-                        e.target.value,
-                        filterGeneralText
-                      )
-                    }
-                    required
-                  />
-                </div>
-                <h4 className="text-sm font-semibold text-gray-700 mt-4">
-                  School Address
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                  <FormField
-                    label="Address Line 1"
-                    type="text"
-                    value={record.address_line_1}
-                    onChange={(e) =>
-                      handleFieldChange(
-                        index,
-                        "address_line_1",
-                        e.target.value,
-                        filterGeneralText
-                      )
-                    }
-                    required
-                  />
-                  <FormField
-                    label="Barangay"
-                    type="text"
-                    value={record.barangay}
-                    onChange={(e) =>
-                      handleFieldChange(
-                        index,
-                        "barangay",
-                        e.target.value,
-                        filterGeneralText
-                      )
-                    }
-                    required
-                  />
-                  <FormField
-                    label="City / Municipality"
-                    type="text"
-                    value={record.city_municipality}
-                    onChange={(e) =>
-                      handleFieldChange(
-                        index,
-                        "city_municipality",
-                        e.target.value,
-                        filterGeneralText
-                      )
-                    }
-                    required
-                  />
-                  <FormField
-                    label="Province"
-                    type="text"
-                    value={record.province}
-                    onChange={(e) =>
-                      handleFieldChange(
-                        index,
-                        "province",
-                        e.target.value,
-                        filterGeneralText
-                      )
-                    }
-                    required
-                  />
-                  {shouldUseRegionDropdown ? (
-                    <FormField
-                      label="Region"
-                      type="select"
-                      value={record.region}
-                      onChange={(e) =>
-                        handleFieldChange(index, "region", e.target.value)
-                      }
-                      options={regionOptions}
-                      required
-                    />
+                  {levelEntries.length === 0 ? (
+                    <p className="text-sm text-[#6B7280]">
+                      No {level.key.toLowerCase()} records yet.
+                    </p>
                   ) : (
-                    <FormField
-                      label="Region"
-                      type="text"
-                      value={record.region}
-                      onChange={(e) =>
-                        handleFieldChange(
-                          index,
-                          "region",
-                          e.target.value,
-                          filterGeneralText
-                        )
-                      }
-                      required
-                    />
+                    levelEntries.map(({ record, idx: globalIndex }, entryIdx) => (
+                      <div
+                        key={`${level.key}-${globalIndex}`}
+                        className="border border-[#F3F4F6] rounded-md p-4 mb-4 last:mb-0"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <p className="font-semibold text-[#374151]">
+                            {level.key} Record {entryIdx + 1}
+                          </p>
+                          <div className="flex gap-2">
+                            {(levelEntries.length > 1 ||
+                              !level.required) && (
+                                <Button
+                                  type="button"
+                                  variant="secondary"
+                                  className="text-xs"
+                                  onClick={() =>
+                                    removeRecordAt(level.key, globalIndex)
+                                  }
+                                >
+                                  Remove
+                                </Button>
+                              )}
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            label="School Name"
+                            type="text"
+                            value={record.school_name}
+                            onChange={(e) =>
+                              updateRecordField(
+                                globalIndex,
+                                "school_name",
+                                e.target.value,
+                                filterGeneralText
+                              )
+                            }
+                            required
+                          />
+                          <FormField
+                            label="Address Line 1"
+                            type="text"
+                            value={record.address_line_1}
+                            onChange={(e) =>
+                              updateRecordField(
+                                globalIndex,
+                                "address_line_1",
+                                e.target.value,
+                                filterGeneralText
+                              )
+                            }
+                            required
+                          />
+                          <FormField
+                            label="Barangay"
+                            type="text"
+                            value={record.barangay}
+                            onChange={(e) =>
+                              updateRecordField(
+                                globalIndex,
+                                "barangay",
+                                e.target.value,
+                                filterGeneralText
+                              )
+                            }
+                            required
+                          />
+                          <FormField
+                            label="City / Municipality"
+                            type="text"
+                            value={record.city_municipality}
+                            onChange={(e) =>
+                              updateRecordField(
+                                globalIndex,
+                                "city_municipality",
+                                e.target.value,
+                                filterGeneralText
+                              )
+                            }
+                            required
+                          />
+                          <FormField
+                            label="Province"
+                            type="text"
+                            value={record.province}
+                            onChange={(e) =>
+                              updateRecordField(
+                                globalIndex,
+                                "province",
+                                e.target.value,
+                                filterGeneralText
+                              )
+                            }
+                            required
+                          />
+                          {shouldUseRegionDropdown ? (
+                            <FormField
+                              label="Region"
+                              type="select"
+                              value={record.region}
+                              onChange={(e) =>
+                                updateRecordField(
+                                  globalIndex,
+                                  "region",
+                                  e.target.value
+                                )
+                              }
+                              options={regionOptions}
+                              required
+                            />
+                          ) : (
+                            <FormField
+                              label="Region"
+                              type="text"
+                              value={record.region}
+                              onChange={(e) =>
+                                updateRecordField(
+                                  globalIndex,
+                                  "region",
+                                  e.target.value,
+                                  filterGeneralText
+                                )
+                              }
+                              required
+                            />
+                          )}
+                          <FormField
+                            label="ZIP Code"
+                            type="text"
+                            value={record.zip_code}
+                            onChange={(e) =>
+                              updateRecordField(
+                                globalIndex,
+                                "zip_code",
+                                e.target.value,
+                                filterNumbersOnly
+                              )
+                            }
+                            required
+                          />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                          <FormField
+                            label="Start Year"
+                            type="text"
+                            value={record.start_year}
+                            onChange={(e) =>
+                              updateRecordField(
+                                globalIndex,
+                                "start_year",
+                                e.target.value,
+                                filterNumbersOnly
+                              )
+                            }
+                            required
+                          />
+                          <FormField
+                            label="End Year"
+                            type="text"
+                            value={record.end_year}
+                            onChange={(e) =>
+                              updateRecordField(
+                                globalIndex,
+                                "end_year",
+                                e.target.value,
+                                filterNumbersOnly
+                              )
+                            }
+                            required
+                          />
+                          <FormField
+                            label="Honors Received"
+                            type="text"
+                            value={record.honors_received}
+                            onChange={(e) =>
+                              updateRecordField(
+                                globalIndex,
+                                "honors_received",
+                                e.target.value,
+                                filterGeneralText
+                              )
+                            }
+                          />
+                        </div>
+                      </div>
+                    ))
                   )}
-                  <FormField
-                    label="ZIP Code"
-                    type="text"
-                    value={record.zip_code}
-                    onChange={(e) =>
-                      handleFieldChange(
-                        index,
-                        "zip_code",
-                        e.target.value,
-                        filterNumbersOnly
-                      )
-                    }
-                    required
-                  />
-                </div>
-                <h4 className="text-sm font-semibold text-gray-700 mt-4">
-                  Additional Information
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-                  <FormField
-                    label="Start Year"
-                    type="text"
-                    value={record.start_year}
-                    onChange={(e) =>
-                      handleFieldChange(
-                        index,
-                        "start_year",
-                        e.target.value,
-                        filterNumbersOnly
-                      )
-                    }
-                    required
-                  />
-                  <FormField
-                    label="End Year"
-                    type="text"
-                    value={record.end_year}
-                    onChange={(e) =>
-                      handleFieldChange(
-                        index,
-                        "end_year",
-                        e.target.value,
-                        filterNumbersOnly
-                      )
-                    }
-                    required
-                  />
-                  <FormField
-                    label="Honors Received"
-                    type="text"
-                    value={record.honors_received}
-                    onChange={(e) =>
-                      handleFieldChange(
-                        index,
-                        "honors_received",
-                        e.target.value,
-                        filterGeneralText
-                      )
-                    }
-                  />
-                </div>
-              </div>
-            ))}
+                </section>
+              );
+            })}
           </div>
 
-          <div className="flex justify-between items-center mt-6">
-            <Button type="button" variant="secondary" onClick={handleAddRecord}>
-              + Add School Record
+          <div className="flex justify-end gap-2 mt-6">
+            <Button type="button" variant="secondary" onClick={onClose}>
+              Cancel
             </Button>
-            <div className="flex gap-2">
-              <Button type="button" variant="secondary" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button type="submit" variant="primary">
-                Save Changes
-              </Button>
-            </div>
+            <Button type="submit" variant="primary">
+              Save Records
+            </Button>
           </div>
         </form>
       </Modal>
@@ -2807,10 +3137,10 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           onSubmit={handleSubmit}
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+            <h3 className="text-lg font-semibold text-[#1F2937]">{title}</h3>
             <button
               type="button"
-              className="text-sm text-gray-500 hover:text-gray-700 hover:scale-115 cursor-pointer"
+              className="text-sm text-[#6B7280] hover:text-[#374151] hover:scale-115 cursor-pointer"
               onClick={onClose}
             >
               <X />
@@ -2821,17 +3151,17 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             {localRows.map((row, index) => (
               <div
                 key={`activity-${index}`}
-                className="border border-gray-200 rounded-lg p-4"
+                className="border border-[#E5E7EB] rounded-lg p-4"
               >
                 <div className="flex items-center justify-between mb-4">
-                  <p className="font-semibold text-gray-700">
+                  <p className="font-semibold text-[#374151]">
                     Organization {index + 1}
                   </p>
                   {localRows.length > 1 && (
                     <button
                       type="button"
                       variant="secondary"
-                      className="text-upmaroon hover:text-red-700 cursor-pointer hover:scale-110 relative flex items-center gap-1 text-sm font-medium transition-all duration-200 ease-in-out"
+                      className="text-upmaroon hover:text-[]] cursor-pointer hover:scale-110 relative flex items-center gap-1 text-sm font-medium transition-all duration-200 ease-in-out"
                       onClick={() => handleRemoveRow(index)}
                     >
                       <Trash2 size={16} /> Remove
@@ -3762,13 +4092,13 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </div>
             </div>
           </div>
-          <div className="SCIF-section" style={{ marginTop: "30px" }}>
+          <div className="SCIF-section" style={{ marginTop: "10px" }}>
             <div>
               <SiblingsTable rows={siblingRows} />
             </div>
           </div>
           <div className="SCIF-section">
-            <div className="-mt-8">
+            <div className="-mt-10">
               <div className="SCIF-inline flex-row">
                 <label className="field-xl">
                   Guardian while in UP:
@@ -3851,7 +4181,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             </div>
           </div>
           <div className="SCIF-section">
-            <div className="mb-5 font-bold">HEALTH DATA:</div>
+            <div className="mb-5 font-bold -mt-10">HEALTH DATA:</div>
             <div className="-mt-5">
               <HealthConditionRadio
                 selectedValue={formState.health_condition}
@@ -3896,7 +4226,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </div>
             </div>
 
-            <div className="flex justify-between gap-4 -mt-8">
+            <div className="flex justify-between gap-4 -mt-10">
               <label>
                 Hearing [Good, Medium, Poor]:{" "}
                 <input
@@ -3923,7 +4253,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </label>
             </div>
 
-            <div className="flex justify-between -mt-6 gap-4">
+            <div className="flex justify-between -mt-8 gap-4">
               <label>
                 Frequent Ailments:{" "}
                 <input
@@ -3948,7 +4278,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </label>
             </div>
 
-            <div className="-mt-4">
+            <div className="-mt-8">
               <label>
                 Reason:{" "}
                 <AutoResizeTextarea
@@ -3967,24 +4297,24 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             </div>
           </div>
           <div className="SCIF-section school">
-            <div className="mb-5 font-bold">PREVIOUS SCHOOL RECORD</div>
+            <div className="mb-5 -mt-6 font-bold">PREVIOUS SCHOOL RECORD</div>
             <PreviousSchoolRecordsTable records={schoolRecordRows} />
-            <div className="-mt-4 flex justify-end gap-4">
-              <div className="flex">
-                <label className="field-xs">
-                  SR. HIGH GEN. AVE:
-                  <input
-                    type="text"
-                    value={formState.senior_high_gpa}
-                    onChange={(e) =>
-                      handleFieldChange("senior_high_gpa", e.target.value)
-                    }
-                    readOnly={!canEdit}
-                  />
-                </label>
-              </div>
-            </div>
+            <label className="field-xs flex justify-end">
+              <span>Senior High GPA:</span>
+              <input
+                type="text"
+                value={formState.senior_high_gpa}
+                onChange={(e) =>
+                  handleFieldChange(
+                    "senior_high_gpa",
+                    e.target.value
+                  )
+                }
+                readOnly={!canEdit}
+              />
+            </label>
           </div>
+
           <div className="-mt-2">
             <div className="mb-5 font-bold">
               LIST OF SCHOLARSHIPS & FINANCIAL ASSISTANCE WHILE IN COLLEGE :
@@ -4006,15 +4336,15 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               <label>No scholarships listed.</label>
             )}
           </div>
-          <div className="SCIF-section">
-            <div className="mb-5 font-bold">
+          <div className="SCIF-section" style={{ pageBreakInside: "avoid" }}>
+            <div className="mb-5 -mt-6 font-bold">
               MEMBERSHIP TO ORGANIZATION IN COLLEGE (Do not fill out this yet)
             </div>
             {canEdit && (
               <div className="flex justify-end -mt-14" data-pdf-hide>
                 <button
                   type="button"
-                  className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-upmaroon hover:bg-red-800 p-2 rounded"
+                  className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-upmaroon hover:bg-red-[#991B1B] p-2 rounded"
                   onClick={() => handleOpenModal("organizations")}
                 >
                   <Pencil size={16} /> Edit Organization/s Record
@@ -4048,16 +4378,15 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </tbody>
             </table>
           </div>
-          <div className="SCIF-section" style={{ pageBreakAfter: "always" }}>
-
-            <div className="mb-5 font-bold">
+          <div className="SCIF-section" style={{ pageBreakInside: "avoid" }}>
+            <div className="mb-5 font-bold -mt-2">
               AWARDS RECEIVED WHILE IN COLLEGE (leave this portion blank)
             </div>
             {canEdit && (
               <div className="flex justify-end -mt-14" data-pdf-hide>
                 <button
                   type="button"
-                  className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-upmaroon hover:bg-red-800 p-2 rounded"
+                  className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-upmaroon hover:bg-red-[#991B1B] p-2 rounded"
                   onClick={() => handleOpenModal("awards")}
                 >
                   <Pencil size={16} /> Edit Award/s Received
@@ -4091,8 +4420,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </tbody>
             </table>
           </div>
-          <div className="SCIF-section" style={{ marginTop: "40px" }}>
-            <div className="mb-5 font-bold">OTHER PERSONAL INFORMATION</div>
+          <div className="SCIF-section" style={{ pageBreakInside: "avoid" }}>
+            <div className="mb-5 -mt-4 font-bold">OTHER PERSONAL INFORMATION</div>
             <div className="-mt-6">
               <label>
                 <span className="label">
@@ -4108,8 +4437,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </label>
             </div>
             <div className="SCIF-inline flex-row">
-              <div className="flex gap-4 mt-6 flex-wrap items-center">
-                <span className="label">
+              <div className="flex gap-4 mt-3 flex-wrap items-center">
+                <span className="font-semibold">
                   Does your program match your goal?
                 </span>
                 <div className="flex gap-6 flex-row">
@@ -4150,7 +4479,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 </label>
               </div>
             </div>
-            <div className="SCIF-inline">
+            <div className="-mt-10">
               <label>
                 <span className="label">Special Talents:</span>{" "}
                 <input
@@ -4163,7 +4492,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 />
               </label>
             </div>
-            <div className="SCIF-inline">
+            <div className="-mt-8">
               <label>
                 <span>Musical Instruments: </span>
                 <input
@@ -4176,7 +4505,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 />
               </label>
             </div>
-            <div className="SCIF-inline">
+            <div className="-mt-8">
               <label>
                 Hobbies:{" "}
                 <input
@@ -4187,7 +4516,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 />
               </label>
             </div>
-            <div className="SCIF-inline">
+            <div className="-mt-8">
               <label>
                 <span className="label" style={{ width: "15%" }}>
                   Likes in People:{" "}
@@ -4202,7 +4531,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 />
               </label>
             </div>
-            <div className="SCIF-inline">
+            <div className="-mt-8">
               <label>
                 {" "}
                 <span className="label" style={{ width: "18%" }}>
@@ -4231,7 +4560,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 }
               />
             </div>
-            <div className="-mt-2">
+            <div className="-mt-4">
               <label>
                 Personal Characteristics:
                 <AutoResizeTextarea
@@ -4247,7 +4576,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </label>
             </div>
             <div className="SCIF-inline flex-row">
-              <div className="flex justify-between gap-4 mt-6">
+              <div className="flex justify-between gap-4 mt-3">
                 <label>
                   <span>Who do you open up to? </span>
                   <AutoResizeTextarea
@@ -4259,7 +4588,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   />
                 </label>
               </div>
-              <div className="w-full gap-4 mt-6">
+              <div className="w-full gap-4 mt-4">
                 <label>
                   <span>Why?</span>
                   <AutoResizeTextarea
@@ -4272,7 +4601,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 </label>
               </div>
             </div>
-            <div className="-mt-6">
+            <div className="-mt-7">
               <label>
                 <span className="label">Potential Problems:</span>{" "}
                 <textarea
@@ -4285,7 +4614,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </label>
             </div>
             <div className="SCIF-inline flex row">
-              <div className="flex justify-between gap-4 mt-10">
+              <div className="flex justify-between gap-4 mt-6">
                 <label>
                   <span>Any previous counseling?</span>
                 </label>
@@ -4316,7 +4645,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             {formState.previous_counseling && (
               <>
                 <div className="SCIF-inline flex-row">
-                  <div className="flex justify-between mt-2 gap-4">
+                  <div className="flex justify-between gap-4">
                     <label className="field-xl">
                       If yes, where:{" "}
                       <input
@@ -4347,7 +4676,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                     </label>
                   </div>
                 </div>
-                <div className="SCIF-inline flex-row">
+                <div className="-mt-10">
                   <label>
                     Why?
                     <AutoResizeTextarea
@@ -4362,8 +4691,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </>
             )}
           </div>
-          <div className="flex justify-end mt-10">
-            <div className="flex flex-col gap-8">
+          <div className="flex justify-end mt-5">
+            <div className="flex flex-col gap-1">
               <div>
                 <label>________________________________________</label>
                 <label className="justify-center">
@@ -4376,16 +4705,16 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               </div>
             </div>
           </div>
-          <div style={{ pageBreakBefore: "always", marginTop: "40px" }}>
+          <div>
             {canViewPsychSections && (
-              <div className="SCIF-section">
+              <div className="SCIF-section" style={{ pageBreakInside: "avoid" }}>
 
-                <div className="section-title">Psychometric Data</div>
+                <div className="font-bold text-[12px] mt-10">PSYCHOMETRIC DATA</div>
                 {canEdit && (
                   <div className="flex justify-end -mt-14" data-pdf-hide>
                     <button
                       type="button"
-                      className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-upmaroon hover:bg-red-800 p-2 rounded"
+                      className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-upmaroon hover:bg-red-[#991B1B] p-2 rounded"
                       onClick={handleAddPsychometricRow}
                     >
                       <Plus size={16} /> Add Psychometric Record
@@ -4393,7 +4722,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   </div>
                 )}
                 {psychometricRows.length === 0 ? (
-                  <p className="text-sm text-[#525252]">
+                  <p className="text-sm mt-6 text-[#525252]">
                     No psychometric data recorded.
                   </p>
                 ) : (
@@ -4532,12 +4861,15 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   className="guidance-notes"
                   rows={5}
                   readOnly={!canEdit}
-                  placeholder="____________________________________________________________________________________________&#10;____________________________________________________________________________________________&#10;____________________________________________________________________________________________"
+                  placeholder="No notes added."
                   value={formState.guidance_notes || ""}
                   onChange={(e) =>
                     handleFieldChange("guidance_notes", e.target.value)
                   }
                 />
+                <div className="text-xs italic text-[#525252] flex flex-wrap gap-x-4 gap-y-1 mb-4 -mt-2" data-pdf-hide>
+                  <span>Date modified: {guidanceNotesLastModified} by: {guidanceNotesUpdatedBy}</span>
+                </div>
               </div>
               <div className="font-bold mb-5">Privacy Statement: </div>
               <div className="font-bold  mt-5 text-justify">
