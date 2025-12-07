@@ -176,6 +176,8 @@ const PARD = () => {
       date_started: {
         required: true,
         message: "This field is required.",
+        lesserThan: new Date(),
+        lesserThanMessage: "Please enter a valid date.",
       },
       is_currently_on_medication: {
         required: true,

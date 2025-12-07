@@ -116,12 +116,6 @@ export const UserProfile = () => {
   }, [isAuthenticated, request]);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login?role=student");
-    }
-  }, [isAuthenticated, navigate]);
-
-  useEffect(() => {
     if (profile && profile.is_complete) {
       navigate("/myprofile");
     }

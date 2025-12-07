@@ -14,6 +14,7 @@ export default function ProfessionalsSection() {
   const fetchProfessionals = async () => {
     try {
       const response = await request("http://localhost:8000/api/webmaster/professional/");
+      console.log("RESPONSE", response)
       if (response.ok) {
         const data = await response.json();
         setProfessionals(data);

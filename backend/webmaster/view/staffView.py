@@ -25,11 +25,6 @@ class staffView(APIView):
 
     def get(self, request):
         try:
-            if not request.user.is_staff:
-                return Response(
-                    {"error": "You don't have permission to edit this form."},
-                    status=status.HTTP_403_FORBIDDEN
-                )
             
             # Get all active staff
             staff = Staff.objects.filter(status=1) 

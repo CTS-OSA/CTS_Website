@@ -72,6 +72,8 @@ def get_pard_data(student, submission):
             student_number=student,
             submission_id=submission
         )
+        if pard_instance.status == 'deleted':
+            return None
         return PARDSerializer(instance=pard_instance).data
     except PARD.DoesNotExist:
         return None
