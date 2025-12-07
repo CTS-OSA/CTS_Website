@@ -1,36 +1,28 @@
-import SirRem from "../assets/SirRem.jpg";
-import NurseFely from "../assets/NurseFely.png";
-import SirNoggie from "../assets/SirNoggie.png";
-import SirPontini from "../assets/SirPontini.png";
+import { useApiRequest } from "../context/ApiRequestContext";
+import React, { useState, useEffect } from "react";
 
 export default function ProfessionalsSection() {
-  const professionals = [
-    {
-      name: "Remegio P. Domingo, Jr., DIR, MIR, RGC, RPm",
-      role: "Guidance Services Specialist / Psychometrician",
-      details: "GC Lic. No.: 0000830 (02-19-2026)",
-      detail2: "Psychom. Lic. No.: 0009021 (02-19-2026)",
-      image: SirRem,
-    },
-    {
-      name: "Fely S. Pulido, RN",
-      role: "Nurse – I",
-      details: "Lic. No.: 0303188 (09-20-2025)",
-      image: NurseFely,
-    },
-    {
-      name: "Invictus E. Lorenzo, RN",
-      role: "Nurse – I",
-      details: "Reg. No.: 0645521 (06-12-2027)",
-      image: SirNoggie,
-    },
-    {
-      name: "Pontini A. Coloscos, RPm, MSPsy",
-      role: "Senior Psychosocial Counselor",
-      details: "Reg. No.: 0012840 (09-22-2028",
-      image: SirPontini,
-    },
-  ];
+  const [professionals, setProfessionals] = useState([]);
+  const { request } = useApiRequest();
+  
+  
+  useEffect(() => {
+    fetchProfessionals();
+  }, []);
+
+  // Fetch Professionals 
+  const fetchProfessionals = async () => {
+    try {
+      const response = await request("http://localhost:8000/api/webmaster/professional/");
+      if (response.ok) {
+        const data = await response.json();
+        setProfessionals(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch professionals (silent error):", error);
+    } 
+  };
+  
 
   return (
     <section className="w-full ">
@@ -50,7 +42,7 @@ export default function ProfessionalsSection() {
                 {/* Circular Image Container */}
                 <div className="absolute -bottom-16 w-40 h-40 rounded-full border-4 border-white bg-gray-200 overflow-hidden shadow-md flex items-center justify-center">
                   <img
-                    src={prof.image}
+                    src={prof.image_url}
                     alt={prof.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
@@ -64,15 +56,17 @@ export default function ProfessionalsSection() {
               {/* Bottom Section with Text Content */}
               <div className="pt-20 pb-6 px-6 text-center font-roboto">
                 <h4 className="text-sm font-bold text-gray-900 mb-2">
-                  {prof.name}
+                  {prof.name}, {prof.post_nominal}
                 </h4>
                 <p className="text-xs text-gray-700 font-semibold mb-3">
-                  {prof.role}
+                  {prof.position?.split(", ").map((pos, idx) => (
+                    <p key={idx} className="leading-snug font-medium">{pos}</p>
+                  ))}
                 </p>
                 <p className="text-xs text-gray-600 leading-relaxed">
-                  {prof.details}
-                  <br />
-                  {prof.detail2}
+                  {prof.license?.split(", ").map((lic, idx) => (
+                    <p key={idx} className="text-xs italic leading-snug">{lic}</p>
+                  ))}
                 </p>
               </div>
             </div>
