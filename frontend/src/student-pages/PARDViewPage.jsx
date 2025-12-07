@@ -98,7 +98,27 @@ const PARDProfileView = ({ profileData, formData }) => {
     element.classList.remove("pdf-mode");
   };
 
+  const validateTime = () => {
+    const newErrors = {};
+    
+    if (appointmentTime) {
+      const [hours, minutes] = appointmentTime.split(':').map(Number);
+      const timeInMinutes = hours * 60 + minutes;
+      if (timeInMinutes < 8 * 60 || timeInMinutes >= 16 * 60) {
+        newErrors.appointmentTime = "Appointment time must be between 8:00 AM and 4:00 PM";
+      }
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSave = async () => {
+    if (!validateTime()) {
+      setDownloadToast("Please fix validation errors.");
+      return;
+    }
+
     try {
       const changes = {};
 
@@ -208,7 +228,7 @@ const PARDProfileView = ({ profileData, formData }) => {
                 {statusChoices.find(([value]) => value === status)?.[1] ||
                   status}
               </span>
-              <span className="border-b border-black flex-1 pb-0.5 pdf-input">
+              <span className=" flex-1 pb-0.5 pdf-input">
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
@@ -272,6 +292,7 @@ const PARDProfileView = ({ profileData, formData }) => {
                 <input
                   type="date"
                   value={appointmentDate}
+                  min={new Date().toISOString().split('T')[0]}
                   onChange={(e) => setAppointmentDate(e.target.value)}
                   className="border-b border-black flex-1 pb-0.5 pdf-input"
                 />
@@ -286,23 +307,32 @@ const PARDProfileView = ({ profileData, formData }) => {
             Appointment Time:{" "}
             {role === "admin" ? (
               <>
-                <span className="border-b border-black flex-1 pb-0.5 pdf-text">
-                  {appointmentTime
-                    ? new Date(
-                        `1970-01-01T${appointmentTime}`
-                      ).toLocaleTimeString("en-US", {
-                        hour: "numeric",
-                        minute: "2-digit",
-                        hour12: true,
-                      })
-                    : ""}
-                </span>
-                <input
-                  type="time"
-                  value={appointmentTime}
-                  onChange={(e) => setAppointmentTime(e.target.value)}
-                  className="border-b border-black flex-1 pb-0.5 pdf-input"
-                />
+                <div className="flex flex-col">
+                  <span className="border-b border-black flex-1 pb-0.5 pdf-text">
+                    {appointmentTime
+                      ? new Date(
+                          `1970-01-01T${appointmentTime}`
+                        ).toLocaleTimeString("en-US", {
+                          hour: "numeric",
+                          minute: "2-digit",
+                          hour12: true,
+                        })
+                      : ""}
+                  </span>
+                  <input
+                    type="time"
+                    value={appointmentTime}
+                    min="08:00"
+                    max="16:00"
+                    onChange={(e) => setAppointmentTime(e.target.value)}
+                    className="border-b border-black flex-1 pb-0.5 pdf-input"
+                  />
+                  {errors.appointmentTime && (
+                    <span className="text-red-500 text-xs pdf-input">{errors.appointmentTime}</span>
+                  )}
+
+                </div>
+
               </>
             ) : (
               <span className="border-b border-black flex-1 pb-0.5">
@@ -336,7 +366,7 @@ const PARDProfileView = ({ profileData, formData }) => {
           </label>
           <label className="col-span-2">
             Symptoms Observed:
-            <AutoResizeTextarea value={pard_data?.symptoms_observed || ""} />
+            <AutoResizeTextarea value={pard_data?.symptoms_observed || ""} readOnly/>
           </label>
           <label>
             Date Diagnosed:{" "}

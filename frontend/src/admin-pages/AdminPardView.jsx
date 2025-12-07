@@ -28,7 +28,6 @@ export const AdminPardView = () => {
           email: form.email,
         });
 
-        console.log("Form", form.email);
         setProfileData(form.student_data);
       } catch (err) {
         setError(err.message);
