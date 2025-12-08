@@ -177,7 +177,7 @@ const filterAndSortRows = (rows, filterText, selectedFilters, sortField, sortDir
       <div className="min-h-screen w-full px-4 sm:px-8 py-6 bg-gray-50">
         <div className="space-y-8">
           {/* Summary cards */}
-          <div className="grid grid-cols-5 gap-6 ">
+          <div className="grid xl:grid-cols-5 gap-6 sm:grid-cols-3 md:grid-cols-3">
             {summaryData.map((item, index) => (
               <SummaryCard
                 key={index}

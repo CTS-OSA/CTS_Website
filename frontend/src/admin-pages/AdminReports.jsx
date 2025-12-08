@@ -93,7 +93,7 @@ export const AdminReports = () => {
             <GroupedBarChart
               title="Population by Year Level"
               data={yearLevelData}
-              keys={["First Year", "Second Year", "Third Year", "Fourth Year"]}
+              keys={["First Year", "Second Year", "Third Year", "Fourth Year", "Fifth Year"]}
               totalValue={totalNumberofStudents}
               xKey="name"
               subtitle={top3ProgramsCard?.interval}
