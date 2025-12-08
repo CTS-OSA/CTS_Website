@@ -37,7 +37,7 @@ class PARD(models.Model):
             required_fields = [
                 'preferred_date', 'preferred_time', 'date_started',
                 'is_currently_on_medication', 'symptoms_observed',
-                'date_diagnosed', 'communication_platform', 'diagnosed_by'
+                'communication_platform', 'diagnosed_by'
             ]
 
             check_required_fields(self, required_fields, self.submission.status)
