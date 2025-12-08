@@ -114,7 +114,10 @@ def get_student_profile(request):
         serializer = StudentSerializer(student)
         return Response(serializer.data)
     except Student.DoesNotExist:
-        return Response({'error': 'Student profile not found'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({
+            'exists': False,
+            'profile': None,
+        }, status=status.HTTP_200_OK)
     
     
 @api_view(['PATCH'])

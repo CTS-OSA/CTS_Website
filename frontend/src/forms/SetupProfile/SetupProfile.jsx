@@ -270,7 +270,7 @@ const MultiStepForm = () => {
       sanitizedFormData.date_initial_entry_sem
     );
 
-    payload.append("last_name", sanitizedFormData.last_name);
+    payload.append("last_name", sanitizedFormData.family_name);
     payload.append("first_name", sanitizedFormData.first_name);
     payload.append("middle_name", sanitizedFormData.middle_name || "");
     payload.append("nickname", sanitizedFormData.nickname || "");
@@ -364,10 +364,10 @@ const MultiStepForm = () => {
       <div className="relative flex flex-col min-h-screen">
         <div className="mt-[30px] mx-auto w-3/4 flex flex-col items-center">
           <div className="main-form-info">
-            <h1 className="left-1/2 text-center font-bold text-[2rem] text-white">
+            <h1 className="left-1/2 text-center font-bold sm:text-3xl md:text-4xl lg:text-5xl text-white">
               SETUP YOUR PROFILE
             </h1>
-            <p className="text-center text-white my-5 text-base lg:w-2xl w-sm">
+            <p className="text-center text-white my-5 text-xs sm:text-base lg:w-2xl">
               Please complete this profile accurately. Your information will
               help the Office of Student Affairs provide the appropriate
               guidance, support, and services during your stay at UP Mindanao.

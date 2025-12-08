@@ -32,8 +32,8 @@ const PreviewModal = ({ data, onClose, photoPreview }) => {
               </div>
               <div>
                 <p className="text-gray-500 text-sm text-left">STUDENT PHOTO</p>
-                <p className="text-lg font-semibold">
-                  {data.first_name} {data.family_name}
+                <p className="text-lg font-semibold text-left">
+                  {data.first_name} {data.last_name}
                 </p>
               </div>
             </div>
@@ -45,7 +45,7 @@ const PreviewModal = ({ data, onClose, photoPreview }) => {
               <strong>PERSONAL INFORMATION</strong>
             </p>
             <div className="grid lg:grid-cols-3 gap-4 pb-4">
-              <DisplayField label="Family Name" value={data.family_name} />
+              <DisplayField label="Family Name" value={data.last_name} />
               <DisplayField label="First Name" value={data.first_name} />
               <DisplayField label="Middle Name" value={data.middle_name} />
             </div>
