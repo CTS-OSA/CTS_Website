@@ -15,12 +15,6 @@ class Poster(models.Model):
     class Meta: 
         db_table = 'poster_details'
         ordering = ['order']
-    
-    @property
-    def image_url(self):
-        if self.image:
-            return f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/posters/{self.image}"
-        return None
 
     def clean(self):
         if self.deleted_at and self.created_at and self.deleted_at < self.created_at:

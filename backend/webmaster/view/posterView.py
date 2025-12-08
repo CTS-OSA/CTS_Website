@@ -1,5 +1,5 @@
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -22,22 +22,20 @@ def validate_image_extension(filename):
     return ext in allowed_extensions
 
 class posterView(APIView):
-    permission_classes = [IsAuthenticated]
-
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+    
     def get(self, request):
         try:
-            
-            
             # Get all active posters
-            posters = Poster.objects.filter(status=1) 
-            serializer = PosterSerializer(posters, many=True)
+            posters = Poster.objects.filter(status=1).order_by('order')
 
-            # Return the full s3 url of the posteres
-            data = serializer.data
-
-            for poster in data:
-                if poster.get('image'):
-                    poster['image'] = f"{photo_url}/posters/{poster['image']}"
+            data = [{
+                'image_url': f"{photo_url}/posters/{p.image}" if p.image else None,
+                'order': p.order
+            } for p in posters]
             
             return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
