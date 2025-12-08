@@ -33,6 +33,7 @@ const PARDProfilePage = () => {
         const transformedData = {
           pard_data: data.pard_data,
           submission: data.submission,
+          email: data.email,
         };
 
         setFormData(transformedData);

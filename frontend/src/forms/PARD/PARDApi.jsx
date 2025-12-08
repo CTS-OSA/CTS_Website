@@ -36,13 +36,16 @@ export const useFormApi = () => {
 
   const submitForm = async (studentNumber, formData) => {
     try {
+      const cleanData = JSON.parse(JSON.stringify(formData, (key, value) => 
+        value === "" ? null : value
+      ));
       
       const response = await request(
         `${BASE_URL}/submit/${studentNumber}/`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData)
+          body: JSON.stringify(cleanData)
         }
       );
 
