@@ -184,6 +184,7 @@ th {
   font-weight: 600;
   text-transform: uppercase;
   line-height: 1.2;
+  margin-right: 2rem;
 }
 
 /* Medium screens: switch to icon-only controls */

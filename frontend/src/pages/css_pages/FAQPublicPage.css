@@ -95,3 +95,46 @@
   flex-direction: column;
   align-items: flex-start; 
 }
+
+.faq-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  cursor: pointer;
+}
+
+.faq-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.faq-fade {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: faqFadeUp 0.7s ease forwards;
+}
+
+.faq-fade.delay-1 {
+  animation-delay: 0.2s;
+}
+
+.faq-fade.delay-2 {
+  animation-delay: 0.35s;
+}
+
+@keyframes faqFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
