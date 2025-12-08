@@ -23,11 +23,11 @@ class SubmissionViewSet(viewsets.ReadOnlyModelViewSet):
         user = self.request.user
 
         if user.is_staff or user.is_superuser:
-            return Submission.objects.all()
+            return Submission.objects.all().order_by('-submitted_on')
         
         if not hasattr(user, 'student'):
             raise PermissionDenied("You must complete your student profile first.")
 
         # Assuming every non-admin user has a related student profile
-        return Submission.objects.filter(student=user.student)
+        return Submission.objects.filter(student=user.student).order_by('-submitted_on')
 

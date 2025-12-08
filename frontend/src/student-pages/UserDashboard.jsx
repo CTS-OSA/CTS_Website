@@ -34,10 +34,10 @@ export const UserDashboard = () => {
 
           const submitted = data
             .filter(form => form.status === 'submitted')
-            .sort((a, b) => new Date(a.submitted_on || a.saved_on) - new Date(b.submitted_on || b.saved_on));
 
           const pending = data
-            .filter(form => form.status === 'draft');
+            .filter(form => form.status === 'draft')
+            .sort((a, b) => new Date(b.updated_on || b.created_on) - new Date(a.updated_on || a.created_on));
 
           setSubmittedForms(submitted);
           setPendingActions(pending);

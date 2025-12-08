@@ -1,5 +1,5 @@
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from ..models.staff import Staff
@@ -21,21 +21,24 @@ def validate_image_extension(filename):
     return ext in allowed_extensions
 
 class staffView(APIView):
-    permission_classes = [IsAuthenticated]
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     def get(self, request):
         try:
-            
             # Get all active staff
-            staff = Staff.objects.filter(status=1) 
-            serializer = StaffSerializer(staff, many=True)
-
-            data = serializer.data
-
-            # Return the full s3 url of the posteres
-            for staff in data:
-                if staff.get('image'):
-                    staff['image'] = f"{photo_url}/staff/{staff['image']}"
+            staff = Staff.objects.filter(status=1).order_by('order')
+            
+            data = [{
+                'image_url': f"{photo_url}/staff/{s.image}" if s.image else None,
+                'name': s.name,
+                'post_nominal': s.post_nominal,
+                'position': s.position,
+                'license': s.license,
+                'order': s.order
+            } for s in staff]
             
             return Response(data, status=status.HTTP_200_OK)
         except Exception as e:

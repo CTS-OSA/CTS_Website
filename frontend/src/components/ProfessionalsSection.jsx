@@ -13,8 +13,7 @@ export default function ProfessionalsSection() {
   // Fetch Professionals 
   const fetchProfessionals = async () => {
     try {
-      const response = await request("http://localhost:8000/api/webmaster/professional/");
-      console.log("RESPONSE", response)
+      const response = await request("http://localhost:8000/api/webmaster/professional/", { skipAuth: true });
       if (response.ok) {
         const data = await response.json();
         setProfessionals(data);

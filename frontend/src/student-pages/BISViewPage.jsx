@@ -432,7 +432,6 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
     Object.assign(validationErrors, validateSocioEconomicStatus(apiData));
     Object.assign(validationErrors, validateScholasticStatus(apiData));
 
-
     if (Object.keys(validationErrors).length > 0) {
       const fieldErrors = {};
 
