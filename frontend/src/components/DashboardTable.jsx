@@ -7,6 +7,16 @@ import { Eye, Trash2 } from "lucide-react";
 const TableSection = ({ title, headers, rows, onView, onDelete }) => {
   const validRows = Array.isArray(rows) ? rows : [];
 
+  const getStatusBadgeClasses = (status) => {
+    const normalized = (status || "").toLowerCase();
+    switch (normalized) {
+      case "submitted":
+        return "bg-upgreen text-white";
+      case "draft":
+        return "bg-upyellow text-black";
+    }
+  };
+
   return (
     <div className="table-section w-full mb-10">
       <h2 className="text-xl font-semibold text-center mb-4">{title}</h2>
@@ -59,7 +69,9 @@ const TableSection = ({ title, headers, rows, onView, onDelete }) => {
                     style={{ width: "20%" }}
                   >
                     <span
-                      className={`status-badge ${row.status.toLowerCase()} px-2 py-1 rounded-full`}
+                      className={`status-badge ${getStatusBadgeClasses(
+                        row.status
+                      )} px-2 py-1 rounded-full`}
                     >
                       {row.status}
                     </span>
