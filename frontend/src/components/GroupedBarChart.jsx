@@ -14,7 +14,7 @@ export default function GroupedBarChart({
   barGroupWidth = 80,
   minVisibleBars = 6,
 }) {
-  const colorPalette = ["#5F61C1", "#EC5F1A", "#93c5fd", "#fcbd47"];
+  const colorPalette = ["#09699c", "#554478", "#a12877", "#e32a28", "#fe923a"];
   const scrollRef = useRef(null);
   const [scrollPos, setScrollPos] = useState(0);
 

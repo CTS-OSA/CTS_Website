@@ -20,6 +20,7 @@ def admin_reports(request):
     region_counts = Student.objects.filter(status='enrolled').values('permanent_address__region').annotate(count=Count('student_number')).order_by('-count')
     top_region = region_counts[0]['permanent_address__region'] if region_counts else "N/A"
 
+    
     total_students = Student.objects.filter(status='enrolled').count()
 
     scholarship_subquery = SocioEconomicStatus.objects.filter(
@@ -40,7 +41,8 @@ def admin_reports(request):
     gender_data = [{'label': g['sex'], 'value': g['count']} for g in gender_counts]
 
     region_data = [{'name': r['permanent_address__region'], 'Students': r['count']} for r in region_counts]
-
+    region_data.sort(key=lambda x: x['name'])
+    
     age_groups = [
         ('Below 18', 0, 17),
         ('18–19', 18, 19),
