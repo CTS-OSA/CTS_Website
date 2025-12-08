@@ -151,6 +151,11 @@ class ParentSerializer(serializers.ModelSerializer):
         """
         Custom validation based on is_deceased and is_none flags
         """
+        submission = self.context.get('submission') 
+
+        if submission and submission.status == 'draft':
+            return data  
+        
         is_deceased = data.get('is_deceased', False)
         is_none = data.get('is_none', False)
         

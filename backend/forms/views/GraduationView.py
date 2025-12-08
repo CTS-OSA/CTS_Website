@@ -26,9 +26,20 @@ class GraduationView(APIView):
         if not self._check_can_view(request, student_number):
             return Response({'detail': 'Not authorized.'}, status=status.HTTP_403_FORBIDDEN)
 
-        grad = get_object_or_404(GraduateStudent, student_number__student_number=student_number)
-        serializer = GraduateStudentSerializer(grad)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        try:
+            grad = GraduateStudent.objects.get(student_number__student_number=student_number)
+            serializer = GraduateStudentSerializer(grad)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except GraduateStudent.DoesNotExist:
+            return Response({
+                "exists": False,
+                "academic_year": "",
+                "semester": "",
+                "graduation_date": "",
+                "graduation_degree_program": "",
+                "honors_received": "",
+        }, status=status.HTTP_200_OK)
+
 
     def put(self, request, student_number):
         # Only admin can create/update
