@@ -22,6 +22,36 @@ export function validatePersonalInfo(data) {
     }
   });
 
+  if (data.birthYear && data.birthMonth && data.birthDay) {
+    const year = parseInt(data.birthYear);
+    const month = parseInt(data.birthMonth);
+    const day = parseInt(data.birthDay);
+    
+    if (isNaN(year) || isNaN(month) || isNaN(day)) {
+      errors['personal_info.birthdate'] = 'Invalid date format.';
+    } else {
+      const birthdate = new Date(year, month - 1, day);
+      
+      if (
+        birthdate.getFullYear() !== year ||
+        birthdate.getMonth() !== month - 1 ||
+        birthdate.getDate() !== day
+      ) {
+        errors['personal_info.birthdate'] = 'Invalid date.';
+      } else {
+        const today = new Date();
+        
+        if (birthdate > today) {
+          errors['personal_info.birthdate'] = 'Birthdate cannot be in the future.';
+        }
+
+        if (year < 1900) {
+          errors['personal_info.birthdate'] = 'Please enter a valid birth year.';
+        }
+      }
+    }
+  }
+
   if (data.mobile_number && !phonePattern.test(data.mobile_number)) {
     errors['personal_info.mobile_number'] = 'Mobile number is invalid.';
   }
@@ -158,6 +188,23 @@ export function validateEditableProfile(data) {
     "birth_rank",
     "contact_number",
   ]);
+
+  if (data.birthdate) {
+    const birthdate = new Date(data.birthdate);
+    const today = new Date();
+
+    if (isNaN(birthdate.getTime())) {
+      errors.birthdate = "Invalid date format.";
+    } else {
+      if (birthdate > today) {
+        errors.birthdate = "Birthdate cannot be in the future.";
+      }
+
+      if (birthdate.getFullYear() < 1900) {
+        errors.birthdate = "Please enter a valid birth year.";
+      }
+    }
+  }
 
   if (data.birth_rank && parseInt(data.birth_rank) <= 0)
     errors.birth_rank = "Birth rank must be greater than 0.";
