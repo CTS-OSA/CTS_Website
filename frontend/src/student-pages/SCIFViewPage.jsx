@@ -712,6 +712,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           setErrors((prev) => ({ ...prev, graduation: null }));
         } else if (res.status === 404) {
           setGraduationInfo(defaultGraduationInfo());
+          return; 
         } else {
           const errBody = await res.json().catch(() => null);
           setErrors((prev) => ({
@@ -724,7 +725,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       }
     };
     fetchGraduation();
-    // only run when student number changes
   }, [profileData?.student_number, request]);
 
   const errorAliasMap = {
