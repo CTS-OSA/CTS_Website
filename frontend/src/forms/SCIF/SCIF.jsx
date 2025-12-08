@@ -283,22 +283,46 @@ const SCIF = () => {
 
         const newSubmissionId = response.submission.id;
         const sections = response.sections || {};
+        const pickSectionValue = (key, fallback = undefined) => {
+          if (sections[key] !== undefined && sections[key] !== null) {
+            return sections[key];
+          }
+          if (response[key] !== undefined && response[key] !== null) {
+            return response[key];
+          }
+          return fallback;
+        };
+        const familySection = pickSectionValue('family_data', {});
+        const siblingsSection = pickSectionValue('siblings', []);
+        const previousSchoolSection = pickSectionValue(
+          'previous_school_record',
+          {}
+        );
+        const healthSection = pickSectionValue('health_data', {});
+        const scholarshipSection = pickSectionValue('scholarship', {});
+        const personalitySection = pickSectionValue('personality_traits', {});
+        const familyRelationshipSection = pickSectionValue(
+          'family_relationship',
+          {}
+        );
+        const counselingSection = pickSectionValue('counseling_info', {});
+        const privacySection = pickSectionValue('privacy_consent', {});
 
         setSubmissionId(newSubmissionId);
         setSubmissionStatus(response.submission.status);
 
-        // Map backend sections → frontend formData shape
+        // Map backend sections -> frontend formData shape
         setFormData((prev) => ({
           family_data: {
             ...prev.family_data,
-            ...sections.family_data,
+            ...familySection,
             submission: newSubmissionId,
             student_number: studentNumber,
           },
 
           siblings:
-            Array.isArray(sections.siblings) && sections.siblings.length > 0
-              ? sections.siblings.map((s) => ({
+            Array.isArray(siblingsSection) && siblingsSection.length > 0
+              ? siblingsSection.map((s) => ({
                   ...s,
                   submission: newSubmissionId,
                   students:
@@ -306,68 +330,77 @@ const SCIF = () => {
                       ? s.students
                       : [studentNumber],
                 }))
-              : [],
+              : prev.siblings,
 
           previous_school_record: {
             records:
-              Array.isArray(sections.previous_school_record?.records) &&
-              sections.previous_school_record.records.length > 0
-                ? sections.previous_school_record.records.map((r) => ({
-                    ...r,
-                    submission: newSubmissionId,
-                    student_number: studentNumber,
-                  }))
-                  .filter((r) => r.education_level)
-                : [], 
+              Array.isArray(previousSchoolSection?.records) &&
+              previousSchoolSection.records.length > 0
+                ? previousSchoolSection.records
+                    .map((r) => ({
+                      ...r,
+                      submission: newSubmissionId,
+                      student_number: studentNumber,
+                    }))
+                    .filter((r) => r.education_level)
+                : Array.isArray(previousSchoolSection) &&
+                  previousSchoolSection.length > 0
+                ? previousSchoolSection
+                    .map((r) => ({
+                      ...r,
+                      submission: newSubmissionId,
+                      student_number: studentNumber,
+                    }))
+                    .filter((r) => r.education_level)
+                : prev.previous_school_record.records,
             sameAsPrimary:
-              sections.previous_school_record?.sameAsPrimary ||
+              previousSchoolSection?.sameAsPrimary ||
               prev.previous_school_record?.sameAsPrimary ||
-              {}, 
+              {},
           },
 
           health_data: {
             ...prev.health_data,
-            ...sections.health_data,
+            ...healthSection,
             submission: newSubmissionId,
             student_number: studentNumber,
           },
 
           scholarship: {
             ...prev.scholarship,
-            ...sections.scholarship,
+            ...scholarshipSection,
             submission: newSubmissionId,
             student_number: studentNumber,
           },
 
           personality_traits: {
             ...prev.personality_traits,
-            ...sections.personality_traits,
+            ...personalitySection,
             submission: newSubmissionId,
             student_number: studentNumber,
           },
 
           family_relationship: {
             ...prev.family_relationship,
-            ...sections.family_relationship,
+            ...familyRelationshipSection,
             submission: newSubmissionId,
             student_number: studentNumber,
           },
 
           counseling_info: {
             ...prev.counseling_info,
-            ...sections.counseling_info,
+            ...counselingSection,
             submission: newSubmissionId,
             student_number: studentNumber,
           },
 
           privacy_consent: {
             ...prev.privacy_consent,
-            ...sections.privacy_consent,
+            ...privacySection,
             submission: newSubmissionId,
             student_number: studentNumber,
           },
         }));
-
         setHasFetchedData(true);
       } catch (err) {
         setError(err.message || "Error fetching or creating form.");

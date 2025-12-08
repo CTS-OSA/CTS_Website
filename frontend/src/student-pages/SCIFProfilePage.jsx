@@ -16,6 +16,9 @@ const SCIFProfilePage = () => {
 
   useEffect(() => {
     const loadData = async () => {
+      if (profileData === null) {
+        return;
+      }
       if (!profileData?.student_number) {
         setError('Student number is not available.');
         setLoading(false);
@@ -30,22 +33,55 @@ const SCIFProfilePage = () => {
           return;
         }
 
+        const sections = data.sections || {};
+        const siblings = Array.isArray(sections.siblings)
+          ? sections.siblings
+          : Array.isArray(data.siblings)
+            ? data.siblings
+            : [];
+        const previousSchoolRecords =
+          sections.previous_school_record?.records ??
+          (Array.isArray(data.previous_school_record)
+            ? data.previous_school_record
+            : Array.isArray(data.previous_school_record?.records)
+              ? data.previous_school_record.records
+              : []);
+
+        const psychometricRaw =
+          sections.psychometric_data ??
+          data.psychometric_data ??
+          null;
         const transformedData = {
-          siblings: data.siblings,
-          family_data: data.family_data,
-          health_data: data.health_data,
-          previous_school_record: data.previous_school_record,
-          scholarship: data.scholarship,
-          personality_traits: data.personality_traits,
-          family_relationship: data.family_relationship,
-          counseling_info: data.counseling_info,
-          privacy_consent: data.privacy_consent,
           submission: data.submission,
-          college_awards: data.college_awards,
-          memberships: data.memberships,
+          family_data: sections.family_data || data.family_data || {},
+          siblings,
+          previous_school_record: Array.isArray(previousSchoolRecords)
+            ? previousSchoolRecords
+            : [],
+          health_data: sections.health_data || data.health_data || {},
+          scholarship: sections.scholarship || data.scholarship || {},
+          personality_traits:
+            sections.personality_traits || data.personality_traits || {},
+          family_relationship:
+            sections.family_relationship || data.family_relationship || {},
+          counseling_info:
+            sections.counseling_info || data.counseling_info || {},
+          privacy_consent:
+            sections.privacy_consent || data.privacy_consent || {},
+          psychometric_data: psychometricRaw,
+          guidance_notes: data.guidance_notes || null,
+          college_awards: data.college_awards ?? sections.college_awards ?? [],
+          memberships: data.memberships ?? sections.memberships ?? [],
         };
 
+        if (!transformedData.submission) {
+          setError('No SCIF submission found.');
+          setLoading(false);
+          return;
+        }
+
         setFormData(transformedData);
+        setError('');
       } catch (err) {
         setError('An error occurred while loading the form.');
       } finally {
@@ -54,8 +90,7 @@ const SCIFProfilePage = () => {
     };
 
     loadData();
-
-  }, [profileData?.student_number]); 
+  }, [getFormBundle, profileData?.student_number]);
 
   if (loading) return <Loader />;
   if (error) return <div className="error">{error}</div>;
