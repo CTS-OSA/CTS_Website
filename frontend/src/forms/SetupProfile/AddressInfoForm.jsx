@@ -41,7 +41,7 @@ const AddressInfoForm = ({
         </label>
       )}
 
-      <div className="grid lg:grid-cols-2 gap-4 pb-4 mt-4">
+      <div className="mt-4 grid grid-cols-1 gap-4 pb-4 md:grid-cols-2">
         <div className="form-group">
           <FormField
             label="Address Line 1 "
@@ -67,7 +67,7 @@ const AddressInfoForm = ({
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4 pb-4">
+      <div className="grid grid-cols-1 gap-4 pb-4 md:grid-cols-2">
         <div className="form-group">
           <FormField
             label="Barangay "
@@ -96,7 +96,7 @@ const AddressInfoForm = ({
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-4 pb-4">
+      <div className="grid grid-cols-1 gap-4 pb-4 sm:grid-cols-2 lg:grid-cols-3">
         <div className="form-group">
           <FormField
             label="Region"

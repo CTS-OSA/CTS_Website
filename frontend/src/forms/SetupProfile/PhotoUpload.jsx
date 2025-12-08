@@ -134,12 +134,12 @@ const PhotoUpload = ({
           </label>
         </div>
       ) : (
-        <div className="flex items-center justify-center w-full">
+        <div className="flex w-full items-center justify-center">
           <label
             htmlFor="dropzone-file"
-            className={`flex flex-col items-center justify-center w-full h-64 border-2 ${
+            className={`flex w-full flex-col items-center justify-center border-2 ${
               errors?.photo ? "border-red-500" : "border-gray-300"
-            } border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100`}
+            } border-dashed rounded-lg cursor-pointer bg-gray-50 p-4 hover:bg-gray-100 min-h-[12rem] sm:min-h-[16rem]`}
           >
             <div className="flex flex-col items-center justify-center pt-5 pb-6 sm:text-cente">
               {/* SVG Icon */}

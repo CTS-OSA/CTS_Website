@@ -20,9 +20,9 @@ const PreviewModal = ({ data, onClose, photoPreview }) => {
         </button>
         <h2>PROFILE PREVIEW</h2>
 
-        <div className="student_preview_wrapper">
+        <div className="student_preview_wrapper flex flex-col gap-6">
           {photoPreview && (
-            <div className="photo-preview-section border-b pb-4 mb-4 flex items-center space-x-6">
+            <div className="photo-preview-section mb-4 flex flex-col items-center gap-4 border-b pb-4 text-center sm:flex-row sm:items-center sm:gap-6 sm:text-left">
               <div className="w-24 h-24 border rounded-md overflow-hidden bg-gray-200">
                 <img
                   src={photoPreview}
@@ -40,26 +40,26 @@ const PreviewModal = ({ data, onClose, photoPreview }) => {
           )}
 
           {/* PERSONAL INFORMATION */}
-          <div className="info-group">
+          <div className="info-group flex flex-col gap-4">
             <p>
               <strong>PERSONAL INFORMATION</strong>
             </p>
-            <div className="grid lg:grid-cols-3 gap-4 pb-4">
+            <div className="grid grid-cols-1 gap-4 pb-4 sm:grid-cols-2 lg:grid-cols-3">
               <DisplayField label="Family Name" value={data.last_name} />
               <DisplayField label="First Name" value={data.first_name} />
               <DisplayField label="Middle Name" value={data.middle_name} />
             </div>
-            <div className="grid lg:grid-cols-3 gap-4 pb-4">
+            <div className="grid grid-cols-1 gap-4 pb-4 sm:grid-cols-2 lg:grid-cols-3">
               <DisplayField label="Nickname" value={data.nickname} />
               <DisplayField label="Sex" value={data.sex} />
               <DisplayField label="Religion" value={data.religion} />
             </div>
-            <div className="grid lg:grid-cols-3 gap-4 pb-4">
+            <div className="grid grid-cols-1 gap-4 pb-4 sm:grid-cols-2 lg:grid-cols-3">
               <DisplayField label="Birthdate" value={birthdate} />
               <DisplayField label="Birth Place" value={data.birth_place} />
               <DisplayField label="Birth Rank" value={data.birth_rank} />
             </div>
-            <div className="grid lg:grid-cols-2 gap-4 pb-4">
+            <div className="grid grid-cols-1 gap-4 pb-4 md:grid-cols-2">
               <DisplayField
                 label="Landline"
                 value={data.landline_number || "None"}
@@ -69,7 +69,7 @@ const PreviewModal = ({ data, onClose, photoPreview }) => {
           </div>
 
           {/* EDUCATION INFORMATION */}
-          <div className="info-group">
+          <div className="info-group flex flex-col gap-4">
             <p>
               <strong>EDUCATION INFORMATION</strong>
             </p>
@@ -80,7 +80,7 @@ const PreviewModal = ({ data, onClose, photoPreview }) => {
           </div>
 
           {/* PERMANENT ADDRESS */}
-          <div className="info-group">
+          <div className="info-group flex flex-col gap-4">
             <p>
               <strong>PERMANENT ADDRESS</strong>
             </p>
@@ -94,14 +94,14 @@ const PreviewModal = ({ data, onClose, photoPreview }) => {
                 value={data.permanent_address_line_2}
               />
             )}
-            <div className="grid lg:grid-cols-2 gap-4 pb-4">
+            <div className="grid grid-cols-1 gap-4 pb-4 md:grid-cols-2">
               <DisplayField label="Barangay" value={data.permanent_barangay} />
               <DisplayField
                 label="City/Municipality"
                 value={data.permanent_city_municipality}
               />
             </div>
-            <div className="grid lg:grid-cols-3 gap-4 pb-4">
+            <div className="grid grid-cols-1 gap-4 pb-4 sm:grid-cols-2 lg:grid-cols-3">
               <DisplayField label="Province" value={data.permanent_province} />
               <DisplayField label="Region" value={data.permanent_region} />
               <DisplayField label="ZIP Code" value={data.permanent_zip_code} />
@@ -109,7 +109,7 @@ const PreviewModal = ({ data, onClose, photoPreview }) => {
           </div>
 
           {/* ADDRESS WHILE IN UP */}
-          <div className="info-group">
+          <div className="info-group flex flex-col gap-4">
             <p>
               <strong>ADDRESS WHILE IN UP</strong>
             </p>
@@ -123,14 +123,14 @@ const PreviewModal = ({ data, onClose, photoPreview }) => {
                 value={data.up_address_line_2}
               />
             )}
-            <div className="grid lg:grid-cols-2 gap-4 pb-4">
+            <div className="grid grid-cols-1 gap-4 pb-4 md:grid-cols-2">
               <DisplayField label="Barangay" value={data.up_barangay} />
               <DisplayField
                 label="City/Municipality"
                 value={data.up_city_municipality}
               />
             </div>
-            <div className="grid lg:grid-cols-3 gap-4 pb-4">
+            <div className="grid grid-cols-1 gap-4 pb-4 sm:grid-cols-2 lg:grid-cols-3">
               <DisplayField label="Province" value={data.up_province} />
               <DisplayField label="Region" value={data.up_region} />
               <DisplayField label="ZIP Code" value={data.up_zip_code} />

@@ -54,8 +54,8 @@ const EducationInfoForm = ({ formData, setFormData, errors, setErrors }) => {
   const filteredCollegeOptions = enums?.college?.filter((college) =>
     formData.degree_program
       ? enums?.degree_to_college?.[formData.degree_program]?.includes(
-          college.value
-        )
+        college.value
+      )
       : true
   );
 
@@ -70,7 +70,7 @@ const EducationInfoForm = ({ formData, setFormData, errors, setErrors }) => {
     <div className="form-container">
       <h2 className="text-upmaroon text-2xl font-bold pb-4">Education Information</h2>
 
-      <div className="grid lg:grid-cols-2 gap-4 pb-4">
+      <div className="grid grid-cols-1 gap-4 pb-4 md:grid-cols-2">
         <div className="form-group">
           <FormField
             label="Student Number"
@@ -106,7 +106,7 @@ const EducationInfoForm = ({ formData, setFormData, errors, setErrors }) => {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4 pb-4">
+      <div className="grid grid-cols-1 gap-4 pb-4 md:grid-cols-2">
         <div className="form-group">
           <FormField
             label="College / Department"
@@ -149,7 +149,7 @@ const EducationInfoForm = ({ formData, setFormData, errors, setErrors }) => {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4 pb-4">
+      <div className="grid grid-cols-1 gap-4 pb-4 md:grid-cols-2">
         <div className="form-group">
           <FormField
             label="Academic Year of Initial Entry"
@@ -161,7 +161,7 @@ const EducationInfoForm = ({ formData, setFormData, errors, setErrors }) => {
             }
             required
             error={errors?.["education.date_initial_entry"]}
-            placeholder="2023-2024"
+            placeholder="e.g., 2023-2024"
           />
         </div>
         <div className="form-group">
