@@ -258,92 +258,117 @@ const SCIF = () => {
   useEffect(() => {
     const fetchFormData = async () => {
       setLoading(true);
+
       try {
         let response = await getFormBundle(studentNumber);
 
-        if (!response) {
-          await createDraftSubmission(studentNumber);
+        // NEW BACKEND BEHAVIOR → must check `exists === false`
+        if (response?.exists === false || !response?.submission) {
+          const newId = await createDraftSubmission(studentNumber);
+
+          if (!newId) {
+            setError("Failed to create draft submission.");
+            setLoading(false);
+            return;
+          }
+
           response = await getFormBundle(studentNumber);
         }
 
-        if (response?.submission) {
-          const newSubmissionId = response.submission.id;
-          setSubmissionId(newSubmissionId);
-          setSubmissionStatus(response.submission.status);
+        // Still nothing? Fail safe
+        if (!response?.submission) {
+          setError("Failed to fetch submission data.");
+          return;
+        }
 
-          // Map response into formData shape while preserving defaults
-          setFormData((prev) => ({
-            family_data: {
-              ...prev.family_data,
-              ...response.family_data,
-              submission: newSubmissionId,
-              student_number: studentNumber,
-            },
-            siblings: Array.isArray(response.siblings)
-              ? response.siblings.map((s) => ({
-                ...s,
-                submission: newSubmissionId,
-                students: s.students?.length ? s.students : [studentNumber],
-              }))
-              : prev.siblings,
-            previous_school_record: {
-              records: Array.isArray(response.previous_school_record?.records)
-                ? response.previous_school_record.records.map((r) => ({
-                  ...r,
+        const newSubmissionId = response.submission.id;
+        const sections = response.sections || {};
+
+        setSubmissionId(newSubmissionId);
+        setSubmissionStatus(response.submission.status);
+
+        // Map backend sections → frontend formData shape
+        setFormData((prev) => ({
+          family_data: {
+            ...prev.family_data,
+            ...sections.family_data,
+            submission: newSubmissionId,
+            student_number: studentNumber,
+          },
+
+          siblings:
+            Array.isArray(sections.siblings) && sections.siblings.length > 0
+              ? sections.siblings.map((s) => ({
+                  ...s,
                   submission: newSubmissionId,
-                  student_number: studentNumber,
+                  students:
+                    Array.isArray(s.students) && s.students.length > 0
+                      ? s.students
+                      : [studentNumber],
                 }))
-                : Array.isArray(response.previous_school_record)
-                  ? response.previous_school_record.map((r) => ({
+              : [],
+
+          previous_school_record: {
+            records:
+              Array.isArray(sections.previous_school_record?.records) &&
+              sections.previous_school_record.records.length > 0
+                ? sections.previous_school_record.records.map((r) => ({
                     ...r,
                     submission: newSubmissionId,
                     student_number: studentNumber,
                   }))
-                  : prev.previous_school_record.records,
-              sameAsPrimary:
-                response.previous_school_record?.sameAsPrimary ||
-                prev.previous_school_record.sameAsPrimary,
-            },
-            health_data: {
-              ...prev.health_data,
-              ...response.health_data,
-              submission: newSubmissionId,
-              student_number: studentNumber,
-            },
-            scholarship: {
-              ...prev.scholarship,
-              ...response.scholarship,
-              submission: newSubmissionId,
-              student_number: studentNumber,
-            },
-            personality_traits: {
-              ...prev.personality_traits,
-              ...response.personality_traits,
-              submission: newSubmissionId,
-              student_number: studentNumber,
-            },
-            family_relationship: {
-              ...prev.family_relationship,
-              ...response.family_relationship,
-              submission: newSubmissionId,
-              student_number: studentNumber,
-            },
-            counseling_info: {
-              ...prev.counseling_info,
-              ...response.counseling_info,
-              submission: newSubmissionId,
-              student_number: studentNumber,
-            },
-            privacy_consent: {
-              ...prev.privacy_consent,
-              ...response.privacy_consent,
-              submission: newSubmissionId,
-              student_number: studentNumber,
-            },
-          }));
+                  .filter((r) => r.education_level)
+                : [], 
+            sameAsPrimary:
+              sections.previous_school_record?.sameAsPrimary ||
+              prev.previous_school_record?.sameAsPrimary ||
+              {}, 
+          },
 
-          setHasFetchedData(true);
-        }
+          health_data: {
+            ...prev.health_data,
+            ...sections.health_data,
+            submission: newSubmissionId,
+            student_number: studentNumber,
+          },
+
+          scholarship: {
+            ...prev.scholarship,
+            ...sections.scholarship,
+            submission: newSubmissionId,
+            student_number: studentNumber,
+          },
+
+          personality_traits: {
+            ...prev.personality_traits,
+            ...sections.personality_traits,
+            submission: newSubmissionId,
+            student_number: studentNumber,
+          },
+
+          family_relationship: {
+            ...prev.family_relationship,
+            ...sections.family_relationship,
+            submission: newSubmissionId,
+            student_number: studentNumber,
+          },
+
+          counseling_info: {
+            ...prev.counseling_info,
+            ...sections.counseling_info,
+            submission: newSubmissionId,
+            student_number: studentNumber,
+          },
+
+          privacy_consent: {
+            ...prev.privacy_consent,
+            ...sections.privacy_consent,
+            submission: newSubmissionId,
+            student_number: studentNumber,
+          },
+        }));
+
+        setHasFetchedData(true);
       } catch (err) {
         setError(err.message || "Error fetching or creating form.");
       } finally {
@@ -352,7 +377,6 @@ const SCIF = () => {
     };
 
     if (studentNumber) fetchFormData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studentNumber]);
 
   useEffect(() => {
@@ -385,9 +409,7 @@ const SCIF = () => {
           if (response.data.errors) {
             const flattened = formatErrorMessages(response.data.errors);
             errorMessage =
-              flattened.length > 0
-                ? flattened.join(" | ")
-                : errorMessage;
+              flattened.length > 0 ? flattened.join(" | ") : errorMessage;
           } else if (response.data.error) {
             errorMessage = response.data.error;
           } else if (response.data.message) {

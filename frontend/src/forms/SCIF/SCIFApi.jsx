@@ -27,17 +27,11 @@ export const useFormApi = () => {
     });
 
     if (response?.ok) {
-      const responseData = await response.json();
-
-      // Assuming the response contains the submission object with an id
-      const submissionId = responseData?.submission?.id;
-
-      if (submissionId) {
-        return submissionId; // Return the submissionId to use later
-      }
+      const data = await response.json();
+      return data?.submission_id ?? null;
     }
 
-    return null; // Return null if something goes wrong
+    return null; 
   };
 
   const getFormBundle = async (studentNumber) => {
@@ -49,8 +43,19 @@ export const useFormApi = () => {
       }
     );
 
-    if (response?.status === 404) return null;
-    return response?.ok ? await response.json() : null;
+    if (!response?.ok) return null;
+
+    const data = await response.json();
+
+    if (data.exists === false) {
+      return {
+        exists: false,
+        submission: null,
+        sections: {},
+      };
+    }
+
+    return data;
   };
 
   const saveDraft = async (submissionId, studentNumber, formData) => {

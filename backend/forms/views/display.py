@@ -26,8 +26,8 @@ class SubmissionViewSet(viewsets.ReadOnlyModelViewSet):
             return Submission.objects.all().order_by('-submitted_on')
         
         if not hasattr(user, 'student'):
-            raise PermissionDenied("You must complete your student profile first.")
-
+            return Submission.objects.none()
+        
         # Assuming every non-admin user has a related student profile
         return Submission.objects.filter(student=user.student).order_by('-submitted_on')
 

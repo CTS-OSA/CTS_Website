@@ -33,15 +33,15 @@ const BISSocioeconomic = ({
         ? value === "true"
         : value;
 
-    if (
-      ["spending_habit"].includes(name) &&
-      typeof parsedValue === "string"
-    ) {
-      parsedValue = parsedValue.replace(ALPHA_SPACE_REGEX, "");
-    }
+    // if (
+    //   ["spending_habit"].includes(name) &&
+    //   typeof parsedValue === "string"
+    // ) {
+    //   parsedValue = parsedValue.replace(ALPHA_SPACE_REGEX, "");
+    // }
 
     if (
-      ["other_notes", "other_scholarship", "combination_notes", "scholarships", "scholarship_privileges"].includes(
+      ["other_notes", "other_scholarship", "combination_notes", "scholarships", "scholarship_privileges", "spending_habit"].includes(
         name
       ) &&
       typeof parsedValue === "string"
