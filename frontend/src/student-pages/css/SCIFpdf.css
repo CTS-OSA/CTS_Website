@@ -711,6 +711,47 @@ textarea {
   text-align: justify;
 }
 
+.scif-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.scif-photo-frame {
+  width: 200px;
+  height: 200px;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.scif-photo-frame.has-photo {
+  background-color: transparent;
+  border: none;
+}
+
+.scif-photo-frame.no-photo {
+  background-color: #fff;
+  border: 2px solid #000;
+}
+
+.scif-photo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 /* Print-friendly tweaks */
 @media print {
   body {
