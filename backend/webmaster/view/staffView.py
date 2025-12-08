@@ -32,6 +32,7 @@ class staffView(APIView):
             staff = Staff.objects.filter(status=1).order_by('order')
             
             data = [{
+                'id': s.id,
                 'image_url': f"{photo_url}/staff/{s.image}" if s.image else None,
                 'name': s.name,
                 'post_nominal': s.post_nominal,

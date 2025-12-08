@@ -337,6 +337,7 @@ function App() {
                 />
 
 
+<<<<<<< Updated upstream
                 {/* Fallback for unauthorized access */}
                 <Route
                     path="/forms/counseling-referral-slip"
@@ -368,6 +369,197 @@ function App() {
             </Routes>
         </div>
     );
+=======
+        <Route
+          path="/user-privacy-setting"
+          element={
+            <ProtectedRoute requireAdmin={false} requireUser={true}>
+              <UserPrivacySetting />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* Admin dashboard only accessible by superusers */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <AdminDashboardNew />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin-student-list"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <AdminStudentList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/students/:studentId"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <AdminStudentView />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/student-forms/:studentId/student-cumulative-information-file"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <AdminSCIFView />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/counseling-referral-slip/:submission_id"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <AdminReferralView />
+            </ProtectedRoute>
+          }
+        />
+        {/* NEW ROUTE: Admin Referral Acknowledgement */}
+        <Route
+          path="/admin/referral-acknowledgement/:submission_id"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <AdminReferralAcknowledgement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin-bis-list"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <AdminBISList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/student-forms/:studentId/basic-information-sheet"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <AdminBISView />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/psychosocial-assistance-and-referral-desk/:submission_id"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <AdminPardView />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin-scif-list"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <AdminSCIFList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin-referral-list"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <AdminReferral />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin-pard-list"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <AdminPARDList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin-audit-log"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <AdminAuditLog />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin-reports"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <AdminReports />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin-system-settings"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <AdminSystemSettings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/site-content-dashboard"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <SiteContentDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/myprofile"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <AdminProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/setup-profile"
+          element={
+            <ProtectedRoute requireAdmin={true} requireUser={false}>
+              <AdminSetupProfile />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* Fallback for unauthorized access */}
+        <Route
+          path="/forms/counseling-referral-slip"
+          element={
+            <ProtectedRoute requireAdmin={false} requireUser={true}>
+              <ReferralSlip />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/forms/pard"
+          element={
+            <ProtectedRoute requireAdmin={false} requireUser={true}>
+              <PARD />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/forms/guest/counseling-referral-slip" element={<GuestReferralSlip />} />
+        <Route path="/verify" element={<VerifyReferralPage />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
+        <Route path="/public-forms" element={<FormPublicPage />} />
+        <Route path="/faq" element={<FAQPublicPage />} />
+        <Route
+          path="/password/reset/confirm/:uid/:token"
+          element={<ResetPassword />}
+        />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </div>
+  );
+>>>>>>> Stashed changes
 }
 
 
