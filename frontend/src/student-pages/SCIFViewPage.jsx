@@ -22,7 +22,7 @@ import { AuthContext } from "../context/AuthContext";
 import { useApiRequest } from "../context/ApiRequestContext";
 import BackToTopButton from "../components/BackToTop";
 import { useEnumChoices } from "../utils/enumChoices";
-import { getProfilePhotoUrl, getProfileInitials } from "../utils/profileUtils";
+import { getProfilePhotoUrl, getProfileInitials, toDataUrl } from "../utils/profileUtils";
 import {
   filterAlphabetsOnly,
   filterNumbersOnly,
@@ -669,6 +669,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
   const [schoolRecordRows, setSchoolRecordRows] = useState(() =>
     buildSchoolRecordRows()
   );
+  const [photoBase64, setPhotoBase64] = useState(null);
+
   useEffect(() => {
     const derivedGpa = safeTrim(getSeniorHighGpaValue(schoolRecordRows));
     if (!derivedGpa) return;
@@ -902,6 +904,22 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
   const photoUrl = getProfilePhotoUrl(profileData);
   const photoInitials = getProfileInitials(profileData);
   const submissionId = formData?.submission?.id;
+
+    useEffect(() => {
+  if (!photoUrl) return;
+
+  const loadImage = async () => {
+    try {
+      const base64 = await toDataUrl(photoUrl);
+      setPhotoBase64(base64);
+    } catch (err) {
+      console.error("Image conversion failed:", err);
+      setPhotoBase64(null);
+    }
+  };
+
+  loadImage();
+}, [photoUrl]);
 
   useEffect(() => {
     if (!formData || !profileData) return;
@@ -2386,7 +2404,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           <div className="flex justify-end -mt-14 -mb-2" data-pdf-hide>
             <button
               type="button"
-              className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-upmaroon hover:bg-red-[#991B1B] p-2 rounded"
+              className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-[#7b1113] hover:bg-red-[#991B1B] p-2 rounded"
               onClick={() => handleOpenModal("schoolRecords")}
             >
               <Pencil size={16} /> Edit Previous School Record
@@ -2467,7 +2485,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           <div className="flex -mb-10 -mt-14" data-pdf-hide>
             <button
               type="button"
-              className="text-white text-xs font-semibold mt-3 flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-upmaroon hover:bg-red-[#991B1B] p-2 rounded"
+              className="text-white text-xs font-semibold mt-3 flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-[#7b1113] hover:bg-red-[#991B1B] p-2 rounded"
               onClick={() => handleOpenModal("siblings")}
             >
               <Pencil size={16} /> Edit Sibling/s Record
@@ -4201,9 +4219,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 className="bigger_avatar"
                 style={{ borderRadius: "0", width: "200px", height: "200px" }}
               >
-                {photoUrl ? (
+                {photoBase64  ? (
                   <img
-                    src={photoUrl}
+                    src={photoBase64}
                     alt={`${profileData?.first_name || ""} ${
                       profileData?.last_name || ""
                     } ID`}
@@ -4212,6 +4230,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                       height: "100%",
                       objectFit: "cover",
                     }}
+                     crossOrigin="anonymous"
                   />
                 ) : (
                   `${photoInitials}`
@@ -4568,7 +4587,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               <div className="flex justify-end -mt-14" data-pdf-hide>
                 <button
                   type="button"
-                  className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-upmaroon hover:bg-red-[#991B1B] p-2 rounded"
+                  className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-[#7b1113] hover:bg-red-[#991B1B] p-2 rounded"
                   onClick={() => handleOpenModal("organizations")}
                 >
                   <Pencil size={16} /> Edit Organization/s Record
@@ -4610,7 +4629,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               <div className="flex justify-end -mt-14" data-pdf-hide>
                 <button
                   type="button"
-                  className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-upmaroon hover:bg-red-[#991B1B] p-2 rounded"
+                  className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-[#7b1113] hover:bg-red-[#991B1B] p-2 rounded"
                   onClick={() => handleOpenModal("awards")}
                 >
                   <Pencil size={16} /> Edit Award/s Received
@@ -4944,7 +4963,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   <div className="flex justify-end -mt-14" data-pdf-hide>
                     <button
                       type="button"
-                      className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-upmaroon hover:bg-red-[#991B1B] p-2 rounded"
+                      className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-[#7b1113] hover:bg-red-[#991B1B] p-2 rounded"
                       onClick={handleAddPsychometricRow}
                     >
                       <Plus size={16} /> Add Psychometric Record
