@@ -360,6 +360,20 @@ const hasSiblingContent = (row) =>
   row.company_school ||
   row.educational_attainment;
 
+const sortSiblingsByAge = (rows = []) =>
+  [...rows].sort((a, b) => {
+    const ageA = parseFloat(a?.age);
+    const ageB = parseFloat(b?.age);
+    const aValid = Number.isFinite(ageA);
+    const bValid = Number.isFinite(ageB);
+    if (aValid && bValid) {
+      return ageA - ageB;
+    }
+    if (aValid) return -1;
+    if (bValid) return 1;
+    return 0;
+  });
+
 const sanitizeSiblingRows = (rows, { keepEmptyRows = false } = {}) => {
   const sanitized = (Array.isArray(rows) ? rows : []).map((row) => ({
     id: row?.id ?? null,
@@ -378,18 +392,7 @@ const sanitizeSiblingRows = (rows, { keepEmptyRows = false } = {}) => {
     educational_attainment: safeTrim(row?.educational_attainment),
   }));
 
-  const sorted = sanitized.sort((a, b) => {
-    const ageA = parseFloat(a.age);
-    const ageB = parseFloat(b.age);
-    const aValid = !Number.isNaN(ageA);
-    const bValid = !Number.isNaN(ageB);
-    if (aValid && bValid) {
-      return ageA - ageB;
-    }
-    if (aValid) return -1;
-    if (bValid) return 1;
-    return 0;
-  });
+  const sorted = sortSiblingsByAge(sanitized);
 
   if (keepEmptyRows) {
     return sorted.length ? sorted : [createEmptySiblingRow()];
@@ -401,7 +404,7 @@ const buildSiblingRows = (siblings) => {
   if (!Array.isArray(siblings) || siblings.length === 0) {
     return [createEmptySiblingRow()];
   }
-  return siblings.map((sibling) => ({
+  const mapped = siblings.map((sibling) => ({
     id: sibling?.id ?? null,
     submission: sibling?.submission ?? null,
     students: Array.isArray(sibling?.students)
@@ -417,6 +420,7 @@ const buildSiblingRows = (siblings) => {
     company_school: sibling?.company_school || "",
     educational_attainment: sibling?.educational_attainment || "",
   }));
+  return sortSiblingsByAge(mapped);
 };
 
 const createEmptySchoolRecordRow = () => ({
