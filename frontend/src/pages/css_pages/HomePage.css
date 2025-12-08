@@ -105,3 +105,60 @@
     transform: translateY(0);
   }
 }
+
+/* Utility animations used by HomePage */
+.fade-slide-up {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: fadeSlideUp 0.8s ease-out forwards;
+}
+
+.fade-slide-up.delay-1 {
+  animation-delay: 0.15s;
+}
+
+.fade-slide-up.delay-2 {
+  animation-delay: 0.3s;
+}
+
+.floating-blob-slow {
+  animation: floatingBlob 10s ease-in-out infinite;
+}
+
+.floating-blob-slow.delay-1 {
+  animation-delay: 2s;
+}
+
+@keyframes fadeSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes floatingBlob {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.scroll-fade {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.9s ease, transform 0.9s ease;
+}
+
+.scroll-fade--visible {
+  opacity: 1;
+  transform: translateY(0);
+}

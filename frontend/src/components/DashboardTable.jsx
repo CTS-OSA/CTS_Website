@@ -71,7 +71,7 @@ const TableSection = ({ title, headers, rows, onView, onDelete }) => {
                     <span
                       className={`status-badge ${getStatusBadgeClasses(
                         row.status
-                      )} px-2 py-1 rounded-full`}
+                      )} px-2 py-1 rounded-full ml-0 lg:ml-9`}
                     >
                       {row.status}
                     </span>

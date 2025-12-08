@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import NavBar from "../components/NavBar";
 import Footer from "../components/Footer";
 import heroImg from "../assets/upmin-hero-image.jpg";
@@ -9,6 +9,7 @@ import objectives from "../assets/objectives-image.png";
 import PosterCarousel from "../components/PosterCarousel.jsx";
 import ServicesCarousel from "../components/ServicesCarousel.jsx";
 import ProfessionalsSection from "../components/ProfessionalsSection.jsx";
+import "./css_pages/HomePage.css";
 
 export const HomePage = () => {
   const scrollToServices = (e) => {
@@ -23,6 +24,29 @@ export const HomePage = () => {
       el.getBoundingClientRect().top + window.pageYOffset - navHeight - 8;
     window.scrollTo({ top, behavior: "smooth" });
   };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("scroll-fade--visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.2,
+      }
+    );
+
+    const targets = document.querySelectorAll(".scroll-fade");
+    targets.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -48,11 +72,11 @@ export const HomePage = () => {
         <div className="relative z-10 flex items-center justify-center sm:justify-start h-full">
           <div className="w-full px-5 sm:px-8 md:px-16 lg:px-24">
             <div className="max-w-lg sm:max-w-2xl text-center sm:text-left">
-              <p className="text-white/90 text-sm sm:text-base mb-2 font-semibold font-condensed xl:text-2xl text-shadow-lg/30">
+              <p className="text-white/90 text-sm sm:text-base mb-2 font-semibold font-condensed xl:text-2xl text-shadow-lg/30 fade-slide-up">
                 OSA - Counseling and Testing Section
               </p>
 
-              <h1 className="text-white font-spartan font-bold leading-tight ">
+              <h1 className="text-white font-spartan font-bold leading-tight fade-slide-up delay-1">
                 <span className="block text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight text-shadow-lg/30">
                   Help That{" "}
                   <span
@@ -73,7 +97,7 @@ export const HomePage = () => {
                 </span>
               </h1>
 
-              <div className="mt-4 md:mt-6 flex flex-col sm:flex-row gap-3 sm:gap-4 items-center sm:items-start justify-center sm:justify-start font-roboto">
+              <div className="mt-4 md:mt-6 flex flex-col sm:flex-row gap-3 sm:gap-4 items-center sm:items-start justify-center sm:justify-start font-roboto fade-slide-up delay-2">
                 <a
                   href="/public-forms"
                   className="
@@ -83,7 +107,7 @@ export const HomePage = () => {
                     transition 
                   "
                 >
-                  Fill Out Forms
+                  OSA-CTS Forms
                 </a>
 
                 <a
@@ -108,11 +132,11 @@ export const HomePage = () => {
       <main className="flex-1 bg-white text-gray-900">
         <section className="max-w-7xl mx-auto px-5 sm:px-8 py-10 lg:py-16">
           <div className="grid grid-cols-1 md:grid-cols-2 place-content-stretch gap-10 sm:gap-20 items-center">
-            <div className="relative w-fit place-self-center">
+            <div className="relative w-fit place-self-center scroll-fade">
               <img
                 src={blob3}
                 alt="Red Blob"
-                className="w-[70%]  h-auto left-0 right-0 mx-auto"
+                className="w-[70%] h-auto left-0 right-0 mx-auto floating-blob-slow"
               />
               <img
                 src={vision}
@@ -122,7 +146,7 @@ export const HomePage = () => {
               />
             </div>
 
-            <div className="place-self-center">
+            <div className="place-self-center fade-slide-up delay-1">
               <h2 className="text-xl font-semibold md:text-4xl sm:font-bold text-gray-900 font-condensed leading-tight text-center md:text-left">
                 We empower students to cultivate their potential, fostering
                 personal growth and development that benefits both themselves
@@ -131,7 +155,7 @@ export const HomePage = () => {
             </div>
 
             {/* Objectives */}
-            <div className="place-self-center">
+            <div className="place-self-center fade-slide-up">
               <h3 className="font-condensed font-semibold text-xl md:text-4xl mb-3  md:text-right text-center">
                 Our Objectives
               </h3>
@@ -161,11 +185,11 @@ export const HomePage = () => {
               </ul>
             </div>
 
-            <div className="relative w-fit place-self-center">
+            <div className="relative w-fit place-self-center scroll-fade">
               <img
                 src={blob9}
                 alt="Green Blob"
-                className="w-[60%] sm:w-[70%] h-auto left-0 right-0 mx-auto"
+                className="w-[60%] sm:w-[70%] h-auto left-0 right-0 mx-auto floating-blob-slow delay-1"
               />
               <img
                 src={objectives}
@@ -179,7 +203,7 @@ export const HomePage = () => {
 
         {/* Poster Section */}
         <section className="max-w-7xl mx-auto px-5 sm:px-8 py-10">
-          <div className="grid grid-cols-1  items-center text-center">
+          <div className="grid grid-cols-1  items-center text-center fade-slide-up">
             <div className="w-full">
               <div className="text-lg sm:text-3xl font-semibold mb-4 font-condensed">
                 <p>Wall of Wisdom</p>
@@ -199,12 +223,12 @@ export const HomePage = () => {
         </section>
 
         {/* Programs & Services */}
-        <section className="bg-upmaroon/95" id="services">
+        <section className="bg-upmaroon/95 fade-slide-up delay-1" id="services">
           <ServicesCarousel />
         </section>
 
         {/* Professionals */}
-        <section className="max-w-7xl mx-auto px-8 sm:px-8 py-12">
+        <section className="max-w-7xl mx-auto px-8 sm:px-8 py-12 fade-slide-up">
           <ProfessionalsSection />
         </section>
       </main>
