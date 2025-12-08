@@ -1,19 +1,24 @@
-import React from "react";
+import React, { useMemo } from "react";
 import BaseFormField from "../../components/FormField";
+import ModalMessage from "../../components/ModalMessage";
+import { filterGeneralText } from "../../utils/inputFilters";
 
 const SCIFScholarships = ({ data, updateData, readOnly = false }) => {
-  const FormField = (props) => (
-    <BaseFormField
-      {...props}
-      disabled={props.disabled ?? readOnly}
-    />
+  const FormField = useMemo(
+    () =>
+      function FormFieldComponent(props) {
+        return (
+          <BaseFormField {...props} disabled={props.disabled ?? readOnly} />
+        );
+      },
+    [readOnly]
   );
 
   const handleRawChange = (newValue) => {
     if (readOnly) return;
-    updateData({ scholarships_and_assistance: newValue });
+    const filtered = filterGeneralText(newValue);
+    updateData({ scholarships_and_assistance: filtered });
   };
-
   const scholarshipsRawText =
     typeof data.scholarships_and_assistance === "string"
       ? data.scholarships_and_assistance
