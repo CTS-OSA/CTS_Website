@@ -21,7 +21,12 @@ export const useFormApi = () => {
       body: JSON.stringify({ student_number: studentNumber }),
     });
 
-    return response?.ok ? await response.json() : null;
+    if (response?.ok) {
+      const data = await response.json();
+      return data?.submission_id ?? null;
+    }
+
+    return null;
   };
 
   const getFormBundle = async (studentNumber) => {
@@ -33,8 +38,19 @@ export const useFormApi = () => {
       }
     );
 
-    if (response?.status === 404) return null;
-    return response?.ok ? await response.json() : null;
+    if (!response?.ok) return null;
+
+    const data = await response.json();
+
+    if (data.exists === false) {
+      return {
+        exists: false,
+        submission: null,
+        sections: {},
+      };
+    }
+
+    return data;
   };
 
   const saveDraft = async (submissionId, studentNumber, formData) => {
@@ -62,7 +78,7 @@ export const useFormApi = () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    
+
     return response;
   };
 

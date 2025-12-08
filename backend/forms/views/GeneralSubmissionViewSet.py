@@ -302,11 +302,24 @@ class FormBundleView(APIView, BaseFormMixin):
         if not sections:
             return Response({'error': 'Invalid form type.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        submission, error = self.get_submission(student, form_type)
-        if error:
-            return error
+        try:
+            submission = Submission.objects.get(
+                student=student,
+                form_type=FORM_TYPE_SLUG_MAP.get(form_type)
+            )
+            submission_exists = True
+        except Submission.DoesNotExist:
+            submission = None
+            submission_exists = False
 
-        response_data = {'submission': SubmissionSerializer(submission).data}
+        response_data = {
+            "exists": submission_exists,
+            "submission": SubmissionSerializer(submission).data if submission else None,
+            "sections": {}
+        }
+
+        if not submission_exists:
+            return Response(response_data, status=status.HTTP_200_OK)
 
         for key, (model, serializer_class) in sections.items():
             many = key in [

@@ -125,12 +125,21 @@ const BISForm = () => {
       try {
         let response = await getFormBundle(studentNumber);
 
-        if (!response) {
-          response = await createDraftSubmission(studentNumber);
-          response = await getFormBundle(studentNumber);
+        if (response?.exists === false) {
+        // Create draft
+        const submissionId = await createDraftSubmission(studentNumber);
+
+        if (!submissionId) {
+          setError("Failed to create draft submission.");
+          return;
         }
 
-        if (response) {
+        // Fetch again
+        response = await getFormBundle(studentNumber);
+      }
+
+
+        if (response && response.submission) {
           setFormData({
             socio_economic_status: response.socio_economic_status || {},
             scholastic_status: response.scholastic_status || {},
