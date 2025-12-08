@@ -11,8 +11,8 @@ import { useApiRequest } from "../context/ApiRequestContext";
 import BackToTopButton from "../components/BackToTop";
 import Loader from "../components/Loader";
 import { formatDate, formatDateOnly } from "../utils/helperFunctions";
-import upLogo from "../assets/UPMin_logo.png";
-import up28thLogo from "../assets/UP-28th-logo.png";
+import upLogoLeft from '../assets/UPMin_logo.png';
+import upLogo from "../assets/UP-Seal-Line.png";
 
 const statusLabels = {
   closed_intake: "Closed at Intake Interview",
@@ -303,7 +303,7 @@ const ReferralSlipProfileView = ({
 
             <div className="flex justify-end">
               <img
-                src={up28thLogo}
+                src={upLogoLeft}
                 alt="UP 28th Anniversary"
                 className="w-[1.27in] h-[1.27in] object-contain"
               />

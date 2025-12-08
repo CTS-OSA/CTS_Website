@@ -2,6 +2,7 @@ import React from "react";
 import FormField from "../../components/FormField";
 import { clearError } from "../../utils/helperFunctions";
 import { useEnumChoices } from "../../utils/enumChoices";
+import { filterAlphabetsOnly, filterNumbersOnly } from "../../utils/inputFilters";
 
 const RSStudentDetails = ({
   formData,
@@ -13,7 +14,15 @@ const RSStudentDetails = ({
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    const fieldName = name;
+    let filteredValue = value;
+
+    // Apply input filters
+    if (["first_name", "last_name", "gender"].includes(name)) {
+      filteredValue = filterAlphabetsOnly(value);
+    }
+    if (name === "contact_number") {
+      filteredValue = filterNumbersOnly(value);
+    }
 
     setFormData((prev) => ({
       ...prev,
@@ -21,14 +30,15 @@ const RSStudentDetails = ({
         ...prev.referral,
         referred_person: {
           ...prev.referral.referred_person,
-          [fieldName]: value,
+          [name]: filteredValue,
         },
       },
     }));
-    if (errors[fieldName]) {
+
+    if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
-        [fieldName]: null,
+        [name]: null,
       }));
     }
   };
