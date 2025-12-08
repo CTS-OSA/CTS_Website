@@ -65,82 +65,96 @@ export const ResetPassword = () => {
   };
 
   return (
-    <div className="signup-page-wrapper">
+    <>
       <Navbar />
-      <div className="signup">
-        <div className="signup__container">
-          <div className="signup__content fade-in-up">
-            <div className="signup__left fade-in-up">
-              <h1 className="hero-title">
-                Reset your <span className="highlighted-text">Password</span>
+      <div className="bg-gray-100 h-150 lg:h-100 flex flex-col">
+        <div className="px-4 lg:px-10 py-10 flex-1 flex items-center justify-center">
+          <div className="flex flex-col lg:flex-row items-center justify-center gap-12 w-full max-w-6xl">
+
+            {/* TEXT LEFT SIDE */}
+            <div className="fade-in-up text-center lg:text-left w-full lg:w-1/2 space-y-4 px-2">
+              <h1 className="font-bold text-upmaroon text-3xl sm:text-4xl lg:text-5xl -mt-6">
+                Reset your Password
               </h1>
+
+              <p className="max-w-md mx-auto lg:mx-0 text-sm sm:text-lg -mb-6 lg:mb-0">
+                Create a strong password that you haven't used before.
+              </p>
             </div>
 
-            <div className="signup__right fade-in-up">
-              <h2 className="signup__header">Set a New Password</h2>
+            {/* FORM RIGHT SIDE */}
+            <div className="fade-in-up w-full lg:w-1/2 px-4 sm:px-10 py-8 bg-white rounded-xl shadow-md">
+              <h2 className="font-semibold text-lg sm:text-2xl text-center mb-4">
+                Set a New Password
+              </h2>
 
-              <form onSubmit={handleSubmit} className="signup__form">
-                {/* New Password */}
-                <div className="relative w-full mb-4">
-                  <input
-                    type={showNewPassword ? "text" : "password"}
-                    placeholder="New Password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    required
-                    className="w-full border border-gray-400 px-3 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-upmaroon transition"
-                  />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      newPassword && setShowNewPassword(!showNewPassword)
-                    }
-                    className={`absolute right-3 top-1/2 -translate-y-1/2 ${
-                      newPassword
+              <form onSubmit={handleSubmit} className="w-full">
+
+                <div className="flex flex-col items-center w-full">
+
+                  {/* New Password */}
+                  <div className="relative w-full mb-4">
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      placeholder="New Password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                      className={`form-input ${isError ? "error" : ""} 
+              w-full border border-gray-300 px-3 py-3 
+              rounded-md focus:outline-none focus:ring-1 focus:ring-upmaroon`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        newPassword && setShowNewPassword(!showNewPassword)
+                      }
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 ${newPassword
                         ? "text-gray-600 hover:text-gray-800"
                         : "text-gray-300 cursor-not-allowed"
-                    }`}
-                    disabled={!newPassword}
-                  >
-                    {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
+                        }`}
+                      disabled={!newPassword}
+                    >
+                      {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
 
-                {/* Confirm Password */}
-                <div className="relative w-full mb-4">
-                  <input
-                    type={showReNewPassword ? "text" : "password"}
-                    placeholder="Confirm New Password"
-                    value={reNewPassword}
-                    onChange={(e) => setReNewPassword(e.target.value)}
-                    required
-                    className="w-full border border-gray-400 px-3 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-upmaroon transition"
-                  />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      reNewPassword && setShowReNewPassword(!showReNewPassword)
-                    }
-                    className={`absolute right-3 top-1/2 -translate-y-1/2 ${
-                      reNewPassword
+                  {/* Confirm Password */}
+                  <div className="relative w-full mb-4">
+                    <input
+                      type={showReNewPassword ? "text" : "password"}
+                      placeholder="Confirm New Password"
+                      value={reNewPassword}
+                      onChange={(e) => setReNewPassword(e.target.value)}
+                      required
+                      className={`form-input ${isError ? "error" : ""} 
+              w-full border border-gray-300 px-3 py-3 
+              rounded-md focus:outline-none focus:ring-1 focus:ring-upmaroon`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        reNewPassword && setShowReNewPassword(!showReNewPassword)
+                      }
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 ${reNewPassword
                         ? "text-gray-600 hover:text-gray-800"
                         : "text-gray-300 cursor-not-allowed"
-                    }`}
-                    disabled={!reNewPassword}
-                  >
-                    {showReNewPassword ? (
-                      <EyeOff size={18} />
-                    ) : (
-                      <Eye size={18} />
-                    )}
-                  </button>
+                        }`}
+                      disabled={!reNewPassword}
+                    >
+                      {showReNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+
                 </div>
 
                 <button type="submit" className="submit-button">
-                  Set New Password
+                  {isLoading ? "Saving..." : "Set New Password"}
                 </button>
               </form>
+
             </div>
+
           </div>
         </div>
       </div>
@@ -171,6 +185,6 @@ export const ResetPassword = () => {
       )}
 
       <Footer />
-    </div>
+    </>
   );
 };

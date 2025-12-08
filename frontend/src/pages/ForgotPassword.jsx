@@ -53,48 +53,69 @@ export const ForgotPassword = () => {
   return (
     <>
       <Navbar />
-      <div className="signup">
-        <div className="signup__container">
-          <div className="signup__content fade-in-up">
-            <div className="signup__left fade-in-up">
-              <h1 className="hero-title">
-                Forgot your <span className="highlighted-text">Password?</span>
+      <div className="bg-gray-100 h-150 lg:h-100 flex flex-col">
+        <div className="px-4 lg:px-10 py-10 flex-1 flex items-center justify-center">
+          <div className="flex flex-col lg:flex-row items-center justify-center gap-12 w-full max-w-6xl">
+
+            {/* TEXT LEFT SIDE */}
+            <div className="fade-in-up text-center lg:text-left w-full lg:w-1/2 space-y-4 px-2">
+              <h1 className="font-bold text-upmaroon text-3xl sm:text-4xl lg:text-5xl -mt-6">
+                Forgot your Password?
               </h1>
+
+              <p className="max-w-md mx-auto lg:mx-0 text-sm sm:text-lg md:text-xl">
+                Enter the email linked to your account and we'll send a secure reset link right away.
+              </p>
             </div>
-            <div className="signup__right fade-in-up">
-              <h2 className="signup__header">Reset Your Password</h2>
-              <form onSubmit={handleSubmit} className="signup__form">
+
+            {/* FORM RIGHT SIDE */}
+            <div className="fade-in-up w-full lg:w-1/2 px-4 sm:px-10 py-8 bg-white rounded-xl shadow-md">
+              <h2 className="font-semibold text-lg sm:text-2xl text-center mb-4">
+                Reset Your Password
+              </h2>
+
+              <form onSubmit={handleSubmit} className=" w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-2 mt-2">
+                  Email Address
+                </label>
+
                 <input
                   type="email"
-                  placeholder="Email"
+                  placeholder="yourname@up.edu.ph"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className={`form-input ${
-                    isError ? "error" : ""
-                  } w-full border-1 border-gray-400 px-3 py-2 rounded-md focus:outline-none focus:ring-1/2 focus:ring-upmaroon`}
+                  className={`form-input ${isError ? "error" : ""} 
+              w-full border border-gray-300 px-3 py-3 
+              rounded-md focus:outline-none focus:ring-1 focus:ring-upmaroon`}
                 />
-                <div className="button-group" style={{ marginTop: "20px" }}>
+
+                {/* BUTTONS */}
+                <div className="flex flex-col sm:flex-row gap-4 mt-6">
                   <button
                     type="submit"
-                    className="bg-red-800 text-white font-md hover:font-semibold w-1/2 rounded-md hover:bg-upmaroon transition duration-300"
-                    style={{ marginBottom: "0" }}
+                    className="bg-red-800 text-white font-medium w-full sm:w-1/2 rounded-md py-3 hover:bg-upmaroon transition duration-300"
+                    disabled={isLoading}
                   >
-                    Send Reset Link
+                    {isLoading ? "Sending..." : "Send Reset Link"}
                   </button>
+
                   <button
                     type="button"
-                    className="bg-[#c3c3c3] text-black font-md hover:font-semibold w-1/2 rounded-md hover:bg-[#8b8b8b] transition duration-300"
+                    className="bg-gray-300 text-black font-medium w-full sm:w-1/2 rounded-md py-3 hover:bg-gray-400 transition duration-300"
                     onClick={handleCancel}
+                    disabled={isLoading}
                   >
                     Cancel
                   </button>
                 </div>
               </form>
             </div>
+
           </div>
         </div>
       </div>
+
 
       {isLoading && (
         <Modal>
