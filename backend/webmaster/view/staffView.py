@@ -74,6 +74,11 @@ class staffView(APIView):
             file_path = f"staff/{filename}"
             default_storage.save(file_path, image_file)
 
+            
+            # Get last order from active staff
+            last_staff = Staff.objects.filter(status=1).order_by('-order').first()
+            next_order = (last_staff.order + 1) if last_staff else 0
+
             staff = Staff.objects.create(
                 image=filename,
                 name=serializer.validated_data['name'],
@@ -81,6 +86,7 @@ class staffView(APIView):
                 position=serializer.validated_data['position'],
                 license=serializer.validated_data['license'],
                 created_at=timezone.now(),
+                order=next_order,   
                 status=1
             )
 
