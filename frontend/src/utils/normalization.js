@@ -16,7 +16,9 @@ export const normalizeNumber = (formData) => {
       let age = sibling.age;
       if (age !== "" && age !== null) {
         age = Number(age);
-      }
+      } else {
+      age = null;
+    }
       return { ...sibling, age: age };
     });
   }

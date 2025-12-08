@@ -616,6 +616,7 @@ const SCIFFamilyData = ({
                     handleSiblingChange(index, "first_name", e.target.value)
                   }
                   required
+                  error={errors?.[`siblings[${index}].first_name`]}
                 />
                 <FormField
                   label="Last Name"
@@ -625,6 +626,7 @@ const SCIFFamilyData = ({
                     handleSiblingChange(index, "last_name", e.target.value)
                   }
                   required
+                  error={errors?.[`siblings[${index}].last_name`]}
                 />
                 <FormField
                   label="Sex"
@@ -639,6 +641,7 @@ const SCIFFamilyData = ({
                     { value: "Female", label: "Female" },
                   ]}
                   required
+                  error={errors?.[`siblings[${index}].sex`]}
                 />
               </div>
 
@@ -651,6 +654,7 @@ const SCIFFamilyData = ({
                     handleSiblingChange(index, "age", e.target.value)
                   }
                   required
+                  error={errors?.[`siblings[${index}].age`]}
                 />
                 <FormField
                   label="Job/Occupation"
@@ -659,6 +663,7 @@ const SCIFFamilyData = ({
                   onChange={(e) =>
                     handleSiblingChange(index, "job_occupation", e.target.value)
                   }
+                  error={errors?.[`siblings[${index}].job_occupation`]}
                 />
               </div>
 
@@ -670,6 +675,7 @@ const SCIFFamilyData = ({
                   onChange={(e) =>
                     handleSiblingChange(index, "company_school", e.target.value)
                   }
+                  error={errors?.[`siblings[${index}].company_school`]}
                 />
                 <FormField
                   label="Educational Attainment"
@@ -682,6 +688,7 @@ const SCIFFamilyData = ({
                       e.target.value
                     )
                   }
+                  error={errors?.[`siblings[${index}].educational_attainment`]}
                   required
                 />
               </div>
