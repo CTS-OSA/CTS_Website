@@ -10,6 +10,7 @@ import { AuthContext } from "../context/AuthContext";
 import Loader from "../components/Loader";
 import LoginModal from "../components/LoginModal";
 import { useApiRequest } from "../context/ApiRequestContext";
+import SignUpModal from "../components/SignUpModal";
 
 
 export const FormPublicPage = () => {
@@ -17,6 +18,7 @@ export const FormPublicPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalConfig, setModalConfig] = useState({});
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showSignUpModal, setShowSignUpModal] = useState(false);
   const navigate = useNavigate();
   const [pageLoading, setPageLoading] = useState(false);
   const { user, profileData, loading } = useContext(AuthContext);
@@ -120,7 +122,7 @@ export const FormPublicPage = () => {
               className="signup-link"
               onClick={() => {
                 setShowModal(false);
-                navigate("/signup");
+                setShowSignUpModal(true);
               }}
             >
               Sign Up
@@ -321,7 +323,17 @@ export const FormPublicPage = () => {
           onClose={() => setShowLoginModal(false)}
           onSwitchToSignup={() => {
             setShowLoginModal(false);
-            navigate("/signup");
+            setShowSignUpModal(true);
+          }}
+        />
+      )}
+
+      {showSignUpModal && (
+        <SignUpModal
+          onClose={() => setShowSignUpModal(false)}
+          onSwitchToLogin={() => {
+            setShowSignUpModal(false);
+            setShowLoginModal(true);
           }}
         />
       )}
