@@ -33,6 +33,7 @@ class posterView(APIView):
             posters = Poster.objects.filter(status=1).order_by('order')
 
             data = [{
+                'id': p.id,
                 'image_url': f"{photo_url}/posters/{p.image}" if p.image else None,
                 'order': p.order
             } for p in posters]
@@ -70,12 +71,17 @@ class posterView(APIView):
             # Get counselor profile
             counselor = Counselor.objects.get(user=request.user)
             
+            # Get last order from active posters
+            last_poster = Poster.objects.filter(status=1).order_by('-order').first()
+            next_order = (last_poster.order + 1) if last_poster else 0
+            
             # Create poster
             poster = Poster.objects.create(
                 image=filename,
                 uploaded_by=counselor,
                 created_at=timezone.now(),
-                status=1
+                status=1,
+                order=next_order
             )
             
             serializer = PosterSerializer(poster)

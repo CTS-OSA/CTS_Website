@@ -292,9 +292,9 @@ const SiteContentDashboard = () => {
 
   // Edit Poster
   const handleEditPoster = (poster) => {
-    setPosterPreview(poster.image);
+    setPosterPreview(poster.image_url);
     setEditingPosterId(poster.id);
-    setPosterFile(null); // Clear file input
+    setPosterFile(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -663,11 +663,11 @@ const SiteContentDashboard = () => {
                 <div className="text-xs text-gray-600 space-y-1 mt-2">
                   Position/s: 
                   {prof.position?.split(", ").map((pos, idx) => (
-                    <p key={idx} className="leading-snug font-medium">{pos}</p>
+                    <p key={`pos-${prof.id}-${idx}`} className="leading-snug font-medium">{pos}</p>
                   ))}
                   License/s: 
                   {prof.license?.split(", ").map((lic, idx) => (
-                    <p key={idx} className="text-xs italic leading-snug">{lic}</p>
+                    <p key={`lic-${prof.id}-${idx}`} className="text-xs italic leading-snug">{lic}</p>
                   ))}
                 </div>
               </div>
@@ -764,7 +764,7 @@ const SiteContentDashboard = () => {
               className="relative bg-gray-100 rounded-lg overflow-hidden shadow-md group cursor-move hover:shadow-lg transition"
             >
               <img
-                src={poster.image}
+                src={poster.image_url}
                 alt={`Poster ${poster.id}`}
                 className="w-full h-48 object-cover"
               />
