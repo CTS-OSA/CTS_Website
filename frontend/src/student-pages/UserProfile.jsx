@@ -84,17 +84,18 @@ export const UserProfile = () => {
           "http://localhost:8000/api/forms/student/profile/"
         );
         if (!res.ok) {
-          if (res.status === 404) {
-            setProfile({});
-            setLoading(false);
-            return;
-          }
           throw new Error("Failed to fetch profile data");
         }
 
         const data = await res.json();
-        setProfile(data);
 
+        if (data.exists === false) {
+          setProfile({});
+          setLoading(false);
+          return;
+        }
+
+        setProfile(data);
 
         const formRes = await request(
           "http://localhost:8000/api/forms/display/submissions/"
