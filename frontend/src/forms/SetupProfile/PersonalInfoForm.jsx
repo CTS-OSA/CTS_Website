@@ -28,7 +28,7 @@ const PersonalInfoForm = ({ formData, setFormData, errors, setErrors }) => {
     <div className="form-container">
       <h2 className="text-[#7b1113] text-2xl font-bold pb-4">Personal Information</h2>
 
-      <div className="grid lg:grid-cols-2 gap-4 pb-4">
+      <div className="grid grid-cols-1 gap-4 pb-4 md:grid-cols-2">
         <FormField
           label="Last Name"
           name="last_name"
@@ -53,7 +53,7 @@ const PersonalInfoForm = ({ formData, setFormData, errors, setErrors }) => {
         />
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4 pb-4">
+      <div className="grid grid-cols-1 gap-4 pb-4 md:grid-cols-2">
         <FormField
           label="Middle Name"
           name="middle_name"
@@ -77,7 +77,7 @@ const PersonalInfoForm = ({ formData, setFormData, errors, setErrors }) => {
         />
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4 pb-4">
+      <div className="grid grid-cols-1 gap-4 pb-4 md:grid-cols-2">
         <FormField
           label="Sex"
           name="sex"
@@ -110,7 +110,7 @@ const PersonalInfoForm = ({ formData, setFormData, errors, setErrors }) => {
         <label className="font-semibold">Birthdate*
         </label>
         <div
-          className="grid lg:grid-cols-3 gap-4 pb-4"
+          className="grid grid-cols-1 gap-4 pb-4 sm:grid-cols-2 lg:grid-cols-3"
           style={{ marginTop: "1rem" }}
         >
           <FormField
@@ -124,7 +124,7 @@ const PersonalInfoForm = ({ formData, setFormData, errors, setErrors }) => {
             }
             error={errors?.["personal_info.birthMonth"]}
             required
-            options={[{ value: "", label: "Month" }, ...monthOptions]}
+            options={[{ value: "", label: "" }, ...monthOptions]}
           />
           <FormField
             label="Day"
@@ -137,7 +137,7 @@ const PersonalInfoForm = ({ formData, setFormData, errors, setErrors }) => {
             }
             error={errors?.["personal_info.birthDay"]}
             required
-            options={[{ value: "", label: "Day" }, ...dayOptions]}
+            options={[{ value: "", label: "" }, ...dayOptions]}
           />
           <FormField
             label="Year"
@@ -150,12 +150,12 @@ const PersonalInfoForm = ({ formData, setFormData, errors, setErrors }) => {
             }
             error={errors?.["personal_info.birthYear"]}
             required
-            options={[{ value: "", label: "Year" }, ...yearOptions]}
+            options={[{ value: "", label: "" }, ...yearOptions]}
           />
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4 pb-4">
+      <div className="grid grid-cols-1 gap-4 pb-4 md:grid-cols-2">
         <FormField
           label="Birth Place"
           name="birth_place"
@@ -181,7 +181,7 @@ const PersonalInfoForm = ({ formData, setFormData, errors, setErrors }) => {
           required
         />
       </div>
-      <div className="grid lg:grid-cols-2 gap-4 pb-4">
+      <div className="grid grid-cols-1 gap-4 pb-4 md:grid-cols-2">
         <FormField
           label="Mobile Number"
           name="mobile_number"

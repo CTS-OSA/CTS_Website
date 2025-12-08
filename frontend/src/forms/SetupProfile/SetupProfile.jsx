@@ -359,7 +359,7 @@ const MultiStepForm = () => {
   return (
     <DefaultLayout variant="student">
       {/* Background Rectangle */}
-      <div className="absolute w-full h-[26em] left-0 top-0 bg-upmaroon -z-1"></div>
+      <div className="absolute left-0 top-0 h-[18rem] w-full bg-upmaroon -z-1 sm:h-[22rem] lg:h-[26rem]"></div>
       {/* Main Form */}
       <div className="relative flex flex-col min-h-screen">
         <div className="mt-[30px] mx-auto w-3/4 flex flex-col items-center">
@@ -374,12 +374,12 @@ const MultiStepForm = () => {
             </p>
           </div>
 
-          <div className="bg-white rounded-[15px] p-8 w-full mx-auto mb-[70px] shadow-md box-border">
-            <div className="flex lg:flex-row flex-col w-full">
-              <div className="lg:w-1/3 lg:bg-upmaroon rounded-lg p-4 pt-10 lg:min-h-[450px]">
+          <div className="box-border mb-[70px] w-full rounded-[15px] bg-white p-4 shadow-md sm:p-6 lg:p-8">
+            <div className="flex w-full flex-col gap-6 lg:flex-row">
+              <div className="w-full rounded-lg bg-white p-4 shadow-sm lg:w-1/3 lg:bg-upmaroon lg:p-6 lg:pt-10 lg:shadow-none">
                 <StepIndicator steps={steps} currentStep={step} />
               </div>
-              <div className="main-form p-4 w-full">
+              <div className="main-form w-full flex flex-col p-1 sm:p-4">
                 {step === 1 && (
                   <PersonalInfoForm
                     formData={formData}
@@ -431,11 +431,15 @@ const MultiStepForm = () => {
                     setPhotoPreview={setPhotoPreview}
                   />
                 )}
-                <div className="flex justify-end mt-auto">
-                  <div className="main-form-buttons">
+                <div className="mt-8 flex w-full justify-end">
+                  <div className="main-form-buttons flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:justify-end sm:gap-4">
                     {/* Step 1: Only 'Next' button */}
                     {step === 1 && (
-                      <Button variant="primary" onClick={handleNextStep}>
+                      <Button
+                        variant="primary"
+                        onClick={handleNextStep}
+                        className="w-full sm:w-auto"
+                      >
                         Next
                       </Button>
                     )}
@@ -446,13 +450,14 @@ const MultiStepForm = () => {
                         <Button
                           variant="secondary"
                           onClick={handlePreviousStep}
+                          className="w-full sm:w-auto"
                         >
                           Back
                         </Button>
                         <Button
                           variant="primary"
                           onClick={handleNextStep}
-                          style={{ marginLeft: "0.5rem" }}
+                          className="w-full sm:w-auto"
                         >
                           Next
                         </Button>
@@ -465,13 +470,14 @@ const MultiStepForm = () => {
                         <Button
                           variant="secondary"
                           onClick={handlePreviousStep}
+                          className="w-full sm:w-auto"
                         >
                           Back
                         </Button>
                         <Button
                           variant="primary"
                           onClick={handlePreview}
-                          style={{ marginLeft: "0.5rem" }}
+                          className="w-full sm:w-auto"
                         >
                           Preview
                         </Button>
@@ -485,7 +491,7 @@ const MultiStepForm = () => {
                         <Button
                           variant="primary"
                           onClick={handleConfirmSubmit}
-                          style={{ marginLeft: "0.5rem" }}
+                          className="w-full sm:w-auto"
                         >
                           Submit
                         </Button>
