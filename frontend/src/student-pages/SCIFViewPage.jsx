@@ -22,7 +22,7 @@ import { AuthContext } from "../context/AuthContext";
 import { useApiRequest } from "../context/ApiRequestContext";
 import BackToTopButton from "../components/BackToTop";
 import { useEnumChoices } from "../utils/enumChoices";
-import { getProfilePhotoUrl, getProfileInitials, toDataUrl } from "../utils/profileUtils";
+import { getProfilePhotoUrl } from "../utils/profileUtils";
 import {
   filterAlphabetsOnly,
   filterNumbersOnly,
@@ -45,6 +45,58 @@ const INTEGER_ONLY_FIELDS = new Set([
 ]);
 
 const DECIMAL_ALLOWED_FIELDS = new Set(["height", "weight"]);
+
+const isSameOriginUrl = (src) => {
+  if (!src || typeof window === "undefined") return true;
+  try {
+    const parsed = new URL(src, window.location.origin);
+    return parsed.origin === window.location.origin;
+  } catch {
+    return true;
+  }
+};
+
+const blobToDataUrl = (blob) =>
+  new Promise((resolve, reject) => {
+    if (typeof FileReader === "undefined") {
+      reject(new Error("FileReader API is unavailable."));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error("Failed to read blob as data URL."));
+    reader.readAsDataURL(blob);
+  });
+
+const fetchImageAsDataUrl = async (src) => {
+  if (
+    !src ||
+    typeof window === "undefined" ||
+    typeof fetch !== "function" ||
+    typeof FileReader === "undefined"
+  ) {
+    return null;
+  }
+  if (src.startsWith("data:")) return src;
+
+  const sameOrigin = isSameOriginUrl(src);
+  try {
+    const response = await fetch(src, {
+      credentials: sameOrigin ? "include" : "omit",
+      mode: sameOrigin ? "same-origin" : "cors",
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image (${response.status})`);
+    }
+    const blob = await response.blob();
+    const dataUrl = await blobToDataUrl(blob);
+    return typeof dataUrl === "string" ? dataUrl : null;
+  } catch (error) {
+    console.warn("fetchImageAsDataUrl failed:", error);
+    return null;
+  }
+};
 
 const PERSONAL_DATA_FIELDS = new Set([
   "last_name",
@@ -174,11 +226,11 @@ const createEmptyRow = () => ({
 const hasTableRowContent = (row) =>
   Boolean(
     row.year ||
-      row.semester ||
-      row.school_year_start ||
-      row.school_year_end ||
-      row.name ||
-      row.position
+    row.semester ||
+    row.school_year_start ||
+    row.school_year_end ||
+    row.name ||
+    row.position
   );
 const SEMESTER_OPTIONS = [
   { value: "1st Semester", label: "1st Semester" },
@@ -315,8 +367,8 @@ const sanitizeSiblingRows = (rows, { keepEmptyRows = false } = {}) => {
     students: Array.isArray(row?.students)
       ? row.students
       : row?.students
-      ? [row.students]
-      : [],
+        ? [row.students]
+        : [],
     first_name: safeTrim(row?.first_name),
     last_name: safeTrim(row?.last_name),
     sex: safeTrim(row?.sex),
@@ -326,10 +378,23 @@ const sanitizeSiblingRows = (rows, { keepEmptyRows = false } = {}) => {
     educational_attainment: safeTrim(row?.educational_attainment),
   }));
 
+  const sorted = sanitized.sort((a, b) => {
+    const ageA = parseFloat(a.age);
+    const ageB = parseFloat(b.age);
+    const aValid = !Number.isNaN(ageA);
+    const bValid = !Number.isNaN(ageB);
+    if (aValid && bValid) {
+      return ageA - ageB;
+    }
+    if (aValid) return -1;
+    if (bValid) return 1;
+    return 0;
+  });
+
   if (keepEmptyRows) {
-    return sanitized.length ? sanitized : [createEmptySiblingRow()];
+    return sorted.length ? sorted : [createEmptySiblingRow()];
   }
-  return sanitized.filter(hasSiblingContent);
+  return sorted.filter(hasSiblingContent);
 };
 
 const buildSiblingRows = (siblings) => {
@@ -342,8 +407,8 @@ const buildSiblingRows = (siblings) => {
     students: Array.isArray(sibling?.students)
       ? sibling.students
       : sibling?.students
-      ? [sibling.students]
-      : [],
+        ? [sibling.students]
+        : [],
     first_name: sibling?.first_name || "",
     last_name: sibling?.last_name || "",
     sex: sibling?.sex || "",
@@ -669,8 +734,6 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
   const [schoolRecordRows, setSchoolRecordRows] = useState(() =>
     buildSchoolRecordRows()
   );
-  const [photoBase64, setPhotoBase64] = useState(null);
-
   useEffect(() => {
     const derivedGpa = safeTrim(getSeniorHighGpaValue(schoolRecordRows));
     if (!derivedGpa) return;
@@ -714,7 +777,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           setErrors((prev) => ({ ...prev, graduation: null }));
         } else if (res.status === 404) {
           setGraduationInfo(defaultGraduationInfo());
-          return; 
+          return;
         } else {
           const errBody = await res.json().catch(() => null);
           setErrors((prev) => ({
@@ -902,24 +965,13 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     updatedBy: "",
   });
   const photoUrl = getProfilePhotoUrl(profileData);
-  const photoInitials = getProfileInitials(profileData);
+  const [photoErrored, setPhotoErrored] = useState(false);
+  const shouldShowPhoto = Boolean(photoUrl) && !photoErrored;
   const submissionId = formData?.submission?.id;
 
-    useEffect(() => {
-  if (!photoUrl) return;
-
-  const loadImage = async () => {
-    try {
-      const base64 = await toDataUrl(photoUrl);
-      setPhotoBase64(base64);
-    } catch (err) {
-      console.error("Image conversion failed:", err);
-      setPhotoBase64(null);
-    }
-  };
-
-  loadImage();
-}, [photoUrl]);
+  useEffect(() => {
+    setPhotoErrored(false);
+  }, [photoUrl]);
 
   useEffect(() => {
     if (!formData || !profileData) return;
@@ -950,16 +1002,16 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     )
       ? scholarship.scholarships_and_assistance
       : scholarship?.scholarships_and_assistance
-      ? [scholarship.scholarships_and_assistance]
-      : [];
+        ? [scholarship.scholarships_and_assistance]
+        : [];
 
     // Handle both single object and array for psychometric_data
     const psychometricArray =
       psychometric_data && !Array.isArray(psychometric_data)
         ? [psychometric_data]
         : Array.isArray(psychometric_data)
-        ? psychometric_data
-        : [];
+          ? psychometric_data
+          : [];
     const psychometricEntries = psychometricArray.map((entry) => ({
       id: entry?.id ?? null,
       testing_date: entry?.testing_date || "",
@@ -1012,9 +1064,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
         "",
 
       // Father Information
-      father_name: `${family_data.father?.first_name || ""} ${
-        family_data.father?.last_name || ""
-      }`.trim(),
+      father_name: `${family_data.father?.first_name || ""} ${family_data.father?.last_name || ""
+        }`.trim(),
       father_age: family_data.father?.age || "",
       father_job_occupation: family_data.father?.job_occupation || "",
       father_company_agency: family_data.father?.company_agency || "",
@@ -1026,9 +1077,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       father_is_none: !!family_data.father?.is_none,
 
       // Mother Information
-      mother_name: `${family_data.mother?.first_name || ""} ${
-        family_data.mother?.last_name || ""
-      }`.trim(),
+      mother_name: `${family_data.mother?.first_name || ""} ${family_data.mother?.last_name || ""
+        }`.trim(),
       mother_age: family_data.mother?.age || "",
       mother_job_occupation: family_data.mother?.job_occupation || "",
       mother_company_agency: family_data.mother?.company_agency || "",
@@ -1040,9 +1090,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       mother_is_none: !!family_data.mother?.is_none,
 
       // Guardian Information
-      guardian_name: `${family_data.guardian?.first_name || ""} ${
-        family_data.guardian?.last_name || ""
-      }`.trim(),
+      guardian_name: `${family_data.guardian?.first_name || ""} ${family_data.guardian?.last_name || ""
+        }`.trim(),
       guardian_contact_number: family_data.guardian?.contact_number || "",
       guardian_address: family_data.guardian?.address || "",
       guardian_relationship_to_guardian:
@@ -1118,8 +1167,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
         memberships && !Array.isArray(memberships)
           ? [memberships]
           : Array.isArray(memberships)
-          ? memberships
-          : [];
+            ? memberships
+            : [];
       return membershipArray.map((item) => {
         const [startYear, endYear] = item.academic_year
           ? item.academic_year.split("-")
@@ -1142,8 +1191,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
         awards && !Array.isArray(awards)
           ? [awards]
           : Array.isArray(awards)
-          ? awards
-          : [];
+            ? awards
+            : [];
       return awardArray.map((item) => {
         const [startYear, endYear] = item.academic_year
           ? item.academic_year.split("-")
@@ -1864,8 +1913,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
         const profileData = await profileResponse?.json().catch(() => ({}));
         setDownloadToast(
           profileData?.message ||
-            profileData?.error ||
-            "Failed to update personal information."
+          profileData?.error ||
+          "Failed to update personal information."
         );
 
         return;
@@ -1893,8 +1942,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
         }
         setDownloadToast(
           data?.message ||
-            data?.error ||
-            "Failed to update form. Please review the fields."
+          data?.error ||
+          "Failed to update form. Please review the fields."
         );
         return;
       }
@@ -2063,12 +2112,205 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       .querySelectorAll("[data-pdf-hide]")
       .forEach((el) => el.parentNode && el.parentNode.removeChild(el));
 
+    const ensurePhotoFrameBaseStyles = (frame) => {
+      if (!frame) return;
+      frame.style.width = frame.style.width || "200px";
+      frame.style.height = frame.style.height || "200px";
+      frame.style.borderRadius = "0";
+      frame.style.display = "flex";
+      frame.style.alignItems = "center";
+      frame.style.justifyContent = "center";
+      frame.style.overflow = "hidden";
+    };
+
+    const ensurePhotoPlaceholder = (frame) => {
+      if (!frame) return null;
+      let placeholder = frame.querySelector(".scif-photo-placeholder");
+      if (!placeholder) {
+        placeholder = document.createElement("div");
+        placeholder.className = "scif-photo-placeholder";
+        placeholder.textContent = "Recent 2x2 Colored ID Picture";
+        frame.appendChild(placeholder);
+      }
+      return placeholder;
+    };
+
+    const showPhotoPlaceholder = (frame) => {
+      ensurePhotoFrameBaseStyles(frame);
+      const placeholder = ensurePhotoPlaceholder(frame);
+      if (placeholder) {
+        placeholder.style.display = "flex";
+        placeholder.style.width = "100%";
+        placeholder.style.height = "100%";
+        placeholder.style.alignItems = "center";
+        placeholder.style.justifyContent = "center";
+        placeholder.style.textAlign = "center";
+        placeholder.style.padding = "1rem";
+        placeholder.style.fontSize = "0.9rem";
+        placeholder.style.fontWeight = "600";
+        placeholder.style.lineHeight = "1.3";
+        placeholder.style.color = "#000";
+      }
+      frame.classList.add("no-photo");
+      frame.classList.remove("has-photo");
+      frame.style.border = "2px solid #000";
+      frame.style.backgroundColor = "#fff";
+    };
+
+    const hidePhotoPlaceholder = (frame) => {
+      ensurePhotoFrameBaseStyles(frame);
+      const placeholder = frame?.querySelector(".scif-photo-placeholder");
+      if (placeholder) {
+        placeholder.style.display = "none";
+      }
+      frame.classList.add("has-photo");
+      frame.classList.remove("no-photo");
+      frame.style.border = "none";
+      frame.style.backgroundColor = "transparent";
+    };
+
+    const inlineClonePhotoImages = async () => {
+      const frames = clone.querySelectorAll(".scif-photo-frame");
+      if (!frames.length) return;
+
+      await Promise.all(
+        Array.from(frames).map(async (frame) => {
+          ensurePhotoFrameBaseStyles(frame);
+          ensurePhotoPlaceholder(frame);
+          const img = frame.querySelector("img");
+          if (!img || !img.getAttribute("src")) {
+            if (img) {
+              img.remove();
+            }
+            showPhotoPlaceholder(frame);
+            return;
+          }
+
+          try {
+            const dataUrl = await fetchImageAsDataUrl(img.src);
+            if (dataUrl) {
+              img.src = dataUrl;
+              hidePhotoPlaceholder(frame);
+            } else {
+              img.remove();
+              showPhotoPlaceholder(frame);
+            }
+          } catch (error) {
+            console.warn("Unable to inline SCIF profile photo for PDF:", error);
+            img.remove();
+            showPhotoPlaceholder(frame);
+          }
+        })
+      );
+    };
+
+    await inlineClonePhotoImages();
+
+    const convertCustomChoiceControl = (cloneInput, originalInput) => {
+      const wrapper = cloneInput.closest(".custom-radio, .custom-checkbox");
+      if (!wrapper) return;
+      const isRadio = originalInput.type === "radio";
+      const isCheckbox = originalInput.type === "checkbox";
+      const labelSelector = isRadio
+        ? ".custom-radio__label"
+        : ".custom-checkbox__label";
+      const labelEl = wrapper.querySelector(labelSelector);
+      let labelText = labelEl?.textContent?.trim();
+      if (!labelText) {
+        if (isRadio) {
+          labelText =
+            cloneInput.getAttribute("aria-label") ||
+            cloneInput.value ||
+            (originalInput.checked ? "Selected" : "");
+        } else {
+          labelText = "";
+        }
+      }
+
+      const containerTag =
+        wrapper.tagName && wrapper.tagName.toLowerCase() === "label"
+          ? "label"
+          : "span";
+      const container = document.createElement(containerTag);
+      container.className = wrapper.className || "";
+      const wrapperStyle = wrapper.getAttribute("style");
+      if (wrapperStyle) {
+        container.setAttribute("style", wrapperStyle);
+      }
+      container.style.display = container.style.display || "inline-flex";
+      container.style.alignItems = container.style.alignItems || "center";
+      container.style.gap = container.style.gap || "0.35rem";
+
+      const indicator = document.createElement("span");
+      indicator.className = isRadio
+        ? `custom-radio__indicator${originalInput.checked ? " custom-radio__indicator--checked" : ""
+        }`
+        : `custom-checkbox__indicator${originalInput.checked ? " custom-checkbox__indicator--checked" : ""
+        }`;
+      indicator.style.display = "inline-flex";
+      indicator.style.alignItems = "center";
+      indicator.style.justifyContent = "center";
+      indicator.style.boxSizing = "border-box";
+      indicator.style.width =
+        indicator.style.width || (isRadio ? "0.9rem" : "1rem");
+      indicator.style.height =
+        indicator.style.height || (isRadio ? "0.9rem" : "1rem");
+      indicator.style.border =
+        indicator.style.border ||
+        (isRadio ? "2px solid #4b5563" : "2px solid #4b5563");
+      indicator.style.borderRadius = isRadio ? "50%" : "0.2rem";
+      indicator.style.backgroundColor =
+        indicator.style.backgroundColor || "#fff";
+
+      if (isRadio) {
+        const dot = document.createElement("span");
+        dot.className = "custom-radio__indicator-dot";
+        indicator.appendChild(dot);
+      }
+
+      if (isCheckbox) {
+        indicator.style.backgroundColor = "#fff";
+        indicator.style.border = "2px solid #4b5563";
+        const mark = document.createElement("span");
+        mark.className = "custom-checkbox__indicator-mark";
+        mark.textContent = "✓";
+        mark.style.display = "inline-flex";
+        mark.style.alignItems = "center";
+        mark.style.justifyContent = "center";
+        mark.style.width = "100%";
+        mark.style.height = "100%";
+        mark.style.fontSize = "0.8rem";
+        mark.style.fontWeight = "bold";
+        mark.style.color = originalInput.checked ? "#4b5563" : "transparent";
+        mark.style.transform = "translateY(-6px)";
+        indicator.appendChild(mark);
+      }
+
+      const textSpan = document.createElement("span");
+      const labelClassName = labelEl?.className;
+      if (labelClassName) {
+        textSpan.className = labelClassName;
+      } else {
+        textSpan.className = isRadio
+          ? "custom-radio__label"
+          : "custom-checkbox__label";
+      }
+      textSpan.textContent = labelText || "";
+
+      container.appendChild(indicator);
+      if (labelText) {
+        container.appendChild(textSpan);
+      }
+
+      wrapper.replaceWith(container);
+    };
+
     const originalFields = element.querySelectorAll("input, textarea, select");
     const cloneFields = clone.querySelectorAll("input, textarea, select");
 
     const getBorderColor = (computed) =>
       computed.borderBottomColor &&
-      computed.borderBottomColor !== "rgba(0, 0, 0, 0)"
+        computed.borderBottomColor !== "rgba(0, 0, 0, 0)"
         ? computed.borderBottomColor
         : "#000";
 
@@ -2088,6 +2330,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
         (originalEl.type === "radio" || originalEl.type === "checkbox") &&
         cloneEl.closest(".custom-radio, .custom-checkbox")
       ) {
+        convertCustomChoiceControl(cloneEl, originalEl);
         return;
       }
 
@@ -2096,13 +2339,13 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           rect.height > 0
             ? rect.height
             : rect.width > 0
-            ? rect.width
-            : parseFloat(computed.fontSize || "14") * 1.2 || 16;
+              ? rect.width
+              : parseFloat(computed.fontSize || "14") * 1.2 || 16;
 
         const parentLabel =
           cloneEl.parentElement &&
-          cloneEl.parentElement.tagName &&
-          cloneEl.parentElement.tagName.toUpperCase() === "LABEL"
+            cloneEl.parentElement.tagName &&
+            cloneEl.parentElement.tagName.toUpperCase() === "LABEL"
             ? cloneEl.parentElement
             : null;
         const targetComputed = window.getComputedStyle(
@@ -2206,8 +2449,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 ? "Selected"
                 : ""
               : originalEl.checked
-              ? "Yes"
-              : "No");
+                ? "Yes"
+                : "No");
           if (fallbackText) {
             const span = document.createElement("span");
             span.textContent = fallbackText;
@@ -2404,7 +2647,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           <div className="flex justify-end -mt-14 -mb-2" data-pdf-hide>
             <button
               type="button"
-              className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-[#7b1113] hover:bg-red-[#991B1B] p-2 rounded"
+              className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-upmaroon hover:bg-red-[#991B1B] p-2 rounded"
               onClick={() => handleOpenModal("schoolRecords")}
             >
               <Pencil size={16} /> Edit Previous School Record
@@ -2440,9 +2683,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 "";
               const inclusiveYears =
                 record.start_year || record.end_year
-                  ? `${record.start_year || ""}${
-                      record.start_year || record.end_year ? " - " : ""
-                    }${record.end_year || ""}`
+                  ? `${record.start_year || ""}${record.start_year || record.end_year ? " - " : ""
+                  }${record.end_year || ""}`
                   : "";
 
               const isSrHigh =
@@ -2485,7 +2727,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           <div className="flex -mb-10 -mt-14" data-pdf-hide>
             <button
               type="button"
-              className="text-white text-xs font-semibold mt-3 flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-[#7b1113] hover:bg-red-[#991B1B] p-2 rounded"
+              className="text-white text-xs font-semibold mt-3 flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-upmaroon hover:bg-red-[#991B1B] p-2 rounded"
               onClick={() => handleOpenModal("siblings")}
             >
               <Pencil size={16} /> Edit Sibling/s Record
@@ -4216,24 +4458,24 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
             </div>
             <div className="SCIF-right">
               <div
-                className="bigger_avatar"
-                style={{ borderRadius: "0", width: "200px", height: "200px" }}
+                className={`scif-photo-frame ${shouldShowPhoto ? "has-photo" : "no-photo"
+                  }`}
+                style={{ width: "200px", height: "200px" }}
               >
-                {photoBase64  ? (
+                {shouldShowPhoto && (
                   <img
-                    src={photoBase64}
-                    alt={`${profileData?.first_name || ""} ${
-                      profileData?.last_name || ""
-                    } ID`}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                     crossOrigin="anonymous"
+                    src={photoUrl}
+                    alt={`${profileData?.first_name || ""} ${profileData?.last_name || ""
+                      } ID`}
+                    className="scif-photo-image"
+                    onLoad={() => setPhotoErrored(false)}
+                    onError={() => setPhotoErrored(true)}
                   />
-                ) : (
-                  `${photoInitials}`
+                )}
+                {!shouldShowPhoto && (
+                  <div className="scif-photo-placeholder">
+                    Recent 2x2 Colored ID Picture
+                  </div>
                 )}
               </div>
 
@@ -4563,7 +4805,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               LIST OF SCHOLARSHIPS & FINANCIAL ASSISTANCE WHILE IN COLLEGE :
             </div>
             {Array.isArray(formState.scholarships_and_assistance) &&
-            formState.scholarships_and_assistance.length > 0 ? (
+              formState.scholarships_and_assistance.length > 0 ? (
               formState.scholarships_and_assistance.map((item, idx) => (
                 <div key={idx} className="SCIF-inline">
                   <input
@@ -4587,7 +4829,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               <div className="flex justify-end -mt-14" data-pdf-hide>
                 <button
                   type="button"
-                  className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-[#7b1113] hover:bg-red-[#991B1B] p-2 rounded"
+                  className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-upmaroon hover:bg-red-[#991B1B] p-2 rounded"
                   onClick={() => handleOpenModal("organizations")}
                 >
                   <Pencil size={16} /> Edit Organization/s Record
@@ -4629,7 +4871,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               <div className="flex justify-end -mt-14" data-pdf-hide>
                 <button
                   type="button"
-                  className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-[#7b1113] hover:bg-red-[#991B1B] p-2 rounded"
+                  className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-upmaroon hover:bg-red-[#991B1B] p-2 rounded"
                   onClick={() => handleOpenModal("awards")}
                 >
                   <Pencil size={16} /> Edit Award/s Received
@@ -4963,7 +5205,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   <div className="flex justify-end -mt-14" data-pdf-hide>
                     <button
                       type="button"
-                      className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-[#7b1113] hover:bg-red-[#991B1B] p-2 rounded"
+                      className="text-white text-xs font-semibold flex relative items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-upmaroon hover:bg-red-[#991B1B] p-2 rounded mt-3"
                       onClick={handleAddPsychometricRow}
                     >
                       <Plus size={16} /> Add Psychometric Record
@@ -5145,7 +5387,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   name="has_consented"
                   value="true"
                   checked={privacy_consent.has_consented === true}
-                  onChange={() => {}}
+                  onChange={() => { }}
                   disabled
                 />
 
@@ -5232,11 +5474,11 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           degreeOptions={
             profileData?.degree_program
               ? [
-                  {
-                    value: profileData.degree_program,
-                    label: profileData.degree_program,
-                  },
-                ]
+                {
+                  value: profileData.degree_program,
+                  label: profileData.degree_program,
+                },
+              ]
               : []
           }
         />
