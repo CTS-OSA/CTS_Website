@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import BaseFormField from "../../components/FormField";
 import Button from "../../components/UIButton";
+import ModalMessage from "../../components/ModalMessage";
 import { useEnumChoices } from "../../utils/enumChoices";
 import {
   filterNumbersOnly,
@@ -93,16 +94,23 @@ const SCIFPreviousSchoolRecord = ({
   setErrors,
   sameAsPrimaryStorageKey,
 }) => {
-  const FormField = (props) => (
-    <BaseFormField
-      {...props}
-      disabled={props.disabled ?? readOnly}
-    />
+  const FormField = useMemo(
+    () =>
+      function FormFieldComponent(props) {
+        return (
+          <BaseFormField
+            {...props}
+            disabled={props.disabled ?? readOnly}
+          />
+        );
+      },
+    [readOnly]
   );
 
   const [schoolRecords, setSchoolRecords] = useState(() =>
     ensureRequiredRecords(data?.records || [])
   );
+  const [removeWarning, setRemoveWarning] = useState(null);
   const loadStoredSameAsPrimary = () => {
     if (!sameAsPrimaryStorageKey) return null;
     try {
@@ -223,7 +231,9 @@ const SCIFPreviousSchoolRecord = ({
     ).length;
 
     if (required && countSame <= 1) {
-      alert(`You must have at least one ${rec.education_level} record.`);
+      setRemoveWarning({
+        level: rec.education_level,
+      });
       return;
     }
 
@@ -287,6 +297,12 @@ const SCIFPreviousSchoolRecord = ({
             </label>
           )}
         </div>
+
+        {!isRequired && level === "College" && (
+          <p className="text-sm italic text-gray-600">
+            Skip if no previous college record.
+          </p>
+        )}
 
         {records.map((record, index) => {
           const globalIndex = schoolRecords.findIndex((r) => r === record);
@@ -353,15 +369,15 @@ const SCIFPreviousSchoolRecord = ({
                         }
                         error={
                           errors?.[
-                            `previous_school[${globalIndex}].school.school_address.${field}`
+                          `previous_school[${globalIndex}].school.school_address.${field}`
                           ]
                         }
                         options={
                           loading
                             ? [{ value: "", label: "Loading regions..." }]
                             : error
-                            ? [{ value: "", label: "Error loading regions" }]
-                            : enums?.region || []
+                              ? [{ value: "", label: "Error loading regions" }]
+                              : enums?.region || []
                         }
                         required
                         disabled={disabled}
@@ -393,7 +409,7 @@ const SCIFPreviousSchoolRecord = ({
                       }
                       error={
                         errors?.[
-                          `previous_school[${globalIndex}].school.school_address.${field}`
+                        `previous_school[${globalIndex}].school.school_address.${field}`
                         ]
                       }
                       required
@@ -465,7 +481,7 @@ const SCIFPreviousSchoolRecord = ({
 
               {level === "Senior High" && (
                 <FormField
-                  label="Senior High GPA"
+                  label="Senior High Gen. Ave."
                   type="text"
                   value={record.senior_high_gpa}
                   onFocus={() =>
@@ -530,6 +546,21 @@ const SCIFPreviousSchoolRecord = ({
             {message}
           </p>
         ))}
+
+      {removeWarning && (
+        <ModalMessage
+          title="Cannot Remove Record"
+          message={`You must have at least one ${removeWarning.level} record.`}
+          onClose={() => setRemoveWarning(null)}
+          showCloseButton={false}
+          buttons={[
+            {
+              label: "Got it",
+              className: "modal-default-btn",
+            },
+          ]}
+        />
+      )}
     </div>
   );
 };

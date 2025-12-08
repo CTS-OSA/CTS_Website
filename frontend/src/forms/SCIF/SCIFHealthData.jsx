@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import BaseFormField from "../../components/FormField";
 import { clearError } from "../../utils/helperFunctions";
 import {
@@ -13,12 +13,20 @@ const SCIFHealthData = ({
   errors,
   setErrors,
 }) => {
-  const FormField = (props) => (
-    <BaseFormField
-      {...props}
-      disabled={props.disabled ?? readOnly}
-    />
+  const FormField = useMemo(
+    () =>
+      function FormFieldComponent(props) {
+        return (
+          <BaseFormField
+            {...props}
+            disabled={props.disabled ?? readOnly}
+          />
+        );
+      },
+    [readOnly]
   );
+
+  const clearFieldError = (key) => clearError(errors, setErrors, key);
 
   const normalizeText = (value) => {
     if (readOnly) return;
@@ -51,6 +59,27 @@ const SCIFHealthData = ({
     updateData({
       ...data,
       [field]: filteredValue,
+    });
+  };
+
+  const handleLastHospitalizationChange = (value) => {
+    if (readOnly) return;
+
+    const today = new Date().toISOString().split("T")[0];
+
+    if (value && value > today) {
+      setErrors((prev) => ({
+        ...prev,
+        "health_data.last_hospitalization":
+          "Last hospitalization date cannot be in the future.",
+      }));
+      return;
+    }
+
+    clearFieldError("health_data.last_hospitalization");
+    updateData({
+      ...data,
+      last_hospitalization: value || "",
     });
   };
 
@@ -93,7 +122,7 @@ const SCIFHealthData = ({
             label="Height (m)"
             type="text"
             value={data.height ?? ""}
-            onFocus={() => clearError("health_data.height")}
+            onFocus={() => clearFieldError("health_data.height")}
             onChange={(e) =>
               handleTextFieldChange(
                 "height",
@@ -109,7 +138,7 @@ const SCIFHealthData = ({
             label="Weight (kg)"
             type="text"
             value={data.weight ?? ""}
-            onFocus={() => clearError("health_data.weight")}
+            onFocus={() => clearFieldError("health_data.weight")}
             onChange={(e) =>
               handleTextFieldChange(
                 "weight",
@@ -128,7 +157,7 @@ const SCIFHealthData = ({
             label="Eye Sight"
             type="select"
             value={data.eye_sight || ""}
-            onFocus={() => clearError("health_data.eye_sight")}
+            onFocus={() => clearFieldError("health_data.eye_sight")}
             onChange={(e) =>
               updateData({ ...data, eye_sight: normalizeText(e.target.value) })
             }
@@ -146,7 +175,7 @@ const SCIFHealthData = ({
             label="Hearing"
             type="select"
             value={data.hearing || ""}
-            onFocus={() => clearError("health_data.hearing")}
+            onFocus={() => clearFieldError("health_data.hearing")}
             onChange={(e) =>
               updateData({ ...data, hearing: normalizeText(e.target.value) })
             }
@@ -167,7 +196,9 @@ const SCIFHealthData = ({
             label="Any Physical Disability"
             type="text"
             value={data.physical_disabilities || ""}
-            onFocus={() => clearError("health_data.physical_disabilities")}
+            onFocus={() =>
+              clearFieldError("health_data.physical_disabilities")
+            }
             onChange={(e) =>
               updateData({
                 ...data,
@@ -182,7 +213,7 @@ const SCIFHealthData = ({
             label="Common/Frequent Ailment"
             type="text"
             value={data.common_ailments || ""}
-            onFocus={() => clearError("health_data.common_ailments")}
+            onFocus={() => clearFieldError("health_data.common_ailments")}
             onChange={(e) =>
               updateData({
                 ...data,
@@ -201,10 +232,8 @@ const SCIFHealthData = ({
             type="date"
             placeholder=""
             value={data.last_hospitalization || ""}
-            onFocus={() => clearError("health_data.last_hospitalization")}
-            onChange={(e) =>
-              updateData({ ...data, last_hospitalization: e.target.value })
-            }
+            onFocus={() => clearFieldError("health_data.last_hospitalization")}
+            onChange={(e) => handleLastHospitalizationChange(e.target.value)}
             error={errors?.["health_data.last_hospitalization"]}
           />
 
@@ -212,7 +241,9 @@ const SCIFHealthData = ({
             label="Reason for Hospitalization"
             type="textarea"
             value={data.reason_of_hospitalization || ""}
-            onFocus={() => clearError("health_data.reason_of_hospitalization")}
+            onFocus={() =>
+              clearFieldError("health_data.reason_of_hospitalization")
+            }
             onChange={(e) =>
               updateData({
                 ...data,

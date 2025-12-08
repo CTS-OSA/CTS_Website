@@ -546,10 +546,13 @@ const SCIF = () => {
                               family_data: formData.family_data,
                               siblings: formData.siblings,
                             }}
-                            updateData={(sectionKey, newData) =>
+                            updateData={(sectionKey, updater) =>
                               setFormData((prev) => ({
                                 ...prev,
-                                [sectionKey]: newData,
+                                [sectionKey]:
+                                  typeof updater === "function"
+                                    ? updater(prev[sectionKey])
+                                    : updater,
                               }))
                             }
                             readOnly={readOnly}
@@ -651,12 +654,13 @@ const SCIF = () => {
                         )}
 
                         {/* Buttons - bottom right aligned */}
-                        <div className="flex justify-end items-center gap-3 mt-2">
+                        <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-end">
                           {/* Back (disabled on first step) */}
                           {step > 1 && (
                             <Button
                               variant="secondary"
                               onClick={handlePreviousStep}
+                              className="w-full sm:w-auto"
                             >
                               Back
                             </Button>
@@ -668,6 +672,7 @@ const SCIF = () => {
                               variant="tertiary"
                               onClick={handleSaveDraft}
                               disabled={loading}
+                              className="w-full sm:w-auto"
                             >
                               {loading ? "Saving Draft..." : "Save Draft"}
                             </Button>
@@ -675,7 +680,11 @@ const SCIF = () => {
 
                           {/* On last step show Preview + Submit; otherwise show Next */}
                           {step < steps.length ? (
-                            <Button variant="primary" onClick={handleNextStep}>
+                            <Button
+                              variant="primary"
+                              onClick={handleNextStep}
+                              className="w-full sm:w-auto"
+                            >
                               Next
                             </Button>
                           ) : (
@@ -683,6 +692,7 @@ const SCIF = () => {
                               <Button
                                 variant="tertiary"
                                 onClick={handlePreview}
+                                className="w-full sm:w-auto"
                               >
                                 Preview
                               </Button>
@@ -690,6 +700,7 @@ const SCIF = () => {
                                 <Button
                                   variant="primary"
                                   onClick={handleConfirmSubmit}
+                                  className="w-full sm:w-auto"
                                 >
                                   Submit
                                 </Button>
