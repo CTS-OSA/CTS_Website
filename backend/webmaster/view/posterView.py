@@ -31,12 +31,17 @@ class posterView(APIView):
         try:
             # Get all active posters
             posters = Poster.objects.filter(status=1).order_by('order')
+            is_authenticated = request.user and request.user.is_authenticated
 
-            data = [{
-                'id': p.id,
-                'image_url': f"{photo_url}/posters/{p.image}" if p.image else None,
-                'order': p.order
-            } for p in posters]
+            data = []
+            for p in posters:
+                poster_data = {
+                    'image_url': f"{photo_url}/posters/{p.image}" if p.image else None,
+                    'order': p.order
+                }
+                if is_authenticated:
+                    poster_data['id'] = p.id
+                data.append(poster_data)
             
             return Response(data, status=status.HTTP_200_OK)
         except Exception as e:

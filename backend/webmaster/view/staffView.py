@@ -30,16 +30,21 @@ class staffView(APIView):
         try:
             # Get all active staff
             staff = Staff.objects.filter(status=1).order_by('order')
+            is_authenticated = request.user and request.user.is_authenticated
             
-            data = [{
-                'id': s.id,
-                'image_url': f"{photo_url}/staff/{s.image}" if s.image else None,
-                'name': s.name,
-                'post_nominal': s.post_nominal,
-                'position': s.position,
-                'license': s.license,
-                'order': s.order
-            } for s in staff]
+            data = []
+            for s in staff:
+                staff_data = {
+                    'image_url': f"{photo_url}/staff/{s.image}" if s.image else None,
+                    'name': s.name,
+                    'post_nominal': s.post_nominal,
+                    'position': s.position,
+                    'license': s.license,
+                    'order': s.order
+                }
+                if is_authenticated:
+                    staff_data['id'] = s.id
+                data.append(staff_data)
             
             return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
