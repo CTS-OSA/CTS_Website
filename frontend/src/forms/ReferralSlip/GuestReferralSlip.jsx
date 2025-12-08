@@ -98,31 +98,33 @@ const ReferralSlip = () => {
         required: true,
         message: "This field is required.",
       },
-    },
-    referrer_details: {
-      last_name: {
-        required: true,
-        message: "This field is required.",
-      },
-      first_name: {
-        required: true,
-        message: "This field is required.",
-      },
-      department: {
-        required: true,
-        message: "This field is required.",
-      },
-      email: {
-        required: true,
-        message: "This field is required.",
-        pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-        patternMessage: "Please enter a valid email address.",
-      },
-      contact_number: {
-        required: true,
-        message: "This field is required.",
-        pattern: /^(\+63|0)\d{9,10}$/,
-        patternMessage: "Please enter a valid phone number.",
+      // referrer validation belongs under referral.referrer because
+      // the form data nests referrer as `formData.referral.referrer`.
+      referrer: {
+        last_name: {
+          required: true,
+          message: "This field is required.",
+        },
+        first_name: {
+          required: true,
+          message: "This field is required.",
+        },
+        department_unit: {
+          required: true,
+          message: "This field is required.",
+        },
+        email: {
+          required: true,
+          message: "This field is required.",
+          pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+          patternMessage: "Please enter a valid email address.",
+        },
+        contact_number: {
+          required: true,
+          message: "This field is required.",
+          pattern: /^(\+63|0)\d{9,10}$/,
+          patternMessage: "Please enter a valid phone number.",
+        },
       },
     },
   };
@@ -133,6 +135,7 @@ const ReferralSlip = () => {
     const stepMap = {
       1: ["referral", "referred_person"],
       2: ["referral"],
+      3: ["referral", "referrer"],
     };
 
     const path = stepMap[stepNumber];

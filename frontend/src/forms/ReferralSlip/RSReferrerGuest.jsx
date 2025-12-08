@@ -1,22 +1,30 @@
 import React from "react";
 import FormField from "../../components/FormField";
 import { clearError } from "../../utils/helperFunctions";
+import { filterAlphabetsOnly, filterNumbersOnly } from "../../utils/inputFilters";
 
 const RSReferrerGuest = ({ formData, setFormData, errors, setErrors }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     const fieldName = name;
+    let filteredValue = value;
 
+    if (["first_name", "last_name", "department_unit"].includes(fieldName)) {
+      filteredValue = filterAlphabetsOnly(value);
+    } else if (fieldName === "contact_number") {
+      filteredValue = filterNumbersOnly(value);
+    }
     setFormData((prev) => ({
       ...prev,
       referral: {
         ...prev.referral,
         referrer: {
           ...prev.referral.referrer,
-          [fieldName]: value,
+          [fieldName]: filteredValue,
         },
       },
     }));
+    
     if (errors[fieldName]) {
       setErrors((prev) => ({
         ...prev,
