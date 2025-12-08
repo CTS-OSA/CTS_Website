@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import BaseFormField from "../../components/FormField";
 import Button from "../../components/UIButton";
 import { clearError } from "../../utils/helperFunctions";
@@ -15,11 +15,17 @@ const SCIFFamilyData = ({
   errors,
   setErrors,
 }) => {
-  const FormField = (props) => (
-    <BaseFormField
-      {...props}
-      disabled={props.disabled ?? readOnly}
-    />
+  const FormField = useMemo(
+    () =>
+      function FormFieldComponent(props) {
+        return (
+          <BaseFormField
+            {...props}
+            disabled={props.disabled ?? readOnly}
+          />
+        );
+      },
+    [readOnly]
   );
 
   const { family_data, siblings } = data;
@@ -73,37 +79,37 @@ const SCIFFamilyData = ({
     else if (fieldType === "number") filteredValue = filterNumbersOnly(value);
     else if (fieldType === "general") filteredValue = filterGeneralText(value);
 
-    updateData("family_data", {
-      ...family_data,
+    updateData("family_data", (prevFamily = {}) => ({
+      ...prevFamily,
       [section]: {
-        ...family_data[section],
+        ...(prevFamily[section] || {}),
         [field]: filteredValue,
       },
-    });
+    }));
   };
 
   // FILLERS
   const fillDeceasedFields = (parent) => {
-    const currentParent = family_data[parent] || {};
-
-    updateData("family_data", {
-      ...family_data,
-      [parent]: {
-        ...currentParent,
-        first_name: currentParent.first_name || "",
-        last_name: currentParent.last_name || "",
-        age: null,
-        contact_number: null,
-        highest_educational_attainment: null,
-        job_occupation: null,
-        company_address: null,
-        company_agency: null,
-        is_deceased: true,
-        is_none: false,
-      },
+    updateData("family_data", (prevFamily = {}) => {
+      const currentParent = prevFamily[parent] || {};
+      return {
+        ...prevFamily,
+        [parent]: {
+          ...currentParent,
+          first_name: currentParent.first_name || "",
+          last_name: currentParent.last_name || "",
+          age: null,
+          contact_number: null,
+          highest_educational_attainment: null,
+          job_occupation: null,
+          company_address: null,
+          company_agency: null,
+          is_deceased: true,
+          is_none: false,
+        },
+      };
     });
 
-    // Clear errors for this parent
     clearParentErrors(parent);
   };
 
@@ -121,19 +127,22 @@ const SCIFFamilyData = ({
       is_deceased: false,
     };
 
-    updateData("family_data", {
-      ...family_data,
-      [parent]: fields,
-    });
+    updateData("family_data", (prevFamily = {}) => ({
+      ...prevFamily,
+      [parent]: {
+        ...(prevFamily[parent] || {}),
+        ...fields,
+      },
+    }));
 
-    // Clear errors for this parent
     clearParentErrors(parent);
   };
 
   const clearParentFields = (parent) => {
-    updateData("family_data", {
-      ...family_data,
+    updateData("family_data", (prevFamily = {}) => ({
+      ...prevFamily,
       [parent]: {
+        ...(prevFamily[parent] || {}),
         is_deceased: false,
         is_none: false,
         first_name: "",
@@ -145,7 +154,7 @@ const SCIFFamilyData = ({
         company_agency: "",
         company_address: "",
       },
-    });
+    }));
   };
 
   // Clear all validation errors for a parent
@@ -161,11 +170,14 @@ const SCIFFamilyData = ({
       `${parent}.company_address`,
     ];
 
-    const newErrors = { ...errors };
-    parentErrorKeys.forEach((key) => {
-      delete newErrors[key];
+    setErrors((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev };
+      parentErrorKeys.forEach((key) => {
+        delete updated[key];
+      });
+      return Object.keys(updated).length ? updated : null;
     });
-    setErrors(newErrors);
   };
 
   const handleParentToggle = (parent, field, value) => {
@@ -207,21 +219,20 @@ const SCIFFamilyData = ({
       students: [],
     };
 
-    updateData(
-      "siblings",
-      Array.isArray(siblings) ? [...siblings, newSibling] : [newSibling]
-    );
+    updateData("siblings", (prevSiblings = []) => [
+      ...prevSiblings,
+      newSibling,
+    ]);
   };
 
   const removeSibling = (index) => {
-  const updated = siblings.filter(s => !s._delete).map((sibling, i) =>
-    i === index
-      ? { ...sibling, _delete: true }
-      : sibling
-  );
-
-  updateData("siblings", updated);
-};
+    updateData("siblings", (prevSiblings = []) => {
+      const activeSiblings = prevSiblings.filter((sibling) => !sibling._delete);
+      return activeSiblings.map((sibling, i) =>
+        i === index ? { ...sibling, _delete: true } : sibling
+      );
+    });
+  };
 
 
   const handleSiblingChange = (index, field, value) => {
@@ -233,9 +244,8 @@ const SCIFFamilyData = ({
     else if (fieldType === "number") filteredValue = filterNumbersOnly(value);
     else if (fieldType === "general") filteredValue = filterGeneralText(value);
 
-    updateData(
-      "siblings",
-      siblings.map((sibling, i) =>
+    updateData("siblings", (prevSiblings = []) =>
+      prevSiblings.map((sibling, i) =>
         i === index ? { ...sibling, [field]: filteredValue } : sibling
       )
     );
