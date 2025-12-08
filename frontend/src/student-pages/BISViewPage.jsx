@@ -18,6 +18,7 @@ import {
   validateSocioEconomicStatus,
   validateScholasticStatus,
 } from "../utils/BISValidation";
+import CustomCheckbox from "../components/CustomCheckbox";
 
 const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
   const pdfRef = useRef();
@@ -159,7 +160,7 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
 
     const getBorderColor = (computed) =>
       computed.borderBottomColor &&
-      computed.borderBottomColor !== "rgba(0, 0, 0, 0)"
+        computed.borderBottomColor !== "rgba(0, 0, 0, 0)"
         ? computed.borderBottomColor
         : "#000";
 
@@ -191,6 +192,10 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
         if (isPrivacyConsent)
           indicator.classList.add("pdf-checkbox-indicator--privacy");
         indicator.textContent = originalEl.checked ? "☑" : "☐";
+        indicator.setAttribute(
+          "data-checked",
+          originalEl.checked ? "true" : "false"
+        );
 
         // Font & spacing
         indicator.style.fontSize = computed.fontSize;
@@ -199,12 +204,22 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
 
         const parentLabel = cloneEl.closest("label");
         if (parentLabel) {
-          parentLabel.style.display = "flex";
-          parentLabel.style.alignItems = "center";
-          parentLabel.style.gap = "4px";
-          parentLabel.style.marginBottom = "4px";
-          parentLabel.insertBefore(indicator, cloneEl);
+          const privacyText = parentLabel.querySelector(".privacy-consent-text");
+          if (privacyText && isPrivacyConsent) {
+            privacyText.parentNode.insertBefore(indicator, privacyText);
+          } else {
+            parentLabel.insertBefore(indicator, cloneEl);
+          }
           parentLabel.removeChild(cloneEl);
+
+          parentLabel.style.display = "flex";
+          parentLabel.style.gap = isPrivacyConsent ? "0.75rem" : "4px";
+          parentLabel.style.alignItems = isPrivacyConsent
+            ? "center"
+            : "center";
+          if (!isPrivacyConsent) {
+            parentLabel.style.marginBottom = "4px";
+          }
         } else {
           cloneEl.replaceWith(indicator);
         }
@@ -245,18 +260,18 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
       textDiv.style.wordBreak = "break-word";
       textDiv.style.width = "100%";
       textDiv.style.maxWidth = "100%";
-      textDiv.style.margin = "2px 0"; 
+      textDiv.style.margin = "2px 0";
       textDiv.style.padding =
         cloneEl.tagName === "SELECT"
           ? "2px 6px"
           : cloneEl.tagName === "TEXTAREA"
-          ? "2px 4px"
-          : "2px 4px";
+            ? "2px 4px"
+            : "2px 4px";
 
       // Border
       const borderColor =
         computed.borderBottomColor &&
-        computed.borderBottomColor !== "rgba(0, 0, 0, 0)"
+          computed.borderBottomColor !== "rgba(0, 0, 0, 0)"
           ? computed.borderBottomColor
           : "#000";
       const borderWidth =
@@ -425,7 +440,7 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
 
     // Run validation before showing modal
     const apiData = mapFormStateToAPI();
-    
+
     const validationErrors = {};
     Object.assign(validationErrors, validatePreferences(apiData));
     Object.assign(validationErrors, validateSupport(apiData));
@@ -599,15 +614,13 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
     { key: "mother_only", label: "Mother only" },
     {
       key: "scholarship",
-      label: `Scholarship (${
-        student_support.other_scholarship || "Unspecified"
-      })`,
+      label: `Scholarship (${student_support.other_scholarship || "Unspecified"
+        })`,
     },
     {
       key: "combination",
-      label: `Combination (${
-        student_support.combination_notes || "Unspecified"
-      })`,
+      label: `Combination (${student_support.combination_notes || "Unspecified"
+        })`,
     },
     {
       key: "others",
@@ -1090,11 +1103,11 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
             />
           </label>
         </div>
-        <h5>Privacy Statement: </h5>
-        <div className="font-bold mt-5 text-justify">
-          The University of the Philippines takes your privacy seriously and we
-          are committed to protecting your personal information. For the UP
-          Privacy Policy, please visit{" "}
+        <div className="font-bold mb-5">Privacy Statement: </div>
+        <div className="font-bold  mt-5 text-justify text-xs">
+          The University of the Philippines takes your privacy seriously
+          and we are committed to protecting your personal information.
+          For the UP Privacy Policy, please visit{" "}
           <a
             href="https://privacy.up.edu.ph"
             target="_blank"
@@ -1103,25 +1116,24 @@ const BISProfileView = ({ profileData, formData, isAdmin = false }) => {
             https://privacy.up.edu.ph
           </a>
         </div>
-        <div className="flex -ml-25">
-          <label className="privacy-consent">
-            <input
-              type="checkbox"
-              name="has_consented"
-              checked={privacy_consent.has_consented === true}
-              readOnly
-              disabled
-            />
-          </label>
-          <span className="text-justify -ml-25 mt-4">
-            I have read the University of the Philippines' Privacy Notice for
-            Students. I understand that for the UP System to carry out its
-            mandate under the 1987 Constitution, the UP Charter, and other laws,
-            the University must necessarily process my personal and sensitive
-            personal information. Therefore, I recognize the authority of the
-            University of the Philippines to process my personal and sensitive
-            personal information, pursuant to the UP Privacy Notice and
-            applicable laws.
+        <div className="flex justify-between">
+          <CustomCheckbox
+            name="has_consented"
+            value="true"
+            checked={privacy_consent.has_consented === true}
+            onChange={() => { }}
+            disabled
+          />
+
+          <span className="text-xs text-justify -ml-45 mt-4">
+            I have read the University of the Philippines' Privacy Notice
+            for Students. I understand that for the UP System to carry out
+            its mandate under the 1987 Constitution, the UP Charter, and
+            other laws, the University must necessarily process my
+            personal and sensitive personal information. Therefore, I
+            recognize the authority of the University of the Philippines
+            to process my personal and sensitive personal information,
+            pursuant to the UP Privacy Notice and applicable laws.
           </span>
         </div>
 
