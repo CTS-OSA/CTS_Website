@@ -103,9 +103,13 @@ export const AdminReferral = () => {
     let aVal, bVal;
 
     switch (sortConfig.key) {
-      case "name":
-        aVal = `${a.referred_person?.first_name || ""} ${a.referred_person?.last_name || ""}`.toLowerCase();
-        bVal = `${b.referred_person?.first_name || ""} ${b.referred_person?.last_name || ""}`.toLowerCase();
+      case "referred_person":
+        aVal = (a.referred_person?.name || "").toLowerCase();
+        bVal = (b.referred_person?.name || "").toLowerCase();
+        break;
+      case "referrer":
+        aVal = (a.referrer?.name || "").toLowerCase();
+        bVal = (b.referrer?.name || "").toLowerCase();
         break;
       case "date":
         aVal = new Date(a.referral_date);
@@ -235,8 +239,8 @@ export const AdminReferral = () => {
           <thead>
             <tr>
               <SortableTableHeader
-                label="Name"
-                sortKey="name"
+                label="Referred Student"
+                sortKey="referred_person"
                 currentSort={sortConfig}
                 onSort={handleSort}
                 onClearSort={handleClearSort}
@@ -257,7 +261,7 @@ export const AdminReferral = () => {
               />
               <SortableTableHeader
                 label="Referred By"
-                sortKey="name"
+                sortKey="referrer"
                 currentSort={sortConfig}
                 onSort={handleSort}
                 onClearSort={handleClearSort}
