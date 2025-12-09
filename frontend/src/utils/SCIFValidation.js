@@ -1,3 +1,13 @@
+export const shouldRequireGuardian = (familyData = {}) => {
+  const mother = familyData.mother || {};
+  const father = familyData.father || {};
+
+  const motherUnavailable = Boolean(mother.is_none || mother.is_deceased);
+  const fatherUnavailable = Boolean(father.is_none || father.is_deceased);
+
+  return motherUnavailable && fatherUnavailable;
+};
+
 export const validateParent = (formData) => {
   const errors = {};
 
@@ -72,7 +82,9 @@ export const validateParent = (formData) => {
 export const validateGuardian = (formData) => {
   const errors = {};
 
-  const guardian = formData.family_data.guardian || {};
+  const familyData = formData.family_data || {};
+  const guardian = familyData.guardian || {};
+  const guardianRequired = shouldRequireGuardian(familyData);
 
   const hasAnyInputGuardian = Object.entries(guardian).some(
     ([key, value]) =>
@@ -82,7 +94,7 @@ export const validateGuardian = (formData) => {
       value.trim() !== ""
   );
 
-  if (hasAnyInputGuardian) {
+  if (guardianRequired || hasAnyInputGuardian) {
     if (!guardian.first_name)
       errors["guardian.first_name"] = "Guardian's first name is required.";
     if (!guardian.last_name)
