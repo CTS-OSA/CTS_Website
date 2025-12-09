@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Navbar from "../components/NavBar";
 import Footer from "../components/Footer";
@@ -15,6 +15,18 @@ export const ForgotPassword = () => {
   const [showMessageModal, setShowMessageModal] = useState(false);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    function handleModalOk() {
+      setShowMessageModal(false);
+      if (!isError) {
+        navigate("/");
+      }
+    }
+
+    window.addEventListener("modal-ok", handleModalOk);
+    return () => window.removeEventListener("modal-ok", handleModalOk);
+  }, [isError, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,13 +48,6 @@ export const ForgotPassword = () => {
       setShowMessageModal(true);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleModalClose = () => {
-    setShowMessageModal(false);
-    if (!isError) {
-      navigate("/");
     }
   };
 
@@ -116,9 +121,9 @@ export const ForgotPassword = () => {
         </div>
       </div>
 
-
+      {/* Loading Modal */}
       {isLoading && (
-        <Modal>
+        <Modal type="loading" noHeader>
           <div className="modal-message-with-spinner">
             <div className="loading-spinner" />
             <p className="loading-text">Sending reset link... Please wait.</p>
@@ -126,17 +131,12 @@ export const ForgotPassword = () => {
         </Modal>
       )}
 
+      {/* Success/Error Modal */}
       {showMessageModal && !isLoading && (
-        <Modal>
-          <div className="modal-message-with-spinner">
-            <p className="loading-text" style={{ fontWeight: "bold" }}>
-              {isError ? "Error" : "Success"}
-            </p>
-            <p>{message}</p>
-            <button className="okay-button" onClick={handleModalClose}>
-              OK
-            </button>
-          </div>
+        <Modal type={isError ? "error" : "success"}>
+          <p className="text-lg font-semibold">
+            {message}
+          </p>
         </Modal>
       )}
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useApiRequest } from "../context/ApiRequestContext";
 import { useAuth } from "../context/AuthContext";
 import "./css_pages/resetpassword.css";
@@ -23,6 +23,18 @@ export const ChangePassword = () => {
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    function handleModalOk() {
+      setShowModal(false);
+      if (!isError) {
+        logout(navigate);
+      }
+    }
+
+    window.addEventListener("modal-ok", handleModalOk);
+    return () => window.removeEventListener("modal-ok", handleModalOk);
+  }, [isError, logout, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -66,7 +78,7 @@ export const ChangePassword = () => {
         return;
       }
 
-      setMessage("Password changed successfully.");
+      setMessage("Password changed successfully. You will be logged out.");
       setIsError(false);
       setIsLoading(false);
       setShowModal(true);
@@ -78,13 +90,6 @@ export const ChangePassword = () => {
       setIsError(true);
       setIsLoading(false);
       setShowModal(true);
-    }
-  };
-
-  const handleModalClose = () => {
-    setShowModal(false);
-    if (!isError) {
-      logout(navigate);
     }
   };
 
@@ -184,15 +189,17 @@ export const ChangePassword = () => {
             <button
               type="submit"
               className="bg-upmaroon mt-2 rounded-md text-white font-roboto p-2 w-full cursor-pointer"
+              disabled={isLoading}
             >
-              CONFIRM
+              {isLoading ? "PROCESSING..." : "CONFIRM"}
             </button>
           </form>
         </div>
       </div>
 
+      {/* Loading Modal */}
       {isLoading && (
-        <Modal>
+        <Modal type="loading" noHeader>
           <div className="modal-message-with-spinner">
             <div className="loading-spinner" />
             <p className="loading-text">
@@ -202,18 +209,12 @@ export const ChangePassword = () => {
         </Modal>
       )}
 
-      {/* Modal for success or error */}
+      {/* Success/Error Modal */}
       {showModal && !isLoading && (
-        <Modal>
-          <div className="modal-message-with-spinner">
-            <p className="loading-text" style={{ fontWeight: "bold" }}>
-              {isError ? "Error" : "Success"}
-            </p>
-            <p>{message}</p>
-            <button className="okay-button" onClick={handleModalClose}>
-              OK
-            </button>
-          </div>
+        <Modal type={isError ? "error" : "success"}>
+          <p className="text-lg font-semibold">
+            {message}
+          </p>
         </Modal>
       )}
     </>

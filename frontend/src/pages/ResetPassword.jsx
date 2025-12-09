@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./css_pages/resetpassword.css";
@@ -21,6 +21,18 @@ export const ResetPassword = () => {
   const [isError, setIsError] = useState(false);
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    function handleModalOk() {
+      setShowMessageModal(false);
+      if (!isError) {
+        navigate("/");
+      }
+    }
+
+    window.addEventListener("modal-ok", handleModalOk);
+    return () => window.removeEventListener("modal-ok", handleModalOk);
+  }, [isError, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -57,11 +69,6 @@ export const ResetPassword = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleModalClose = () => {
-    setShowMessageModal(false);
-    if (!isError) navigate("/");
   };
 
   return (
@@ -106,6 +113,7 @@ export const ResetPassword = () => {
                     />
                     <button
                       type="button"
+                      aria-label={showNewPassword ? "Hide password" : "Show password"}
                       onClick={() =>
                         newPassword && setShowNewPassword(!showNewPassword)
                       }
@@ -133,6 +141,7 @@ export const ResetPassword = () => {
                     />
                     <button
                       type="button"
+                      aria-label={showReNewPassword ? "Hide password" : "Show password"}
                       onClick={() =>
                         reNewPassword && setShowReNewPassword(!showReNewPassword)
                       }
@@ -148,7 +157,11 @@ export const ResetPassword = () => {
 
                 </div>
 
-                <button type="submit" className="submit-button">
+                <button 
+                  type="submit" 
+                  className="submit-button"
+                  disabled={isLoading}
+                >
                   {isLoading ? "Saving..." : "Set New Password"}
                 </button>
               </form>
@@ -161,7 +174,7 @@ export const ResetPassword = () => {
 
       {/* Loading Modal */}
       {isLoading && (
-        <Modal>
+        <Modal type="loading" noHeader>
           <div className="modal-message-with-spinner">
             <div className="loading-spinner" />
             <p className="loading-text">Resetting password... Please wait.</p>
@@ -169,18 +182,12 @@ export const ResetPassword = () => {
         </Modal>
       )}
 
-      {/* Message Modal */}
+      {/* Success/Error Modal */}
       {showMessageModal && !isLoading && (
-        <Modal>
-          <div className="modal-message-with-spinner">
-            <p className="loading-text" style={{ fontWeight: "bold" }}>
-              {isError ? "Error" : "Success"}
-            </p>
-            <p>{message}</p>
-            <button className="okay-button" onClick={handleModalClose}>
-              OK
-            </button>
-          </div>
+        <Modal type={isError ? "error" : "success"}>
+          <p className="text-lg font-semibold">
+            {message}
+          </p>
         </Modal>
       )}
 
