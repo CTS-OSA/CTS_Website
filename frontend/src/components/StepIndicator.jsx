@@ -4,7 +4,7 @@ import { Check } from "lucide-react";
 const StepIndicator = ({ steps, currentStep }) => {
   return (
     <div className="
-  flex items-center justify-start lg:justify-center lg:pl-0
+  flex items-center justify-center lg:pl-0
   flex-row lg:ml-0 pb-4 lg:pb-0 lg:flex-col 
   w-full lg:w-max max-md:flex-row 
   lg:mt-2 -mb-5 lg:mb-0 
@@ -64,7 +64,7 @@ const StepIndicator = ({ steps, currentStep }) => {
 
               {/* Step number on small screens */}
               <span
-                className={`text-sm font-bold lg:hidden transition-opacity duration-500 ${isCompleted ? "opacity-0" : "opacity-100"
+                className={`text-sm font-bold text-upmaroon lg:hidden transition-opacity duration-500 ${isCompleted ? "opacity-0" : "opacity-100"
                   }`}
               >
                 {index + 1}
