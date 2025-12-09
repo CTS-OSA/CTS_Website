@@ -3429,7 +3429,9 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     onSave,
     title,
     nameLabel,
+    entryLabel = "Entry",
   }) => {
+    const entryLabelText = safeTrim(entryLabel) || "Entry";
     const [localRows, setLocalRows] = useState(() =>
       sanitizeTableRows(rows, { keepEmptyRows: true })
     );
@@ -3493,7 +3495,8 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           const startYear = parseInt(row.school_year_start, 10);
           const endYear = parseInt(row.school_year_end, 10);
           if (!isNaN(startYear) && !isNaN(endYear) && endYear < startYear) {
-            const name = row.name || `Entry ${idx + 1}`;
+            const fallbackName = `${entryLabelText} ${idx + 1}`;
+            const name = row.name || fallbackName;
             errors.push(
               `${name}: End year must be greater than or equal to start year`
             );
@@ -3537,7 +3540,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               >
                 <div className="flex items-center justify-between mb-4">
                   <p className="font-semibold text-[#374151]">
-                    Organization {index + 1}
+                    {`${entryLabelText} ${index + 1}`}
                   </p>
                   <button
                     type="button"
@@ -5546,6 +5549,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           onSave={handleSaveOrganizations}
           title="Edit Organization Memberships"
           nameLabel="Name of Organization"
+          entryLabel="Organization"
         />
       )}
       {activeModalType === "awards" && (
@@ -5556,6 +5560,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           onSave={handleSaveAwards}
           title="Edit Awards"
           nameLabel="Award"
+          entryLabel="Award"
         />
       )}
       {activeModalType === "graduation" && (

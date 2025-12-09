@@ -53,8 +53,17 @@ const cloneRecord = (record = {}) => {
 const cloneRecords = (records = []) =>
   records.map((record) => cloneRecord(record));
 
+const sanitizeRecords = (records = []) =>
+  cloneRecords(records).filter((record) => {
+    const level = record?.education_level;
+    if (typeof level === "string") {
+      return level.trim().length > 0;
+    }
+    return Boolean(level);
+  });
+
 const ensureRequiredRecords = (records = []) => {
-  let updated = cloneRecords(records);
+  let updated = sanitizeRecords(records);
   REQUIRED_LEVELS.forEach((level) => {
     if (!updated.some((record) => record.education_level === level)) {
       updated = [...updated, createEmptyRecord(level)];
