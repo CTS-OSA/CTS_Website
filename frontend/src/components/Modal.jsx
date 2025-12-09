@@ -1,12 +1,30 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 
-export default function Modal({ children, type = "default", noHeader = false }) {
+export default function Modal({ 
+  children, 
+  type = "default", 
+  noHeader = false,
+  noFooter = false
+}) {
+  const contentRef = useRef(null);
+  const [hasCustomButtons, setHasCustomButtons] = React.useState(false);
+
   useEffect(() => {
     const original = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => (document.body.style.overflow = original);
   }, []);
+
+  // Auto-detect if children contain form buttons
+  useEffect(() => {
+    if (contentRef.current) {
+      // Check if there are any buttons inside the content (except the Modal's own OK button)
+      const buttons = contentRef.current.querySelectorAll('button');
+      const hasButtons = buttons.length > 0;
+      setHasCustomButtons(hasButtons);
+    }
+  }, [children]);
 
   const icon = {
     success: <CheckCircle size={42} strokeWidth={1.7} className="text-white" />,
@@ -19,6 +37,12 @@ export default function Modal({ children, type = "default", noHeader = false }) 
   }[type];
 
   const showHeader = !noHeader && type !== "loading" && icon !== null;
+  
+  // Don't show footer if:
+  // 1. noFooter is explicitly true, OR
+  // 2. type is "loading", OR
+  // 3. children contain custom buttons (auto-detected)
+  const showFooter = !noFooter && type !== "loading" && !hasCustomButtons;
 
   return (
     <>
@@ -42,12 +66,15 @@ export default function Modal({ children, type = "default", noHeader = false }) 
           )}
 
           {/* Body */}
-          <div className="px-8 py-6 text-center text-gray-800 font-sans">
+          <div 
+            ref={contentRef}
+            className="px-8 py-6 text-center text-gray-800 font-sans"
+          >
             {children}
           </div>
 
-          {/* Footer button (DON'T show in loading modals) */}
-          {type !== "loading" && (
+          {/* Footer button - only show if no custom buttons detected */}
+          {showFooter && (
             <div className="px-8 pb-6 flex justify-center">
               <button
                 className="
