@@ -305,7 +305,7 @@ const ReferralSlipProfileView = ({
               <img
                 src={upLogoLeft}
                 alt="UP 28th Anniversary"
-                className="w-[1.27in] h-[1.27in] object-contain"
+                className="w-[1.27in] h-auto object-contain"
               />
             </div>
           </div>

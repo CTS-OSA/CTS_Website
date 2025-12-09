@@ -116,17 +116,37 @@ export const AdminReferralAcknowledgement = () => {
     if (formData.dateOfVisitation) {
       const visit = new Date(formData.dateOfVisitation);
       const today = new Date();
-      const visitDateOnly = new Date(visit.getFullYear(), visit.getMonth(), visit.getDate());
-      const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const visitDateOnly = new Date(
+        visit.getFullYear(),
+        visit.getMonth(),
+        visit.getDate()
+      );
+      const todayDateOnly = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate()
+      );
 
       if (visitDateOnly > todayDateOnly) {
-        newErrors.dateOfVisitation = "Date of visitation cannot be in the future.";
+        newErrors.dateOfVisitation =
+          "Date of visitation cannot be in the future.";
       }
-
 
       if (formData.referralDateRaw) {
         const referral = new Date(formData.referralDateRaw);
-        if (visit < referral) {
+
+        const visitDateOnly = new Date(
+          visit.getFullYear(),
+          visit.getMonth(),
+          visit.getDate()
+        );
+        const referralDateOnly = new Date(
+          referral.getFullYear(),
+          referral.getMonth(),
+          referral.getDate()
+        );
+
+        if (visitDateOnly < referralDateOnly) {
           newErrors.dateOfVisitation =
             "Date of visitation cannot be earlier than the referral date.";
         }
