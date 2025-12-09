@@ -355,7 +355,7 @@ const PARDProfileView = ({ profileData, formData }) => {
         </div>
 
         <div className="section-title">III. PSYCHOSOCIAL ASSESSMENT</div>
-        <div className="indented-section grid grid-cols-2 grid-rows-2 gap-2">
+        <div className="indented-section grid grid-cols-2 gap-2 items-start">
           <label>
             Date Started:{" "}
             <span className="border-b border-black flex-1 pb-0.5">
@@ -368,7 +368,7 @@ const PARDProfileView = ({ profileData, formData }) => {
               {pard_data?.is_currently_on_medication ? "Yes" : "No"}
             </span>
           </label>
-          <label className="col-span-2">
+          <label className="col-span-2 items-start!">
             Symptoms Observed:
             <AutoResizeTextarea value={pard_data?.symptoms_observed || ""} readOnly/>
           </label>

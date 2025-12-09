@@ -311,7 +311,6 @@ const PARD = () => {
       const result = await submitForm(studentNumber, formData);
       if (result.success) {
         setShowConfirmation(true);
-        navigate("/student");
         setTimeout(() => {
           navigate("/student");
         }, 5000);
