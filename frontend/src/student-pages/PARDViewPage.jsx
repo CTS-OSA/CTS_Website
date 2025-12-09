@@ -411,7 +411,7 @@ const PARDProfileView = ({ profileData, formData }) => {
       <BackToTopButton />
       {showDownloadConfirm && (
         <ConfirmDialog
-          title="Confirm Download"
+          title=""
           message="Are you sure you want to download this file?"
           onConfirm={handleConfirmDownload}
           onCancel={handleCancelDownload}

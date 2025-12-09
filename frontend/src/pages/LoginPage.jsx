@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import FormField from "../components/FormField";
 import SubmitButton from "../components/SubmitButton";
@@ -24,9 +24,22 @@ const LoginPage = () => {
   const [message, setMessage] = useState("");
   const [showMessageModal, setShowMessageModal] = useState(false);
   const role = new URLSearchParams(location.search).get("role");
+
   if (role !== "admin") {
     return <NotFound />;
   }
+
+  useEffect(() => {
+    function handleModalOk() {
+      setShowMessageModal(false);
+      if (!isError) {
+        navigate(role === "admin" ? "/admin" : "");
+      }
+    }
+
+    window.addEventListener("modal-ok", handleModalOk);
+    return () => window.removeEventListener("modal-ok", handleModalOk);
+  }, [isError, role, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,19 +55,17 @@ const LoginPage = () => {
         setShowMessageModal(true);
         setMessage(`Welcome back! ${email}`);
         setIsError(false);
-        setLoading(false);
-        setTimeout(() => {
-          navigate(role === "admin" ? "/admin" : "");
-        }, 500);
       } else {
         setShowMessageModal(true);
         setMessage("Invalid email or password. Please try again.");
         setIsError(true);
-        setLoading(false);
         setPassword("");
       }
     } catch {
       setError("An error occurred. Please try again later.");
+      setShowMessageModal(true);
+      setMessage("An error occurred. Please try again later.");
+      setIsError(true);
     } finally {
       setLoading(false);
     }
@@ -93,6 +104,7 @@ const LoginPage = () => {
                       required
                     />
                   </div>
+
                   <div className="mt-3 relative">
                     <FormField
                       label="Password"
@@ -102,12 +114,10 @@ const LoginPage = () => {
                       name="password"
                       required
                     />
-                    {/* Eye icon */}
+
                     <button
                       type="button"
-                      aria-label={
-                        showPassword ? "Hide password" : "Show password"
-                      }
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                       disabled={!password}
                       className={`absolute right-3 top-1/2 -translate-y-1/2 ${
                         password
@@ -119,29 +129,18 @@ const LoginPage = () => {
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
-                  <div className="mt-3"></div>
-                  <SubmitButton
-                    text={loading ? "Logging in..." : "Log In"}
-                    disabled={loading}
-                  />
-                  <div className="login__links">
-                    <Link to="/forgot-password">Forgot password?</Link>
-                    <br />
-                    {/* Conditionally render Sign Up link based on role */}
-                    {role !== "admin" && (
-                      <span>
-                        Don’t have an account? <Link to="/signup">Sign Up</Link>
-                      </span>
-                    )}
-                  </div>
+
+                  <div className="mt-3" />
+                  <SubmitButton text={loading ? "Logging in..." : "Log In"} disabled={loading} />
                 </form>
               </section>
             </div>
           </div>
         </div>
 
+        {/* Loading Modal */}
         {loading && (
-          <Modal>
+          <Modal type="loading" noHeader>
             <div className="modal-message-with-spinner">
               <div className="loading-spinner" />
               <p className="loading-text">Logging in... Please wait.</p>
@@ -149,22 +148,15 @@ const LoginPage = () => {
           </Modal>
         )}
 
+        {/* SUCCESS / ERROR MODAL */}
         {showMessageModal && !loading && (
-          <Modal>
-            <div className="modal-message-with-spinner">
-              <p className="loading-text" style={{ fontWeight: "bold" }}>
-                {isError ? "Error" : "Success"}
-              </p>
-              <p>{message}</p>
-              <button
-                className="okay-button"
-                onClick={() => setShowMessageModal(false)}
-              >
-                OK
-              </button>
-            </div>
+          <Modal type={isError ? "error" : "success"}>
+            <p className="text-lg font-semibold">
+              {message}
+            </p>
           </Modal>
         )}
+
         <Footer />
       </main>
     </>

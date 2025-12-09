@@ -442,7 +442,7 @@ export const AdminPARDList = () => {
 
         {deleteTarget && (
           <ConfirmDialog
-            title="Delete submission"
+            title=""
             message={`Mark ${deleteTarget.student.first_name} ${deleteTarget.student.last_name}'s submission as deleted?`}
             onConfirm={handleConfirmDelete}
             onCancel={handleCancelDelete}
