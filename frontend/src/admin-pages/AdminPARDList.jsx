@@ -41,7 +41,7 @@ export const AdminPARDList = () => {
     const fetchData = async () => {
       try {
         const res = await request(
-          "/api/forms/admin/psychosocial-assistance-and-referral-desk"
+          "http://localhost:8000/api/forms/admin/psychosocial-assistance-and-referral-desk"
         );
 
         if (!res.ok) throw new Error("Failed to fetch PARD submissions");
@@ -66,9 +66,9 @@ export const AdminPARDList = () => {
   useEffect(() => {
     let temp = submissions.filter(({ student, submitted_on, pard_status }) => {
       const fullName =
-        `${student.first_name} ${student.last_name}`.toLowerCase();
+        `${student.first_name} ${student.middle_name || ''} ${student.last_name}`.toLowerCase().trim();
       const studentId = student.student_number.toLowerCase();
-      const searchText = filterText.toLowerCase();
+      const searchText = filterText.toLowerCase().trim();
       const normalizedStatus = (pard_status || "").toLowerCase();
 
       if (

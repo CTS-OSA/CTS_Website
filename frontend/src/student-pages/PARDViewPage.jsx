@@ -222,8 +222,11 @@ const PARDProfileView = ({ profileData, formData }) => {
       </div>
 
       <div className="pdf p-10" ref={pdfRef}>
-        <h3>PSYCHOSOCIAL ASSISTANCE AND REFERRAL DESK (PARD)</h3>
-        <h3>ONLINE APPOINMENT SCHEDULE</h3>
+        <FormHeader />
+        <div className="font-semibold">
+          <h3>PSYCHOSOCIAL ASSISTANCE AND REFERRAL DESK (PARD)</h3>
+          <h3 className="-mt-5!">ONLINE APPOINMENT SCHEDULE</h3>
+        </div>
         <div className="font-semibold uppercase">
           {role === "admin" ? (
             <>
