@@ -51,4 +51,4 @@ class CollegeAward(models.Model):
             check_required_fields(self, required_fields, self.submission.status)
 
     def __str__(self):
-        return f"{self.student.student_number} - {self.award.name} ({self.academic_year})"
+        return f"{self.student.student_number} - {self.award} ({self.academic_year})"

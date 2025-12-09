@@ -401,7 +401,7 @@ const ReferralSlip = () => {
 
         {showSuccessToast && (
           <ToastMessage
-            message="Your form has been successfully submitted!"
+            message="An email has been sent!"
             onClose={() => setShowSuccessToast(false)}
             duration={5000}
           />

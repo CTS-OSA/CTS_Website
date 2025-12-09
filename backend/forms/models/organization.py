@@ -47,4 +47,4 @@ class Membership(models.Model):
                 })
 
     def __str__(self):
-        return f"{self.student.student_number} - {self.organization.name} ({self.academic_year})"
+        return f"{self.student.student_number} - {self.organization} ({self.academic_year})"
