@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Trash2, Edit2, Upload, Plus, Minus } from "react-feather";
 import DefaultLayout from "../components/DefaultLayout";
-import { toast } from "react-toastify";
 import Button from "../components/UIButton";
 import { useApiRequest } from "../context/ApiRequestContext";
 import ConfirmDialog from "../components/ConfirmDialog";
+import BrandToast from "../components/BrandToast";
 
 const SiteContentDashboard = () => {
   const [activeTab, setActiveTab] = useState("professionals");
@@ -32,6 +32,21 @@ const SiteContentDashboard = () => {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [draggedPoster, setDraggedPoster] = useState(null);
   const [draggedProfessional, setDraggedProfessional] = useState(null);
+
+  // Toast state
+  const [brandToast, setBrandToast] = useState({
+    visible: false,
+    message: "",
+    type: "success",
+  });
+
+  const triggerToast = (message, type = "success") => {
+    setBrandToast({ visible: true, message, type });
+  };
+
+  const closeToast = () => {
+    setBrandToast({ ...brandToast, visible: false });
+  };
 
   useEffect(() => {
     fetchProfessionals();
@@ -75,7 +90,7 @@ const SiteContentDashboard = () => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5242880) {
-        toast.error("File size must be less than 5MB");
+        triggerToast("File size must be less than 5MB", "error");
         return;
       }
       setProfessionalForm({ ...professionalForm, photo: file });
@@ -88,7 +103,7 @@ const SiteContentDashboard = () => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 10485760) {
-        toast.error("File size must be less than 10MB");
+        triggerToast("File size must be less than 10MB", "error");
         return;
       }
       setPosterFile(file);
@@ -141,7 +156,7 @@ const SiteContentDashboard = () => {
     e.preventDefault();
 
     if (!professionalForm.full_name || !professionalForm.post_nominal) {
-      toast.error("Please fill in required fields");
+      triggerToast("Please fill in required fields", "error");
       return;
     }
 
@@ -167,14 +182,14 @@ const SiteContentDashboard = () => {
       });
 
       if (response.ok) {
-        toast.success(editingProfessionalId ? "Professional updated successfully" : "Professional added successfully");
+        triggerToast(editingProfessionalId ? "Professional updated successfully" : "Professional added successfully", "success");
         resetProfessionalForm();
         fetchProfessionals();
       } else {
-        toast.error("Failed to save professional");
+        triggerToast("Failed to save professional", "error");
       }
     } catch (error) {
-      toast.error("Failed to save professional");
+      triggerToast("Failed to save professional", "error");
       console.error(error);
     }
   };
@@ -221,15 +236,19 @@ const SiteContentDashboard = () => {
          method: "DELETE",
        });
 
-       if (deleteTarget.type === 'professional') {
-          toast.success("Professional deleted successfully");
+      if (response.ok) {
+        if (deleteTarget.type === 'professional') {
+          triggerToast("Professional deleted successfully", "success");
           fetchProfessionals();
         } else if (deleteTarget.type === 'poster') {
-            toast.success("Poster deleted successfully");
-            fetchPosters();
+          triggerToast("Poster deleted successfully", "success");
+          fetchPosters();
         }
+      } else {
+        triggerToast("Failed to delete", "error");
+      }
     } catch (error) {
-      toast.error("Failed to delete");
+      triggerToast("Failed to delete", "error");
       console.error(error);
     } finally {
       setShowDeleteConfirm(false);
@@ -255,7 +274,7 @@ const SiteContentDashboard = () => {
     e.preventDefault();
 
     if (!posterFile && !editingPosterId) {
-      toast.error("Please select a poster image");
+      triggerToast("Please select a poster image", "error");
       return;
     }
 
@@ -278,14 +297,14 @@ const SiteContentDashboard = () => {
       });
 
       if (response.ok) {
-        toast.success(editingPosterId ? "Poster updated successfully" : "Poster uploaded successfully");
+        triggerToast(editingPosterId ? "Poster updated successfully" : "Poster uploaded successfully", "success");
         resetPosterForm();
         fetchPosters();
       } else {
-        toast.error("Failed to save poster");
+        triggerToast("Failed to save poster", "error");
       }
     } catch (error) {
-      toast.error("Failed to save poster");
+      triggerToast("Failed to save poster", "error");
       console.error(error);
     }
   };
@@ -353,12 +372,12 @@ const SiteContentDashboard = () => {
       });
 
       if (response.ok) {
-        toast.success('Poster order saved');
+        triggerToast('Poster order saved', "success");
       } else {
-        toast.error('Failed to save order');
+        triggerToast('Failed to save order', "error");
       }
     } catch (error) {
-      toast.error('Failed to save order');
+      triggerToast('Failed to save order', "error");
       console.error(error);
     }
   };
@@ -399,12 +418,12 @@ const SiteContentDashboard = () => {
       });
 
       if (response.ok) {
-        toast.success('Professional order saved');
+        triggerToast('Professional order saved', "success");
       } else {
-        toast.error('Failed to save order');
+        triggerToast('Failed to save order', "error");
       }
     } catch (error) {
-      toast.error('Failed to save order');
+      triggerToast('Failed to save order', "error");
       console.error(error);
     }
   };
@@ -794,60 +813,68 @@ const SiteContentDashboard = () => {
   );
 
   return (
-    <DefaultLayout>
-      <div className="w-full min-h-screen bg-gray-50">
-        {/* Header */}
-        <div className="flex flex-col justify-center bg-upmaroon w-full h-60 text-white text-center">
-            <h1 className="font-bold text-4xl -mt-10">
-              SITE CONTENT DASHBOARD
-            </h1>
-            <p className="text-lg mt-2 px-4">
-              Manage your website contents
-            </p>
-          </div>
+    <DefaultLayout
+  toast={
+    brandToast.visible && (
+      <BrandToast
+        message={brandToast.message}
+        type={brandToast.type}
+        onClose={closeToast}
+      />
+    )
+  }
+>
+  <div className="w-full min-h-screen bg-gray-50">
+    {/* Header */}
+    <div className="flex flex-col justify-center bg-upmaroon w-full h-60 text-white text-center">
+      <h1 className="font-bold text-4xl -mt-10">SITE CONTENT DASHBOARD</h1>
+      <p className="text-lg mt-2 px-4">Manage your website contents</p>
+    </div>
 
-        <div className="bg-white rounded-[15px] p-8 shadow-xl box-border w-11/12 lg:w-3/4 max-w-5xl mx-auto mb-[70px] -mt-12">
-          
-            <div className="flex border-b border-gray-300 mb-6">
-              <button
-                onClick={() => setActiveTab("professionals")}
-                className={`px-6 py-3 font-semibold transition text-sm focus:outline-none ${
-                  activeTab === "professionals"
-                    ? "text-upmaroon border-b-2 border-upmaroon"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                Professionals
-              </button>
-              <button
-                onClick={() => setActiveTab("posters")}
-                className={`px-6 py-3 font-semibold transition text-sm focus:outline-none ${
-                  activeTab === "posters"
-                    ? "text-upmaroon border-b-2 border-upmaroon"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                Posters
-              </button>
-            </div>
+    <div className="bg-white rounded-[15px] p-8 shadow-xl box-border w-11/12 lg:w-3/4 max-w-5xl mx-auto mb-[70px] -mt-12">
 
-            <div className="min-h-[500px]">
-              {activeTab === "professionals" && renderProfessionalsTab()}
-              {activeTab === "posters" && renderPostersTab()}
-            </div>
-          
-        </div>
+      <div className="flex border-b border-gray-300 mb-6">
+        <button
+          onClick={() => setActiveTab("professionals")}
+          className={`px-6 py-3 font-semibold transition text-sm focus:outline-none ${
+            activeTab === "professionals"
+              ? "text-upmaroon border-b-2 border-upmaroon"
+              : "text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          Professionals
+        </button>
+
+        <button
+          onClick={() => setActiveTab("posters")}
+          className={`px-6 py-3 font-semibold transition text-sm focus:outline-none ${
+            activeTab === "posters"
+              ? "text-upmaroon border-b-2 border-upmaroon"
+              : "text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          Posters
+        </button>
       </div>
-      
-      {showDeleteConfirm && deleteTarget && (
-        <ConfirmDialog
-          title={`Delete ${deleteTarget.type === 'poster' ? 'Poster' : 'Professional'}`}
-          message={`Are you sure you want to delete this ${deleteTarget.type}?`}
-          onConfirm={handleConfirmDelete}
-          onCancel={handleCancelDelete}
-        />
-      )}
-    </DefaultLayout>
+
+      <div className="min-h-[500px]">
+        {activeTab === "professionals" && renderProfessionalsTab()}
+        {activeTab === "posters" && renderPostersTab()}
+      </div>
+
+    </div>
+  </div>
+
+  {showDeleteConfirm && deleteTarget && (
+    <ConfirmDialog
+      title={``}
+      message={`Are you sure you want to delete this ${deleteTarget.type}?`}
+      onConfirm={handleConfirmDelete}
+      onCancel={handleCancelDelete}
+    />
+  )}
+</DefaultLayout>
+
   );
 };
 

@@ -4,17 +4,17 @@ import Footer from "../components/Footer";
 import "./css_pages/FAQPublicPage.css";
 
 const FAQItem = ({ number, question, answer }) => (
-  <div className="faq-card faq-fade">
-    <div className="absolute right-0 top-0 h-full w-4 sm:w-5 bg-[#7B1113] rounded-r-xl transition-all duration-300 group-hover:w-5 sm:group-hover:w-6"></div>
+  <div className="faq-card faq-fade group cursor-pointer transition-all duration-300 ease-out hover:shadow-lg hover:-translate-y-1">
+    <div className="absolute right-0 top-0 h-full w-4 sm:w-5 bg-[#7B1113] rounded-r-xl transition-all duration-300 ease-out group-hover:w-6 sm:group-hover:w-8"></div>
 
     <div className="flex items-start gap-3 sm:gap-4">
-      <div className="bg-[#7B1113] text-white w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-full text-base sm:text-lg font-bold flex-shrink-0">
+      <div className="bg-[#7B1113] text-white w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-full text-base sm:text-lg font-bold flex-shrink-0 transition-all duration-300 ease-out group-hover:scale-105">
         {number}
       </div>
 
       <div className="flex-1 pr-2 sm:pr-0">
-        <p className="text-sm sm:text-base font-semibold text-black">{question}</p>
-        <div className="text-xs sm:text-sm text-gray-700 mt-1">{answer}</div>
+        <p className="text-sm sm:text-base font-semibold text-black transition-colors duration-300 ease-out group-hover:text-[#7B1113]">{question}</p>
+        <div className="text-xs sm:text-sm text-gray-700 mt-1 transition-colors duration-300 ease-out group-hover:text-gray-900">{answer}</div>
       </div>
     </div>
   </div>
@@ -60,7 +60,8 @@ export const FAQPublicPage = () => {
                 <ul className="list-disc pl-4 sm:pl-5">
                   <li>Basic Information Sheet (BIS)</li>
                   <li>Student Cumulative Information File (SCIF)</li>
-                  <li>Counseling Referral Slip (Coming Soon)</li>
+                  <li>Counseling Referral Slip</li>
+                  <li>Psychosocial Assistance and Referral Desk (PARD)</li>
                 </ul>
               }
             />

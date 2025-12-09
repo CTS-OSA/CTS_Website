@@ -123,7 +123,7 @@ export const UserDashboard = () => {
 
       {confirmDialog.visible && (
         <ConfirmDialog
-          title="Delete Draft"
+          title=""
           message={`Are you sure you want to delete the draft for "${confirmDialog.form.form_type}"?`}
           onConfirm={confirmDelete}
           onCancel={() => setConfirmDialog({ visible: false, form: null })}

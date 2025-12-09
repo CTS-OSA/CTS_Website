@@ -141,7 +141,8 @@ const LoginPage = () => {
         </div>
 
         {loading && (
-          <Modal>
+          <Modal type="loading">
+
             <div className="modal-message-with-spinner">
               <div className="loading-spinner" />
               <p className="loading-text">Logging in... Please wait.</p>
