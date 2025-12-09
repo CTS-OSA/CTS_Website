@@ -7,6 +7,7 @@ import {
   filterNumbersOnly,
   filterGeneralText,
 } from "../../utils/inputFilters";
+import { shouldRequireGuardian } from "../../utils/SCIFValidation";
 
 const SCIFFamilyData = ({
   data,
@@ -46,6 +47,8 @@ const SCIFFamilyData = ({
   const [isMotherNone, setIsMotherNone] = useState(
     family_data.mother?.is_none || false
   );
+
+  const guardianRequired = shouldRequireGuardian(family_data);
 
   const fieldTypes = {
     first_name: "alphabet",
@@ -710,6 +713,12 @@ const SCIFFamilyData = ({
         <p className="text-lg font-semibold text-gray-700 mb-4">
           GUARDIAN WHILE STAYING IN UP
         </p>
+        {guardianRequired && (
+          <p className="text-sm text-red-600 mb-4">
+            Guardian details are required when both parents are marked as
+            deceased, none, or one of each.
+          </p>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
@@ -720,7 +729,7 @@ const SCIFFamilyData = ({
               handleFieldChange("guardian", "first_name", e.target.value)
             }
             error={errors?.["guardian.first_name"]}
-            required
+            required={guardianRequired}
           />
           <FormField
             label="Guardian's Last Name"
@@ -730,7 +739,7 @@ const SCIFFamilyData = ({
               handleFieldChange("guardian", "last_name", e.target.value)
             }
             error={errors?.["guardian.last_name"]}
-            required
+            required={guardianRequired}
           />
         </div>
 
@@ -741,7 +750,7 @@ const SCIFFamilyData = ({
             value={family_data.guardian?.contact_number || ""}
             onChange={(e) => handleContactChange("guardian", e.target.value)}
             error={errors?.["guardian.contact_number"]}
-            required
+            required={guardianRequired}
           />
           <FormField
             label="Address"
@@ -751,7 +760,7 @@ const SCIFFamilyData = ({
               handleFieldChange("guardian", "address", e.target.value)
             }
             error={errors?.["guardian.address"]}
-            required
+            required={guardianRequired}
           />
         </div>
 
@@ -768,7 +777,7 @@ const SCIFFamilyData = ({
               )
             }
             error={errors?.["guardian.relationship_to_guardian"]}
-            required
+            required={guardianRequired}
           />
           <FormField
             label="Languages/Dialect Spoken at Home"
@@ -776,7 +785,7 @@ const SCIFFamilyData = ({
             value={languageInput}
             onChange={handleLanguageChange}
             error={errors?.["guardian.language_dialect"]}
-            required
+            required={guardianRequired}
           />
         </div>
       </section>

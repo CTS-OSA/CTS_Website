@@ -145,6 +145,25 @@ const sanitizeNumericInput = (field, value) => {
 const safeTrim = (value) =>
   typeof value === "string" ? value.trim() : value ?? "";
 
+const formatDateInputValue = (value) => {
+  if (!value) return "";
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      return trimmed;
+    }
+    const dateFromString = new Date(trimmed);
+    if (!Number.isNaN(dateFromString.getTime())) {
+      return dateFromString.toISOString().slice(0, 10);
+    }
+    return "";
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toISOString().slice(0, 10);
+};
+
 const getFirstNonEmptyString = (values = []) => {
   for (const value of values || []) {
     if (typeof value === "string") {
@@ -1314,6 +1333,37 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
       ...prev,
       scholarships_and_assistance: updated,
     }));
+  };
+
+  const handleAddScholarship = () => {
+    if (!canEdit) return;
+    setFormState((prev) => {
+      const list = Array.isArray(prev.scholarships_and_assistance)
+        ? [...prev.scholarships_and_assistance]
+        : [];
+      list.push("");
+      return {
+        ...prev,
+        scholarships_and_assistance: list,
+      };
+    });
+  };
+
+  const handleRemoveScholarship = (idx) => {
+    if (!canEdit) return;
+    setFormState((prev) => {
+      const list = Array.isArray(prev.scholarships_and_assistance)
+        ? [...prev.scholarships_and_assistance]
+        : [];
+      if (idx < 0 || idx >= list.length) {
+        return prev;
+      }
+      list.splice(idx, 1);
+      return {
+        ...prev,
+        scholarships_and_assistance: list,
+      };
+    });
   };
 
   const handleOpenModal = (type) => openModal(type);
@@ -2617,6 +2667,18 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     { value: "Sister", label: "Sister(s)" },
     { value: "Other", label: "Others (specify)" },
   ];
+
+  const scholarshipEntries = Array.isArray(
+    formState.scholarships_and_assistance
+  )
+    ? formState.scholarships_and_assistance
+    : [];
+  const shouldShowScholarshipInputs =
+    canEdit || scholarshipEntries.length > 0;
+  const scholarshipRows =
+    shouldShowScholarshipInputs && scholarshipEntries.length === 0
+      ? [""]
+      : scholarshipEntries;
 
   const HealthConditionRadio = ({ selectedValue, onChange }) => {
     return (
@@ -4735,12 +4797,13 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                   value={
                     Array.isArray(formState.physical_disabilities)
                       ? formState.physical_disabilities.join(", ")
-                      : formState.physical_disabilities || "None"
+                      : formState.physical_disabilities || ""
                   }
                   onChange={(e) =>
                     handleFieldChange("physical_disabilities", e.target.value)
                   }
                   readOnly={!canEdit}
+                  placeholder="None"
                 />
               </label>
             </div>
@@ -4750,22 +4813,24 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                 Frequent Ailments:{" "}
                 <input
                   type="text"
-                  value={formState.common_ailments || "None"}
+                  value={formState.common_ailments || ""}
                   onChange={(e) =>
                     handleFieldChange("common_ailments", e.target.value)
                   }
                   readOnly={!canEdit}
+                  placeholder="None"
                 />
               </label>
               <label>
                 Last Hospitalization:{" "}
                 <input
-                  type="text"
-                  value={formState.last_hospitalization || "Not Applicable"}
+                  type="date"
+                  value={formatDateInputValue(formState.last_hospitalization)}
                   onChange={(e) =>
                     handleFieldChange("last_hospitalization", e.target.value)
                   }
                   readOnly={!canEdit}
+                  placeholder="Not Applicable"
                 />
               </label>
             </div>
@@ -4774,9 +4839,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
               <label>
                 Reason:{" "}
                 <AutoResizeTextarea
-                  value={
-                    formState.reason_of_hospitalization || "Not Applicable"
-                  }
+                  value={formState.reason_of_hospitalization || ""}
                   onChange={(e) =>
                     handleFieldChange(
                       "reason_of_hospitalization",
@@ -4784,6 +4847,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
                     )
                   }
                   readOnly={!canEdit}
+                  placeholder="Not Applicable"
                 />
               </label>
             </div>
@@ -4805,20 +4869,45 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
           </div>
 
           <div className="-mt-2">
-            <div className="mb-5 font-bold">
-              LIST OF SCHOLARSHIPS & FINANCIAL ASSISTANCE WHILE IN COLLEGE :
+            <div className="flex items-center justify-between mb-5">
+              <div className="font-bold">
+                LIST OF SCHOLARSHIPS & FINANCIAL ASSISTANCE WHILE IN COLLEGE :
+              </div>
+              {canEdit && (
+                <button
+                  type="button"
+                  className="text-white text-xs font-semibold flex items-center gap-2 hover:scale-105 transition-all duration-300 ease-in-out bg-upmaroon hover:bg-red-[#991B1B] p-2 rounded"
+                  onClick={handleAddScholarship}
+                  data-pdf-hide
+                >
+                  <Plus size={16} /> Add Scholarship
+                </button>
+              )}
             </div>
-            {Array.isArray(formState.scholarships_and_assistance) &&
-              formState.scholarships_and_assistance.length > 0 ? (
-              formState.scholarships_and_assistance.map((item, idx) => (
-                <div key={idx} className="SCIF-inline">
+            {shouldShowScholarshipInputs ? (
+              scholarshipRows.map((_, idx) => (
+                <div
+                  key={`scholarship-${idx}`}
+                  className="flex items-center gap-3 mb-2"
+                >
                   <input
                     type="text"
-                    value={formState.scholarships_and_assistance[idx]}
+                    value={scholarshipEntries[idx] ?? ""}
                     onChange={(e) => handleScholarshipChange(idx, e)}
                     style={{ width: "90%" }}
                     readOnly={!canEdit}
+                    placeholder="Type scholarship or assistance"
                   />
+                  {canEdit && scholarshipEntries.length > 0 && (
+                    <button
+                      type="button"
+                      className="text-upmaroon hover:text-red-700 text-xs font-medium flex items-center gap-1 transition-all duration-200 ease-in-out"
+                      onClick={() => handleRemoveScholarship(idx)}
+                      data-pdf-hide
+                    >
+                      <Trash2 size={14} /> Remove
+                    </button>
+                  )}
                 </div>
               ))
             ) : (

@@ -6,6 +6,25 @@ import {
   filterDecimalNumbers,
 } from "../../utils/inputFilters";
 
+const formatDateForInput = (value) => {
+  if (!value) return "";
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      return trimmed;
+    }
+    const parsed = new Date(trimmed);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toISOString().slice(0, 10);
+    }
+    return "";
+  }
+  const asDate = new Date(value);
+  if (Number.isNaN(asDate.getTime())) return "";
+  return asDate.toISOString().slice(0, 10);
+};
+
 const SCIFHealthData = ({
   data,
   updateData,
@@ -231,7 +250,7 @@ const SCIFHealthData = ({
             label="Last Hospitalization"
             type="date"
             placeholder=""
-            value={data.last_hospitalization || ""}
+            value={formatDateForInput(data.last_hospitalization)}
             onFocus={() => clearFieldError("health_data.last_hospitalization")}
             onChange={(e) => handleLastHospitalizationChange(e.target.value)}
             error={errors?.["health_data.last_hospitalization"]}
