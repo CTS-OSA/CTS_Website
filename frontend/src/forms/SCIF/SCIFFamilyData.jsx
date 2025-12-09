@@ -714,7 +714,7 @@ const SCIFFamilyData = ({
           GUARDIAN WHILE STAYING IN UP
         </p>
         {guardianRequired && (
-          <p className="text-sm text-red-600 mb-4">
+          <p className="text-xs italic text-red-600 mb-4">
             Guardian details are required when both parents are marked as
             deceased, none, or one of each.
           </p>
