@@ -53,4 +53,4 @@ class GraduateStudent(models.Model):
 
 
     def __str__(self):
-        return f"Graduate: {self.student.first_name} {self.student.last_name} - Graduation Year: {self.graduation.year}"
+        return f"Graduate: {self.student_number.first_name} {self.student_number.last_name} - Graduation Year: {self.academic_year}"
