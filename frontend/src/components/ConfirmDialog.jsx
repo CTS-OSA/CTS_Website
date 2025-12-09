@@ -1,5 +1,5 @@
 import React from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, Download } from "lucide-react";
 
 const ConfirmDialog = ({
   title = "Are you sure?",
@@ -9,6 +9,19 @@ const ConfirmDialog = ({
   confirmLabel = "Yes",
   cancelLabel = "Cancel",
 }) => {
+
+  const lowerLabel = confirmLabel.toLowerCase();
+
+  const renderIcon = () => {
+    if (lowerLabel.includes("delete")) {
+      return <Trash2 size={32} strokeWidth={1.8} />;
+    }
+    if (lowerLabel.includes("download")) {
+      return <Download size={32} strokeWidth={1.8} />;
+    }
+    return null;
+  };
+
   return (
     <>
       {/* Overlay */}
@@ -31,8 +44,8 @@ const ConfirmDialog = ({
         >
           {/* Header */}
           <div className="p-5 bg-upmaroon text-white flex flex-col items-center justify-center gap-2">
-            <Trash2 size={32} strokeWidth={1.8} />
-            <h2 className="text-xl font-semibold text-center">{title}</h2>
+            {renderIcon()}
+            {title && <h2 className="text-xl font-semibold text-center">{title}</h2>}
           </div>
 
           {/* Message */}
@@ -60,10 +73,9 @@ const ConfirmDialog = ({
                 w-full sm:w-auto px-5 py-2.5 
                 rounded-lg font-medium 
                 text-white bg-upmaroon hover:bg-red-700 
-                transition flex items-center justify-center gap-2
+                transition flex items-center justify-center
               "
             >
-              <Trash2 size={18} />
               {confirmLabel}
             </button>
           </div>

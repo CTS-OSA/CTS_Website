@@ -1,10 +1,9 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import FormField from "../components/FormField";
 import SubmitButton from "../components/SubmitButton";
 import { AuthContext } from "../context/AuthContext";
-import Modal from "../components/Modal";
-import { X, Eye, EyeOff } from "react-feather";
+import { X, Eye, EyeOff, CheckCircle, XCircle } from "react-feather";
 
 export default function LoginModal({ onClose, onSwitchToSignup }) {
   const { login } = useContext(AuthContext);
@@ -20,18 +19,6 @@ export default function LoginModal({ onClose, onSwitchToSignup }) {
   const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
-
-  useEffect(() => {
-    function handleOk() {
-      setShowMessageModal(false);
-      if (!isError) {
-        onClose();
-        navigate("/student");
-      }
-    }
-    window.addEventListener("modal-ok", handleOk);
-    return () => window.removeEventListener("modal-ok", handleOk);
-  }, [isError]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -58,6 +45,14 @@ export default function LoginModal({ onClose, onSwitchToSignup }) {
       setShowMessageModal(true);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleModalOk = () => {
+    setShowMessageModal(false);
+    if (!isError) {
+      onClose();
+      navigate("/student");
     }
   };
 
@@ -138,7 +133,7 @@ export default function LoginModal({ onClose, onSwitchToSignup }) {
               <hr className="opacity-40" />
 
               <div className="text-center text-sm text-gray-600">
-                Don’t have an account?{" "}
+                Don't have an account?{" "}
                 <button
                   type="button"
                   onClick={onSwitchToSignup}
@@ -154,23 +149,55 @@ export default function LoginModal({ onClose, onSwitchToSignup }) {
 
       {/* Loading Modal */}
       {loading && (
-        <Modal type="loading" noHeader>
-          <div className="flex flex-col items-center gap-4 p-6">
-            <div className="w-10 h-10 border-4 border-gray-300 border-t-[#7B1113] rounded-full animate-spin" />
-            <p className="text-[#7B1113] font-semibold tracking-wide">
-              Logging in... Please wait.
-            </p>
+        <>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998]"></div>
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4 py-6">
+            <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden">
+              <div className="px-8 py-6 flex flex-col items-center gap-4">
+                <div className="w-10 h-10 border-4 border-gray-300 border-t-[#7B1113] rounded-full animate-spin" />
+                <p className="text-[#7B1113] font-semibold tracking-wide">
+                  Logging in... Please wait.
+                </p>
+              </div>
+            </div>
           </div>
-        </Modal>
+        </>
       )}
 
       {/* Success/Error Modal */}
       {showMessageModal && !loading && (
-        <Modal type={isError ? "error" : "success"}>
-          <p className="text-lg font-semibold">
-            {message}
-          </p>
-        </Modal>
+        <>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998]"></div>
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4 py-6">
+            <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden">
+              {/* Header */}
+              <div className="w-full bg-[#7B1113] py-4 flex justify-center items-center">
+                {isError ? (
+                  <XCircle size={42} strokeWidth={1.7} className="text-white" />
+                ) : (
+                  <CheckCircle size={42} strokeWidth={1.7} className="text-white" />
+                )}
+              </div>
+
+              {/* Body */}
+              <div className="px-8 py-6 text-center text-gray-800">
+                <p className="text-lg font-semibold">{message}</p>
+              </div>
+
+              {/* Footer */}
+              <div className="px-8 pb-6 flex justify-center">
+                <button
+                  className="bg-[#7B1113] text-white font-semibold tracking-wide
+                    px-7 py-2.5 rounded-lg shadow-md transition-colors duration-200
+                    hover:bg-[#5e0d0f] active:scale-95"
+                  onClick={handleModalOk}
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
       )}
     </>
   );

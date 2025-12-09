@@ -32,8 +32,7 @@ export const UserDashboard = () => {
         if (response && response.ok) {
           const data = await response.json();
 
-          const submitted = data
-            .filter(form => form.status === 'submitted')
+          const submitted = data.filter(form => form.status === 'submitted');
 
           const pending = data
             .filter(form => form.status === 'draft')
@@ -79,7 +78,7 @@ export const UserDashboard = () => {
 
   const confirmDelete = async () => {
     const form = confirmDialog.form;
-    
+
     const slugify = (text) =>
       text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
 
@@ -94,7 +93,7 @@ export const UserDashboard = () => {
       );
 
       let responseData = null;
- 
+
       if (response.status !== 204) {
         responseData = await response.json();
       }
@@ -114,12 +113,12 @@ export const UserDashboard = () => {
 
   return (
     <DefaultLayout variant="student">
-        <DashboardTable
-          submittedForms={submittedForms}
-          pendingActions={pendingActions}
-          onView={handleView}
-          onDelete={promptDelete}
-        />
+      <DashboardTable
+        submittedForms={submittedForms}
+        pendingActions={pendingActions}
+        onView={handleView}
+        onDelete={promptDelete}
+      />
 
       {confirmDialog.visible && (
         <ConfirmDialog
@@ -129,6 +128,7 @@ export const UserDashboard = () => {
           onCancel={() => setConfirmDialog({ visible: false, form: null })}
           confirmLabel="Delete"
           cancelLabel="Cancel"
+          showDeleteIcon={true}
         />
       )}
 
