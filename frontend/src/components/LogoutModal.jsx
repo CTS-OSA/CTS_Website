@@ -59,7 +59,6 @@ export default function LogoutModal({ open, onClose, onConfirm }) {
                 flex items-center justify-center gap-2
               "
             >
-              <LogOut size={18} />
               Log Out
             </button>
           </div>
