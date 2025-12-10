@@ -134,13 +134,33 @@ def update_student_profile(request, student_id=None):
 
     student_data = request.data
     
+    # Handle both JSON format and dot-notation fields
     permanent_address_data = None
+    address_while_in_up_data = None
+    
     if 'permanent_address' in student_data:
         permanent_address_data = json.loads(student_data['permanent_address'])
+    else:
+        # Check for dot-notation fields
+        perm_fields = {}
+        for key in student_data:
+            if key.startswith('permanent_address.'):
+                field_name = key.replace('permanent_address.', '')
+                perm_fields[field_name] = student_data[key]
+        if perm_fields:
+            permanent_address_data = perm_fields
     
-    address_while_in_up_data = None
     if 'address_while_in_up' in student_data:
         address_while_in_up_data = json.loads(student_data['address_while_in_up'])
+    else:
+        # Check for dot-notation fields
+        up_fields = {}
+        for key in student_data:
+            if key.startswith('address_while_in_up.'):
+                field_name = key.replace('address_while_in_up.', '')
+                up_fields[field_name] = student_data[key]
+        if up_fields:
+            address_while_in_up_data = up_fields
 
     def get_or_create_address(existing_address, address_data):
         """Merge existing address with updates and get or create the address record.
