@@ -28,7 +28,7 @@ export const UserDashboard = () => {
 
     const fetchSubmittedForms = async () => {
       try {
-        const response = await request('http://localhost:8000/api/forms/display/submissions/');
+        const response = await request('/api/forms/display/submissions/');
         if (response && response.ok) {
           const data = await response.json();
 
@@ -86,7 +86,7 @@ export const UserDashboard = () => {
 
     try {
       const response = await request(
-        `http://localhost:8000/api/forms/${slug}/`,
+        `/api/forms/${slug}/`,
         {
           method: 'DELETE',
         }

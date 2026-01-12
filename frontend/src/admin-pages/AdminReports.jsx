@@ -20,7 +20,7 @@ export const AdminReports = () => {
     const fetchReports = async () => {
       try {
         const res = await apiRequest(
-          "http://localhost:8000/api/dashboard/admin-reports/"
+          "/api/dashboard/admin-reports/"
         );
         if (!res.ok) throw new Error("Failed to fetch report data");
         const data = await res.json();

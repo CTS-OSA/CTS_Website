@@ -18,12 +18,12 @@ export const AdminSCIFView = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const profileRes = await request(`http://localhost:8000/api/forms/admin/students/${studentId}/`);
+        const profileRes = await request(`/api/forms/admin/students/${studentId}/`);
         if (!profileRes.ok) throw new Error("Failed to fetch student profile");
         const profile = await profileRes.json();
         setProfileData(profile);
 
-        const formRes = await request(`http://localhost:8000/api/forms/admin/student-forms/${studentId}/student-cumulative-information-file/`);
+        const formRes = await request(`/api/forms/admin/student-forms/${studentId}/student-cumulative-information-file/`);
         if (!formRes.ok) throw new Error("Failed to fetch form data");
         const form = await formRes.json();
         setFormData(form);

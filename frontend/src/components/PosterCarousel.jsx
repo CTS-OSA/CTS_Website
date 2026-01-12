@@ -27,7 +27,7 @@ export default function PosterCarousel() {
   // Fetch Posters
   const fetchPosters = async () => {
     try {
-      const response = await request("http://localhost:8000/api/webmaster/poster/", { skipAuth: true });
+      const response = await request("/api/webmaster/poster/", { skipAuth: true });
       if (response.ok) {
         const data = await response.json();
         setPosters(data);

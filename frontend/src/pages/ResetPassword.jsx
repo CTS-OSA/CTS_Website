@@ -51,7 +51,7 @@ export const ResetPassword = () => {
 
     try {
       await axios.post(
-        "http://localhost:8000/auth/users/reset_password_confirm/",
+        "/auth/users/reset_password_confirm/",
         {
           uid,
           token,

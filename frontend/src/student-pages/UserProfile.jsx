@@ -17,28 +17,6 @@ export const UserProfile = () => {
 
   const [submittedForms, setSubmittedForms] = useState([]);
 
-  // const handleUpdateProfile = async (updatedData) => {
-  //   try {
-  //     const res = await request(
-  //       "http://localhost:8000/api/forms/student/profile/update/",
-  //       {
-  //         method: "PATCH",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify(updatedData),
-  //       }
-  //     );
-
-  //     if (!res.ok) {
-  //       return;
-  //     }
-
-  //     const updatedProfile = await res.json();
-  //     setProfile(updatedProfile);
-  //   } catch (error) {}
-  // };
-
   const handleUpdateProfile = async (changedFields) => {
     try {
       const formData = new FormData();
@@ -54,7 +32,7 @@ export const UserProfile = () => {
       });
 
       const res = await request(
-        "http://localhost:8000/api/forms/student/profile/update/",
+        "/api/forms/student/profile/update/",
         {
           method: "PATCH",
           body: formData,
@@ -80,7 +58,7 @@ export const UserProfile = () => {
 
       try {
         const res = await request(
-          "http://localhost:8000/api/forms/student/profile/"
+          "/api/forms/student/profile/"
         );
         if (!res.ok) {
           throw new Error("Failed to fetch profile data");
@@ -97,7 +75,7 @@ export const UserProfile = () => {
         setProfile(data);
 
         const formRes = await request(
-          "http://localhost:8000/api/forms/display/submissions/"
+          "/api/forms/display/submissions/"
         );
         if (formRes.ok) {
           const allForms = await formRes.json();

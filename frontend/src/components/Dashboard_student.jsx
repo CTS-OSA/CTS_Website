@@ -21,7 +21,7 @@ const Dashboard = () => {
     const fetchForms = async () => {
       try {
         const response = await apiRequest(
-          "http://localhost:8000/api/submissions/"
+          "/api/submissions/"
         );
 
         if (response.ok) {

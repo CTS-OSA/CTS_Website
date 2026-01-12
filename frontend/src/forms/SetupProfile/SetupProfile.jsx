@@ -312,7 +312,7 @@ const MultiStepForm = () => {
       setLoading(true);
 
       const response = await apiRequest(
-        "http://localhost:8000/api/forms/student/profile/create/",
+        "/api/forms/student/profile/create/",
         {
           method: "POST",
           credentials: "include",

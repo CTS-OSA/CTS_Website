@@ -13,7 +13,7 @@ export const UserDashboard = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/users/profile/", {
+    fetch("/api/users/profile/", {
       credentials: "include",
     })
       .then((res) => {

@@ -36,7 +36,7 @@ export const ForgotPassword = () => {
     setIsLoading(true);
 
     try {
-      await axios.post("http://localhost:8000/auth/users/reset_password/", {
+      await axios.post("/auth/users/reset_password/", {
         email,
       });
       setMessage("Password reset email sent. Check your inbox.");

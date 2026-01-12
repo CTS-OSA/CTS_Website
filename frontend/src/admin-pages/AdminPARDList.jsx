@@ -41,7 +41,7 @@ export const AdminPARDList = () => {
     const fetchData = async () => {
       try {
         const res = await request(
-          "http://localhost:8000/api/forms/admin/psychosocial-assistance-and-referral-desk"
+          "/api/forms/admin/psychosocial-assistance-and-referral-desk"
         );
 
         if (!res.ok) throw new Error("Failed to fetch PARD submissions");

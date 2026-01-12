@@ -19,7 +19,7 @@ const VerifyReferralPage = () => {
   useEffect(() => {
     const verifyReferral = async () => {
       try {
-        const response = await request("http://localhost:8000/api/forms/guest/verify-referral-submission/", {
+        const response = await request("/api/forms/guest/verify-referral-submission/", {
           method: "POST",
           skipAuth: true,
           headers: { "Content-Type": "application/json" },

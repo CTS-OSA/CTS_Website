@@ -70,7 +70,7 @@ export function validatePersonalInfo(data) {
 const studentNumberPattern = /^\d{4}-\d{5}$/;
 
 async function checkStudentNumberExists(studentNumber, request) {
-  const url = `http://localhost:8000/api/forms/check-student-number/?student_number=${encodeURIComponent(studentNumber)}`;
+  const url = `/api/forms/check-student-number/?student_number=${encodeURIComponent(studentNumber)}`;
   try {
     const response = await request(url);
     if (!response?.ok) throw new Error('Request failed');

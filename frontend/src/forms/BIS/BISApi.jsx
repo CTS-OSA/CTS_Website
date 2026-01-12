@@ -1,7 +1,5 @@
 import { useApiRequest } from "../../context/ApiRequestContext";
 
-const BASE_URL = "http://localhost:8000/api/forms/basic-information-sheet";
-
 const sectionKeys = [
   "preferences",
   "socio_economic_status",
@@ -15,7 +13,7 @@ export const useFormApi = () => {
   const arraySections = [];
 
   const createDraftSubmission = async (studentNumber) => {
-    const response = await request(`${BASE_URL}/`, {
+    const response = await request(`/api/forms/basic-information-sheet/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ student_number: studentNumber }),
@@ -101,7 +99,7 @@ export const useFormApi = () => {
       }
 
       const response = await request(
-        `http://localhost:8000/api/forms/finalize/${submissionId}/`,
+        `/api/forms/finalize/${submissionId}/`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

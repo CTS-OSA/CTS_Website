@@ -18,7 +18,7 @@ export const AdminPardView = () => {
     const fetchData = async () => {
       try {
         const formRes = await request(
-          `http://localhost:8000/api/forms/admin/psychosocial-assistance-and-referral-desk/${submission_id}/`
+          `/api/forms/admin/psychosocial-assistance-and-referral-desk/${submission_id}/`
         );
         if (!formRes.ok) throw new Error("Failed to fetch form data");
         const form = await formRes.json();

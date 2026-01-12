@@ -154,7 +154,7 @@ const AdminSetupProfile = () => {
     try {
       setLoading(true);
       const response = await apiRequest(
-        "http://localhost:8000/api/forms/counselors/create/",
+        "/api/forms/counselors/create/",
         { method: "POST", credentials: "include", body: payload }
       );
       if (!response.ok) throw new Error("Failed to submit profile");

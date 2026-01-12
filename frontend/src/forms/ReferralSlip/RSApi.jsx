@@ -1,14 +1,12 @@
 import { useApiRequest } from "../../context/ApiRequestContext";
 
-const BASE_URL = "http://localhost:8000/api/forms/student/counseling-referral-slip";
-
 export const useFormApi = () => {
   const { request } = useApiRequest();
 
   // Create a new referral
   const submitReferral = async (formData) => {
     try {
-      const response = await request(`${BASE_URL}/`, {
+      const response = await request(`/api/forms/student/counseling-referral-slip/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -28,7 +26,7 @@ export const useFormApi = () => {
   // Get a specific referral by ID
   const getReferral = async (submission_id) => {
     try {
-      const response = await request(`${BASE_URL}/${submission_id}/`, {
+      const response = await request(`/api/forms/student/counseling-referral-slip/${submission_id}/`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
@@ -51,7 +49,7 @@ export const useFormApi = () => {
     const finalizeGuestSubmission = async (formData) => {
     try {
       const response = await request(
-        `http://localhost:8000/api/forms/guest/create-referral-submission/`,
+        `/api/forms/guest/create-referral-submission/`,
         {
           method: "POST",
           skipAuth: true,

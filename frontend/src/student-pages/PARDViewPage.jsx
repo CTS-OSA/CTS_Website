@@ -138,7 +138,7 @@ const PARDProfileView = ({ profileData, formData }) => {
       }
 
       const response = await request(
-        `http://localhost:8000/api/forms/admin/psychosocial-assistance-and-referral-desk/edit/${formData.submission.id}/`,
+        `/api/forms/admin/psychosocial-assistance-and-referral-desk/edit/${formData.submission.id}/`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -180,7 +180,7 @@ const PARDProfileView = ({ profileData, formData }) => {
     const fetchEnums = async () => {
       try {
         const response = await request(
-          "http://localhost:8000/api/forms/psychosocial-assistance-and-referral-desk/status-choices/"
+          "/api/forms/psychosocial-assistance-and-referral-desk/status-choices/"
         );
         if (response.ok) {
           const data = await response.json();

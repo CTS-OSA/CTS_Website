@@ -17,13 +17,13 @@ export const AdminStudentView = () => {
   useEffect(() => {
     const fetchStudent = async () => {
       try {
-        const res = await request(`http://localhost:8000/api/forms/admin/students/${studentId}/`);
+        const res = await request(`/api/forms/admin/students/${studentId}/`);
 
         if (res.ok) {
           const data = await res.json();
           setStudent(data);
 
-          const formRes = await request(`http://localhost:8000/api/forms/admin/student-forms/${studentId}/`);
+          const formRes = await request(`/api/forms/admin/student-forms/${studentId}/`);
           if (formRes.ok) {
             const forms = await formRes.json();
             setSubmittedForms(forms); 
@@ -49,7 +49,7 @@ export const AdminStudentView = () => {
   // const handleUpdateProfile = async (updatedData) => {
   // try {
   //   const res = await request(
-  //     `http://localhost:8000/api/forms/admin/students/${studentId}/update/`,
+  //     `/api/forms/admin/students/${studentId}/update/`,
   //     {
   //       method: "PATCH",
   //       headers: {
@@ -92,7 +92,7 @@ export const AdminStudentView = () => {
       }
 
       const res = await request(
-        `http://localhost:8000/api/forms/admin/students/${studentId}/update/`,
+        `/api/forms/admin/students/${studentId}/update/`,
         {
           method: "PATCH",
           body: formData,

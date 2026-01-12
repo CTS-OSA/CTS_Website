@@ -1,6 +1,5 @@
 import { data } from "react-router-dom";
 import { useApiRequest } from "../../context/ApiRequestContext";
-const BASE_URL = "http://localhost:8000/api/forms/psychosocial-assistance-and-referral-desk";
 
 export const useFormApi = () => {
   const { request } = useApiRequest();
@@ -21,7 +20,7 @@ export const useFormApi = () => {
 
   const getStudentData = async (studentNumber) => {
     try {
-      const response = await request(`${BASE_URL}/student-data/${studentNumber}/`, {
+      const response = await request(`/api/forms/psychosocial-assistance-and-referral-desk/student-data/${studentNumber}/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

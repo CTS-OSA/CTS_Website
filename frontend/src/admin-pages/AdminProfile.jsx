@@ -37,7 +37,7 @@ export const AdminProfile = () => {
       }
 
       const res = await request(
-        "http://localhost:8000/api/forms/counselors/update/",
+        "/api/forms/counselors/update/",
         {
           method: "PATCH",
           body: formData,
@@ -63,7 +63,7 @@ export const AdminProfile = () => {
 
       try {
         const res = await request(
-          "http://localhost:8000/api/forms/counselors/me/"
+          "/api/forms/counselors/me/"
         );
         if (!res.ok) {
           if (res.status === 404) {

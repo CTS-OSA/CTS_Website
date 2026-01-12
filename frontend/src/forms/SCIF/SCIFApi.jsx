@@ -1,8 +1,5 @@
 import { useApiRequest } from "../../context/ApiRequestContext";
 
-const BASE_URL =
-  "http://localhost:8000/api/forms/student-cumulative-information-file";
-
 const sectionKeys = [
   "family_data",
   "siblings",
@@ -20,7 +17,7 @@ export const useFormApi = () => {
   const arraySections = ["siblings"];
 
   const createDraftSubmission = async (studentNumber) => {
-    const response = await request(`${BASE_URL}/`, {
+    const response = await request(`/api/forms/student-cumulative-information-file/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ student_number: studentNumber }),
@@ -36,7 +33,7 @@ export const useFormApi = () => {
 
   const getFormBundle = async (studentNumber) => {
     const response = await request(
-      `${BASE_URL}/?student_number=${studentNumber}`,
+      `/api/forms/student-cumulative-information-file/?student_number=${studentNumber}`,
       {
         method: "GET",
         headers: { "Content-Type": "application/json" },
@@ -87,7 +84,7 @@ export const useFormApi = () => {
         };
       }
     });
-    const response = await request(`${BASE_URL}/`, {
+    const response = await request(`/api/forms/student-cumulative-information-file/`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -116,7 +113,7 @@ export const useFormApi = () => {
       }
 
       const response = await request(
-        `http://localhost:8000/api/forms/finalize/${submissionId}/`,
+        `/api/forms/finalize/${submissionId}/`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

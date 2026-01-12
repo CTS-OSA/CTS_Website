@@ -164,7 +164,7 @@ export const FormPublicPage = () => {
   const checkFormStatuses = async () => {
     try {
       const response = await request(
-        `http://localhost:8000/api/forms/check-form-submission/`,
+        `/api/forms/check-form-submission/`,
         {
           method: "GET",
           headers: { "Content-Type": "application/json" }

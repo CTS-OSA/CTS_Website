@@ -785,7 +785,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     if (!profileData?.student_number) return;
     const fetchGraduation = async () => {
       try {
-        const url = `http://localhost:8000/api/forms/graduation/${profileData.student_number}/`;
+        const url = `/api/forms/graduation/${profileData.student_number}/`;
         const res = await request(url);
         if (res.ok) {
           const body = await res.json();
@@ -1433,7 +1433,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     setErrors((prev) => ({ ...prev, graduation: null }));
 
     try {
-      const url = `http://localhost:8000/api/forms/graduation/${profileData.student_number}/`;
+      const url = `/api/forms/graduation/${profileData.student_number}/`;
 
       const res = await request(url, {
         method: "PUT",
@@ -1885,7 +1885,7 @@ const SCIFProfileView = ({ profileData, formData, isAdmin }) => {
     });
 
     return request(
-      `http://localhost:8000/api/forms/admin-edit/${submissionId}/`,
+      `/api/forms/admin-edit/${submissionId}/`,
 
       {
         method: "PATCH",

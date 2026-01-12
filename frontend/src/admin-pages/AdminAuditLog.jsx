@@ -66,7 +66,7 @@ export const AdminAuditLog = () => {
     const fetchLogs = async () => {
       try {
         const res = await request(
-          "http://localhost:8000/api/users/records/auditlog/"
+          "/api/users/records/auditlog/"
         );
         if (!res.ok) throw new Error("Failed to fetch logs.");
         const data = await res.json();

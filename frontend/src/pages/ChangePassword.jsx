@@ -53,7 +53,7 @@ export const ChangePassword = () => {
 
     try {
       const res = await request(
-        "http://localhost:8000/auth/users/set_password/",
+        "/auth/users/set_password/",
         {
           method: "POST",
           headers: {

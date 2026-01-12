@@ -57,7 +57,7 @@ const SiteContentDashboard = () => {
   const fetchProfessionals = async () => {
     setLoading(true);
     try {
-      const response = await request("http://localhost:8000/api/webmaster/professional/");
+      const response = await request("/api/webmaster/professional/");
       if (response.ok) {
         const data = await response.json();
         setProfessionals(data);
@@ -73,7 +73,7 @@ const SiteContentDashboard = () => {
   const fetchPosters = async () => {
     setLoading(true);
     try {
-      const response = await request("http://localhost:8000/api/webmaster/poster/");
+      const response = await request("/api/webmaster/poster/");
       if (response.ok) {
         const data = await response.json();
         setPosters(data);
@@ -173,8 +173,8 @@ const SiteContentDashboard = () => {
 
     try {
       const url = editingProfessionalId 
-        ? `http://localhost:8000/api/webmaster/professional/${editingProfessionalId}/`
-        : "http://localhost:8000/api/webmaster/professional/create/";
+        ? `/api/webmaster/professional/${editingProfessionalId}/`
+        : "/api/webmaster/professional/create/";
       
       const response = await request(url, {
         method: editingProfessionalId ? "PATCH" : "POST",
@@ -232,7 +232,7 @@ const SiteContentDashboard = () => {
   const confirmDelete = async () => {
     try {
       const type = deleteTarget.type;
-      const response = await request(`http://localhost:8000/api/webmaster/${type}/${deleteTarget.id}/`, {
+      const response = await request(`/api/webmaster/${type}/${deleteTarget.id}/`, {
          method: "DELETE",
        });
 
@@ -288,8 +288,8 @@ const SiteContentDashboard = () => {
 
     try {
       const url = editingPosterId 
-        ? `http://localhost:8000/api/webmaster/poster/${editingPosterId}/`
-        : "http://localhost:8000/api/webmaster/poster/create/";
+        ? `/api/webmaster/poster/${editingPosterId}/`
+        : "/api/webmaster/poster/create/";
       
       const response = await request(url, {
         method: editingPosterId ? "PATCH" : "POST",
@@ -365,7 +365,7 @@ const SiteContentDashboard = () => {
         order: index
       }));
 
-      const response = await request('http://localhost:8000/api/webmaster/poster/reorder/', {
+      const response = await request('/api/webmaster/poster/reorder/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ posters: orderData })
@@ -411,7 +411,7 @@ const SiteContentDashboard = () => {
         order: index
       }));
 
-      const response = await request('http://localhost:8000/api/webmaster/professional/reorder/', {
+      const response = await request('/api/webmaster/professional/reorder/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ staff: orderData })

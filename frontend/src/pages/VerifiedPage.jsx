@@ -19,7 +19,7 @@ export const VerifiedPage = () => {
     const verifyEmail = async () => {
       try {
         const response = await fetch(
-          "http://localhost:8000/auth/users/activation/",
+          "/auth/users/activation/",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
