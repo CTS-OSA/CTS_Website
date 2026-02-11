@@ -138,7 +138,7 @@ const PARDProfileView = ({ profileData, formData }) => {
       }
 
       const response = await request(
-        `http://localhost:8000/api/forms/admin/psychosocial-assistance-and-referral-desk/edit/${formData.submission.id}/`,
+        `http://localhost:8000/api/forms/edit/pard/${formData.submission.id}/`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },

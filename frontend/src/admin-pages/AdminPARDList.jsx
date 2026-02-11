@@ -202,7 +202,7 @@ export const AdminPARDList = () => {
     setIsDeleting(true);
     try {
       const res = await request(
-        `/api/forms/admin/psychosocial-assistance-and-referral-desk/edit/${submission_id}/`,
+        `/api/forms/edit/pard/${submission_id}/`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
