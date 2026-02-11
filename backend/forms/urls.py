@@ -41,9 +41,10 @@ urlpatterns = [
     path('admin/student-forms/<str:student_id>/<str:form_type>/', AdminStudentFormView.as_view(), name='admin-student-form-view'),
     path('graduation/<str:student_number>/', GraduationView.as_view(), name='graduation'),
     
-    # ADMIN SIDE
+    # ADMIN SIDE EDIT FORMS
     path('edit/bis/<str:student_id>/', BISEditView.as_view(), name='bis-edit'),
     path('edit/scif/<str:student_id>/', SCIFEditView.as_view(), name='scif-edit'),
+    path('edit/pard/<int:submission_id>/', PARDSubmitView.as_view(), name='pard-edit'),
     path('admin-edit/<int:submission_id>/', AdminFormEditView.as_view(), name='admin-form-edit'),
     
     # PARD 
@@ -53,7 +54,6 @@ urlpatterns = [
     path('psychosocial-assistance-and-referral-desk/<int:submission_id>/', PARDFormView.as_view(), name='get_pard_data'),
     
     # PARD ADMIN
-    path('admin/psychosocial-assistance-and-referral-desk/edit/<int:submission_id>/', PARDSubmitView.as_view(), name='pard-edit'),
     path('admin/psychosocial-assistance-and-referral-desk', AdminPARDList.as_view(), name='get_pard_students'),
     path('admin/psychosocial-assistance-and-referral-desk/<int:submission_id>/', PARDFormView.as_view(), name='get_pard_data'),
     path('psychosocial-assistance-and-referral-desk/status-choices/', PARDStatusView.as_view(), name='pard_status_choices'),
